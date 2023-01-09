@@ -901,6 +901,7 @@ LIBBOX2D_FILES := \
 	$(LIBBOX2D_DIR)/Common/b2FreeList.cpp \
 	$(LIBBOX2D_DIR)/Common/b2Math.cpp \
 	$(LIBBOX2D_DIR)/Common/b2Settings.cpp \
+	$(LIBBOX2D_DIR)/Common/b2Geometry.cpp \
 	$(LIBBOX2D_DIR)/Common/b2StackAllocator.cpp \
 	$(LIBBOX2D_DIR)/Common/b2Stat.cpp \
 	$(LIBBOX2D_DIR)/Common/b2Timer.cpp \

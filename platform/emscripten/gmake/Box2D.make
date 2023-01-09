@@ -85,6 +85,7 @@ OBJECTS := \
 	$(OBJDIR)/b2FreeList.o \
 	$(OBJDIR)/b2Math.o \
 	$(OBJDIR)/b2Settings.o \
+	$(OBJDIR)/b2Geometry.o \
 	$(OBJDIR)/b2StackAllocator.o \
 	$(OBJDIR)/b2Timer.o \
 	$(OBJDIR)/b2TrackedBlock.o \
@@ -246,6 +247,10 @@ $(OBJDIR)/b2Math.o: ../../../external/Box2D/Box2D/Common/b2Math.cpp
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/b2Settings.o: ../../../external/Box2D/Box2D/Common/b2Settings.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/b2Geometry.o: ../../../external/Box2D/Box2D/Common/b2Geometry.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 

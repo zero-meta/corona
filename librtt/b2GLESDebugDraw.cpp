@@ -175,7 +175,7 @@ void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &rend
 				{
 					float32 r = 0.95f, g = 0.75f, b = 0.5f;
 
-					if (body->IsActive() == false)
+					if (body->IsEnabled() == false)
 					{
 						r = 0.5f; g = 0.5f; b = 0.3f;
 					}
@@ -228,7 +228,7 @@ void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &rend
 	SetFlags( tmpFlags );
 	{
 		// Draw everything else
-		world->DrawDebugData();
+		world->DebugDraw();
 	}
 	// Restore flags
 	SetFlags( flags );
@@ -277,25 +277,25 @@ void b2GLESDebugDraw::DrawShape( b2Fixture* fixture, const b2Transform& xf, cons
 		}
 		break;
 
-		case b2Shape::e_chain:
-		{
-			b2ChainShape* chain = (b2ChainShape*)fixture->GetShape();
-			int32 count = chain->m_count;
-			const b2Vec2* vertices = chain->m_vertices;
+		// case b2Shape::e_chain:
+		// {
+		// 	b2ChainShape* chain = (b2ChainShape*)fixture->GetShape();
+		// 	int32 count = chain->m_count;
+		// 	const b2Vec2* vertices = chain->m_vertices;
 
-			b2Vec2 v1 = b2Mul(xf, vertices[0]);
-			for (int32 i = 1; i < count; ++i)
-			{
-				b2Vec2 v2 = b2Mul(xf, vertices[i]);
-				DrawSegment(v1, v2, color);
-				DrawCircle(v1, 3.0f * fMetersPerPixel, color);
-				v1 = v2;
-			}
+		// 	b2Vec2 v1 = b2Mul(xf, vertices[0]);
+		// 	for (int32 i = 1; i < count; ++i)
+		// 	{
+		// 		b2Vec2 v2 = b2Mul(xf, vertices[i]);
+		// 		DrawSegment(v1, v2, color);
+		// 		DrawCircle(v1, 3.0f * fMetersPerPixel, color);
+		// 		v1 = v2;
+		// 	}
 
-			// Draw the "end cap" circle.
-			DrawCircle(v1, 3.0f * fMetersPerPixel, color);
-		}
-		break;
+		// 	// Draw the "end cap" circle.
+		// 	DrawCircle(v1, 3.0f * fMetersPerPixel, color);
+		// }
+		// break;
 
 		default:
 			Rtt_ASSERT_NOT_REACHED();

@@ -205,6 +205,7 @@
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2FreeList.cpp" />
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2Math.cpp" />
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2Settings.cpp" />
+    <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2Geometry.cpp" />
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2StackAllocator.cpp" />
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2Stat.cpp" />
     <ClCompile Include="..\..\..\..\external\Box2D\Box2D\Common/b2Timer.cpp" />

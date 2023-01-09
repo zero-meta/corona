@@ -615,6 +615,7 @@ PhysicsJoint::removeSelf( lua_State *L )
 	return 0;
 }
 
+/* deprecated
 static const char *
 StringForLimitState( b2LimitState value )
 {
@@ -642,6 +643,7 @@ StringForLimitState( b2LimitState value )
 
 	return result;
 }
+*/
 
 int
 PhysicsJoint::ValueForKey( lua_State *L )
@@ -684,7 +686,7 @@ PhysicsJoint::ValueForKey( lua_State *L )
 		}
 		else if ( 0 == strcmp( "isActive", key ) )
 		{
-			lua_pushboolean( L, baseJoint->IsActive() );
+			lua_pushboolean( L, baseJoint->IsEnabled() );
 		}
 		else if ( 0 == strcmp( "isCollideConnected", key ) )
 		{
@@ -720,11 +722,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, joint->GetStiffness() );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, joint->GetDamping() );
 				}
 				else
 				{
@@ -962,16 +964,16 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointLinearSpeed() ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( strcmp( "springFrequency", key ) == 0 )
 				{
-					lua_pushnumber( L, joint->GetSpringFrequencyHz() );
+					lua_pushnumber( L, joint->GetStiffness() );
 				}		
 				else if ( strcmp( "springDampingRatio", key ) == 0 )
 				{
-					lua_pushnumber( L, joint->GetSpringDampingRatio() );
+					lua_pushnumber( L, joint->GetDamping() );
 				}		
 				else
 				{
@@ -1032,11 +1034,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, joint->GetStiffness() );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, joint->GetDamping() );
 				}
 				else if ( strcmp( "setTarget", key ) == 0 )
 				{
@@ -1087,11 +1089,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, joint->GetStiffness() );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, joint->GetDamping() );
 				}
 				else
 				{
@@ -1110,10 +1112,10 @@ PhysicsJoint::ValueForKey( lua_State *L )
 					float value = LuaLibPhysics::FromMKS( LuaLibPhysics::kLengthUnitType, physics, joint->GetMaxLength() );
 					lua_pushnumber( L, value );
 				}
-				else if ( 0 == strcmp( "limitState", key ) )
-				{
-					lua_pushstring( L, StringForLimitState( joint->GetLimitState() ) );
-				}
+				// else if ( 0 == strcmp( "limitState", key ) )
+				// {
+				// 	lua_pushstring( L, StringForLimitState( joint->GetLimitState() ) );
+				// }
 				else
 				{
 					result = 0;
@@ -1171,7 +1173,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real newValue = luaL_toreal( L, 3 );
-					joint->SetFrequency( newValue );
+					joint->SetStiffness( newValue );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
@@ -1179,7 +1181,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real newValue = luaL_toreal( L, 3 );
-					joint->SetDampingRatio( newValue );
+					joint->SetDamping( newValue );
 				}
 			}
 		}
@@ -1401,14 +1403,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetSpringFrequencyHz( lua_tonumber( L, 3 ) );
+					joint->SetStiffness( lua_tonumber( L, 3 ) );
 				}
 			}		
 			else if ( strcmp( "springDampingRatio", key ) == 0 )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetSpringDampingRatio( lua_tonumber( L, 3 ) );
+					joint->SetDamping( lua_tonumber( L, 3 ) );
 				}
 			}		
 		}
@@ -1458,14 +1460,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetFrequency( lua_tonumber( L, 3 ) );
+					joint->SetStiffness( lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetDampingRatio( lua_tonumber( L, 3 ) );
+					joint->SetDamping( lua_tonumber( L, 3 ) );
 				}
 			}
 		} 
@@ -1505,14 +1507,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetFrequency( lua_tonumber( L, 3 ) );
+					joint->SetStiffness( lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetDampingRatio( lua_tonumber( L, 3 ) );
+					joint->SetDamping( lua_tonumber( L, 3 ) );
 				}
 			}
 		}
@@ -1532,10 +1534,10 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 					joint->SetMaxLength( value );
 				}
 			}
-			else if ( 0 == strcmp( "limitState", key ) )
-			{
-				// No-op for read-only property
-			}
+			// else if ( 0 == strcmp( "limitState", key ) )
+			// {
+			// 	// No-op for read-only property
+			// }
 		}
 
 	}

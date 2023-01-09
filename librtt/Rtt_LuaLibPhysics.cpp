@@ -1038,6 +1038,88 @@ InitializeFixtureFromLua( lua_State *L,
 	lua_pop( L, 1 );
 }
 
+// ADD BY LABO_LADO, for chain shape compatibility.
+static void
+InitializeChainFixtureFromLua( lua_State *L,
+							b2FixtureDef &outFixtureDef,
+							int lua_arg_index )
+{
+	// Set sensible defaults
+	// IMPORTANT: These defaults are overridden by InitializeFixtureFromLua().
+	outFixtureDef.density = 0.01f; // previous default was zero, but that did odd things in Box2D dynamic bodies (contrary to documentation?)
+	outFixtureDef.friction = 0.3f;
+	outFixtureDef.restitution = 0.5f;
+	outFixtureDef.isSensor = false;
+
+	if( ! lua_istable( L, lua_arg_index ) )
+	{
+		// Nothing to do.
+		return;
+	}
+
+	lua_getfield( L, lua_arg_index, "density" );
+	float density = (float) lua_tonumber( L, -1 );
+	if ( density > 0.0f )
+	{
+		outFixtureDef.density = density;
+	}
+	lua_pop( L, 1 );
+
+	// If not supplied, we assume a default of 0
+	lua_getfield( L, lua_arg_index, "friction" );
+	float friction = (float) lua_tonumber( L, -1 );
+	if (friction >= 0.0f )
+	{
+		outFixtureDef.friction = friction;
+	}
+	lua_pop( L, 1 );
+
+	// If not supplied, we assume a default of 0
+	lua_getfield( L, lua_arg_index, "bounce" ); // renamed from "restitution" for developer clarity
+	float restitution = (float) lua_tonumber( L, -1 );
+	if (restitution >= 0.0f )
+	{
+		outFixtureDef.restitution = restitution;
+	}
+	lua_pop( L, 1 );
+
+	// If not supplied, we assume a default of false
+	lua_getfield( L, lua_arg_index, "isSensor" );
+	outFixtureDef.isSensor = (bool)lua_toboolean( L, -1 );
+	lua_pop( L, 1 );
+
+	lua_getfield( L, lua_arg_index, "filter" );
+	if ( lua_istable( L, -1 ) )
+	{
+		b2Filter& filter = outFixtureDef.filter;
+
+		lua_getfield( L, -1, "categoryBits" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			uint16 categoryBits = (uint16)lua_tonumber( L, -1 );
+			filter.categoryBits = categoryBits;
+		}
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "maskBits" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			uint16 maskBits = (uint16)lua_tonumber( L, -1 );
+			filter.maskBits = maskBits;
+		}
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "groupIndex" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			int16 groupIndex = (int16)lua_tonumber( L, -1 );
+			filter.groupIndex = groupIndex;
+		}
+		lua_pop( L, 1 );
+	}
+	lua_pop( L, 1 );
+}
+
 static const char kDistanceJointType[] = "distance";
 static const char kPivotJointType[] = "pivot";
 static const char kPistonJointType[] = "piston";
@@ -1732,18 +1814,15 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 
 		b2FixtureDef fixtureDef;
 
-		b2ChainShape chainDef;
-		chainDef.CreateChain( &vertexList[ 0 ],
-								(int)vertexList.size() );
-
-		InitializeFixtureFromLua( L,
+		// b2ChainShape chainDef;
+		// chainDef.CreateChain( &vertexList[ 0 ],
+		// 						(int)vertexList.size() );
+		// Modified by LABO_LADO
+		InitializeChainFixtureFromLua( L,
 									fixtureDef,
-									&chainDef,
 									lua_arg_index );
 
-		_FixtureCreator( body,
-							&fixtureDef,
-							fixtureIndex );
+		b2CreateChainTwoSided( body, &fixtureDef, &vertexList[ 0 ], (int)vertexList.size(), fixtureIndex );
 
 		return true;
 	}
@@ -1791,18 +1870,14 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 
 			b2FixtureDef fixtureDef;
 
-			b2ChainShape chainDef;
-			chainDef.CreateLoop( &vertexList[ 0 ],
-									(int)vertexList.size() );
-
-			InitializeFixtureFromLua( L,
+			// b2ChainShape chainDef;
+			// chainDef.CreateLoop( &vertexList[ 0 ],
+			// 						(int)vertexList.size() );
+			// Modified by LABO_LADO
+			InitializeChainFixtureFromLua( L,
 										fixtureDef,
-										&chainDef,
 										lua_arg_index );
-
-			_FixtureCreator( body,
-								&fixtureDef,
-								fixtureIndex );
+			b2CreateLoop( body, &fixtureDef, &vertexList[ 0 ], (int)vertexList.size(), fixtureIndex );
 
 			return true;
 		}
@@ -2032,14 +2107,20 @@ InitializeFixtureUsing_Chain( lua_State *L,
 
 		b2FixtureDef fixtureDef;
 
-		b2ChainShape chainDef;
+		// b2ChainShape chainDef;
+		// Modified by LABO_LADO
+		InitializeChainFixtureFromLua( L,
+									fixtureDef,
+									lua_arg_index );
 
 		if( connectFirstAndLastChainVertex )
 		{
 			if( vertexList.size() >= 3 )
 			{
-				chainDef.CreateLoop( &vertexList[ 0 ],
-										(int)vertexList.size() );
+				// Modified by LABO_LADO
+				// chainDef.CreateLoop( &vertexList[ 0 ],
+				// 						(int)vertexList.size() );
+				b2CreateLoop( body, &fixtureDef, &vertexList[ 0 ], (int)vertexList.size(), fixtureIndex );
 			}
 			else
 			{
@@ -2055,8 +2136,10 @@ InitializeFixtureUsing_Chain( lua_State *L,
 		{
 			if( vertexList.size() >= 2 )
 			{
-				chainDef.CreateChain( &vertexList[ 0 ],
-										(int)vertexList.size() );
+				// Modified by LABO_LADO
+				// chainDef.CreateChain( &vertexList[ 0 ],
+				// 						(int)vertexList.size() );
+				b2CreateChainTwoSided( body, &fixtureDef, &vertexList[ 0 ], (int)vertexList.size(), fixtureIndex );
 			}
 			else
 			{
@@ -2069,14 +2152,10 @@ InitializeFixtureUsing_Chain( lua_State *L,
 			}
 		}
 
-		InitializeFixtureFromLua( L,
-									fixtureDef,
-									&chainDef,
-									lua_arg_index );
-
-		_FixtureCreator( body,
-							&fixtureDef,
-							fixtureIndex );
+		// Modified by LABO_LADO
+		// _FixtureCreator( body,
+		// 					&fixtureDef,
+		// 					fixtureIndex );
 
 		lua_pop( L, 1 );
 		return true;

@@ -325,7 +325,7 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 1:
 			{
-				lua_pushboolean( L, fBody->IsActive() );
+				lua_pushboolean( L, fBody->IsEnabled() );
 			}
 			break;
 		case 2:
@@ -498,7 +498,7 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			{
 				if ( ! LuaLibPhysics::IsWorldLocked( L, "display object property isBodyActive cannot be set" ) )
 				{
-					fBody->SetActive( lua_toboolean( L, valueIndex ) );
+					fBody->SetEnabled( lua_toboolean( L, valueIndex ) );
 				}
 			}
 			break;

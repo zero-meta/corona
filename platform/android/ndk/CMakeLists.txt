@@ -684,6 +684,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2FreeList.cpp
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2Math.cpp
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2Settings.cpp
+		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2Geometry.cpp
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2StackAllocator.cpp
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2Stat.cpp
 		${CORONA_ROOT}/external/Box2D/Box2D/Common/b2Timer.cpp

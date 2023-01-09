@@ -26,6 +26,7 @@
 		03D1C53E1D70CBBF00DB02EE /* Rtt_Preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C5381D70CBB400DB02EE /* Rtt_Preference.cpp */; };
 		03D1C53F1D70CBC200DB02EE /* Rtt_PreferenceCollection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C53A1D70CBB400DB02EE /* Rtt_PreferenceCollection.cpp */; };
 		03D1C5401D70CBC500DB02EE /* Rtt_PreferenceValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C53C1D70CBB400DB02EE /* Rtt_PreferenceValue.cpp */; };
+		413BE90629668CC0006CCD1D /* b2Geometry.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 413BE8C929668CBF006CCD1D /* b2Geometry.cpp */; };
 		41FDA931292DCAEA00ABB854 /* b2FakeJoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41FDA930292DCAEA00ABB854 /* b2FakeJoint.cpp */; };
 		A40A90531BD984AD001D2038 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A40A90521BD984AD001D2038 /* CoreText.framework */; };
 		A4384F521BAA1F49005750A3 /* b2GLESDebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4384F491BAA1F49005750A3 /* b2GLESDebugDraw.cpp */; };
@@ -1577,6 +1578,8 @@
 		03D1C53B1D70CBB400DB02EE /* Rtt_PreferenceCollection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_PreferenceCollection.h; path = ../../librtt/Rtt_PreferenceCollection.h; sourceTree = "<group>"; };
 		03D1C53C1D70CBB400DB02EE /* Rtt_PreferenceValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Rtt_PreferenceValue.cpp; path = ../../librtt/Rtt_PreferenceValue.cpp; sourceTree = "<group>"; };
 		03D1C53D1D70CBB400DB02EE /* Rtt_PreferenceValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_PreferenceValue.h; path = ../../librtt/Rtt_PreferenceValue.h; sourceTree = "<group>"; };
+		413BE8C929668CBF006CCD1D /* b2Geometry.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = b2Geometry.cpp; sourceTree = "<group>"; };
+		413BE90529668CBF006CCD1D /* b2Geometry.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = b2Geometry.h; sourceTree = "<group>"; };
 		41FDA8F4292DCAEA00ABB854 /* b2FakeJoint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = b2FakeJoint.h; sourceTree = "<group>"; };
 		41FDA930292DCAEA00ABB854 /* b2FakeJoint.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = b2FakeJoint.cpp; sourceTree = "<group>"; };
 		A40A90521BD984AD001D2038 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
@@ -3302,6 +3305,8 @@
 		A4551FBF1BAA1B7300FB3BDF /* Common */ = {
 			isa = PBXGroup;
 			children = (
+				413BE8C929668CBF006CCD1D /* b2Geometry.cpp */,
+				413BE90529668CBF006CCD1D /* b2Geometry.h */,
 				A4551FA91BAA1B7300FB3BDF /* b2BlockAllocator.cpp */,
 				A4551FAA1BAA1B7300FB3BDF /* b2BlockAllocator.h */,
 				A4551FAB1BAA1B7300FB3BDF /* b2Draw.cpp */,
@@ -5619,6 +5624,7 @@
 				A45520371BAA1B7300FB3BDF /* b2WeldJoint.cpp in Sources */,
 				A455203E1BAA1B7300FB3BDF /* b2Rope.cpp in Sources */,
 				A45520151BAA1B7300FB3BDF /* b2BlockAllocator.cpp in Sources */,
+				413BE90629668CC0006CCD1D /* b2Geometry.cpp in Sources */,
 				A45520251BAA1B7300FB3BDF /* b2ChainAndPolygonContact.cpp in Sources */,
 				A455200E1BAA1B7300FB3BDF /* b2Distance.cpp in Sources */,
 				A455201D1BAA1B7300FB3BDF /* b2TrackedBlock.cpp in Sources */,
