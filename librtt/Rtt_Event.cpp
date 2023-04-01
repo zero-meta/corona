@@ -1730,7 +1730,34 @@ TestMask( Rtt_Allocator *allocator, DisplayObject& child, const Matrix& srcToDst
   	Vertex2 p = { dstX, dstY };
   	inverse.Apply( p );
 
-  	PlatformBitmap *bitmap = mask->GetPaint()->GetBitmap();
+	PlatformBitmap *bitmap;
+	const Paint *paint = mask->GetPaint();
+
+	if ( paint )
+	{
+		bitmap = paint->GetBitmap();
+	}
+
+	else
+	{
+		Rtt_ASSERT( mask->GetOnlyForHitTests() );
+
+		if ( !ShapeObject::IsShapeObject( child ) )
+		{
+			return false;
+		}
+
+		ShapeObject &o = static_cast<ShapeObject&>( child );
+		paint = o.GetBitmapPaint();
+
+		if ( !paint )
+		{
+			return false;
+		}
+
+		bitmap = paint->GetBitmap();
+	}
+
 	if ( Rtt_VERIFY( bitmap ) )
 	{
 		Real w = bitmap->Width();
@@ -1751,7 +1778,7 @@ TestMask( Rtt_Allocator *allocator, DisplayObject& child, const Matrix& srcToDst
 				Rtt_RealToInt( x ), Rtt_RealToInt( y ) ) );
 		#endif
 
-		result = mask->HitTest( allocator, Rtt_RealToInt( x ), Rtt_RealToInt( y ) );
+		result = bitmap->HitTest( allocator, Rtt_RealToInt( x ), Rtt_RealToInt( y ) ); // TODO: mask->HitTest() seems to be unnecessary (remove?)
 	}
 
 	return result;
@@ -1811,7 +1838,7 @@ HitEvent::Test( HitTestObject& hitParent, const Matrix& srcToDstSpace ) const
 					child.SetForceDraw( oldValue );
 
 					// Only do deeper testing if a mask exists and the "isHitTestMasked" property is true
-					if ( didHit && child.IsHitTestMasked() && child.GetMask() )
+					if ( didHit && child.IsHitTestMasked() )
 					{
 						Matrix childToDst( xform );
 						childToDst.Concat( child.GetMatrix() );
@@ -1839,7 +1866,7 @@ HitEvent::Test( HitTestObject& hitParent, const Matrix& srcToDstSpace ) const
 					hitTestChildren = child.StageBounds().HitTest( x, y );
 
 					// Only do deeper testing if a mask exists and the "isHitTestMasked" property is true
-					if ( hitTestChildren && child.GetMask() )
+					if ( hitTestChildren )
 					{
 						Matrix childToDst( xform );
 						childToDst.Concat( child.GetMatrix() );
