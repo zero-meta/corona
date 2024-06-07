@@ -27,6 +27,8 @@
 #include "Core/Rtt_Types.h"
 #include "Renderer/Rtt_MCPUResourceObserver.h"
 
+#include "Rtt_Profiling.h"
+
 #define ENABLE_DEBUG_PRINT	0
 
 #include <limits>
@@ -467,8 +469,8 @@ Renderer::Insert( const RenderData* data )
 	bool blendEquationDirty = data->fBlendEquation != fPrevious.fBlendEquation;
 	bool fillDirty0 = data->fFillTexture0 != fPrevious.fFillTexture0 && data->fFillTexture0;
 	bool fillDirty1 = data->fFillTexture1 != fPrevious.fFillTexture1 && data->fFillTexture1;
-	bool maskTextureDirty = data->fMaskTexture != fPrevious.fMaskTexture && data->fMaskTexture;
-	bool maskUniformDirty = data->fMaskUniform != fPrevious.fMaskUniform && data->fMaskUniform;
+	bool maskTextureDirty = data->fMaskTexture != fPrevious.fMaskTexture; // since PushMask() can stomp on the previous texture, a "not NULL" check here is unreliable
+	bool maskUniformDirty = data->fMaskUniform != fPrevious.fMaskUniform; // ...ditto
 	bool programDirty = data->fProgram != fPrevious.fProgram || MaskCount() != fCurrentProgramMaskCount;
 	bool userUniformDirty0 = data->fUserUniform0 != fPrevious.fUserUniform0 && data->fUserUniform0;
 	bool userUniformDirty1 = data->fUserUniform1 != fPrevious.fUserUniform1 && data->fUserUniform1;
@@ -701,17 +703,17 @@ Renderer::Insert( const RenderData* data )
 	}
 
 	// Mask texture
-	if( maskTextureDirty )
+	if( maskTextureDirty && data->fMaskTexture )
 	{
 		BindTexture( data->fMaskTexture, Texture::kMask0 + MaskCount() - 1 );
-		fPrevious.fMaskTexture = data->fMaskTexture;
 	}
+	fPrevious.fMaskTexture = data->fMaskTexture; // avoid NULL textures keeping this value dirty...
 
-	if( maskUniformDirty )
+	if( maskUniformDirty && data->fMaskUniform )
 	{
 		BindUniform( data->fMaskUniform, Uniform::kMaskMatrix0 + MaskCount() - 1 );
-		fPrevious.fMaskUniform = data->fMaskUniform;
 	}
+	fPrevious.fMaskUniform = data->fMaskUniform; // ...as with textures
 
 	if( data->fMaskTexture )
 	{
@@ -760,6 +762,8 @@ Renderer::Render()
 void
 Renderer::Swap()
 {
+	ENABLE_SUMMED_TIMING( true );
+
 	// Create GPUResources
 	Rtt_AbsoluteTime start = START_TIMING();
 	for(S32 i = 0; i < fCreateQueue.Length(); ++i)
@@ -780,6 +784,8 @@ Renderer::Swap()
 	}
 	fUpdateQueue.Remove(0, fUpdateQueue.Length(), false);
 	fStatistics.fResourceUpdateTime = STOP_TIMING(start);
+	
+	ENABLE_SUMMED_TIMING( false );
 
 	// Destroy GPUResources
 	start = START_TIMING();

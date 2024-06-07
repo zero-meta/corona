@@ -282,7 +282,7 @@ end
 local function getLiveBuildManifestScript(appDir, manifestFile)
 	-- local genManifestSh = "cd ".. appDir .." && find . -print0 | xargs -0 stat -f '%m %N' > " .. manifestFile
 
-	local genManifestSh = "cd ".. appDir .." &&  find . -print0 | xargs -0 stat -f '0 / %m / %N%T //' | sed -e 's![*@] //$! //!' -e 's!/ \./!/ /!' > "..manifestFile
+	local genManifestSh = "cd ".. appDir .." &&  find . -print0 | xargs -0 stat -f '0 / %m / %N%T //' | sed -e 's![*@] //$! //!' -e 's!/ \\./!/ /!' > "..manifestFile
 
 	return genManifestSh
 end
@@ -981,6 +981,11 @@ end
 local function generateFiles( options )
 	local result = nil
 
+	result = generateXcprivacy( options )
+	if result then
+		return result
+	end
+
 	result = generateXcent( options )
 	if result then
 		return result
@@ -992,6 +997,38 @@ local function generateFiles( options )
 	end
 
 	return result
+end
+
+-- xcprivacy
+local templateXcprivacy = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+{{CUSTOM_XCPRIVACY}}
+</dict>
+</plist>
+]]
+local function generateXcprivacy( options )
+	local filename = options.tmpDir .. "/PrivacyInfo.xcprivacy"
+	local outFile = assert( io.open( filename, "wb" ) )
+
+	local data = templateXcprivacy
+
+	local generatedPrivacy = CoronaPListSupport.generateXcprivacy( options.settings, 'tvos')
+	if(  generatedPrivacy and generatedPrivacy ~= "" ) then
+		data, numMatches = string.gsub( data, "{{CUSTOM_XCPRIVACY}}", generatedPrivacy )
+		assert( numMatches == 1 )
+	end
+
+	outFile:write(data)
+	assert( outFile:close() )
+
+	print( "Created XCPRIACY: " .. filename );
+
+	if debugBuildProcess and debugBuildProcess ~= 0 then
+		runScript("cat "..filename)
+	end
 end
 
 -- True for Ad Hoc or Store builds
@@ -1293,6 +1330,11 @@ local function packageApp( options )
 		end
 	end
 
+	--add xcprivacy file to the bundle
+	if options.settings.tvos and options.settings.tvos.xcprivacy then
+		runScript("cp -v " .. quoteString(options.tmpDir .. "/PrivacyInfo.xcprivacy") .. " " .. quoteString(makepath(appBundleFileUnquoted, "PrivacyInfo.xcprivacy")))
+	end
+
 	-- bundle is now ready to be signed (don't sign if we don't have a signingIdentity, e.g. Xcode Simulator)
 	if options.signingIdentity then
 		-- codesign embedded frameworks before signing the .app
@@ -1493,6 +1535,18 @@ function buildExe( options )
 	local pluginsDir = buildDir
 	local dstFrameworksDir = dstDir .. "/Frameworks"
 
+	local sdkVersion = captureCommandOutput("xcrun --sdk appletvos --show-sdk-version" )
+	if not sdkVersion then
+		return "ERROR: Could not find TVos SDK Version"
+	end
+	sdkVersion = tonumber(string.match(sdkVersion, '%d+'))
+	if not sdkVersion then
+		return "ERROR: Could not parse TVos SDK Version"
+	end
+	local stripBitcode = (sdkVersion>=16)
+	local stripBitcodeScript = 'cd "' ..dstFrameworksDir ..  '" && for F in *.framework ; do  if (xcrun otool -l  "$F/${F%.*}" | grep LLVM -q ) ; then xcrun bitcode_strip -r "$F/${F%.*}" -o "$F/${F%.*}".tmp ; mv "$F/${F%.*}".tmp "$F/${F%.*}"  ; fi  ; done '
+
+
 	local pluginDirNames = getPluginDirNames( pluginsDir )
 	for i=1,#pluginDirNames do
 		local pluginName = pluginDirNames[i]
@@ -1511,6 +1565,10 @@ function buildExe( options )
 				print( "Plugins: The plugin (" .. pluginName .. ") is missing a .framework file at path (" .. pluginFrameworkPath .. ")" )
 			end
 		end
+	end
+
+	if stripBitcode then
+		runScript(stripBitcodeScript)
 	end
 
 	-- Move the helper files/plugin libs out of the .app bundle into the tmp dir

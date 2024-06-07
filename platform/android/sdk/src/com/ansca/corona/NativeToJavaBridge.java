@@ -146,7 +146,7 @@ public class NativeToJavaBridge {
 		StringBuilder err = new StringBuilder();
 		if (runtime != null) {
 			// Fetch the runtime's Lua state.
-			// TODO: We need to account for corountines.
+			// TODO: We need to account for coroutines.
 			LuaState L = runtime.getLuaState();
 			if ( null == L ) {
 				L = new com.naef.jnlua.LuaState(luaStateMemoryAddress);
@@ -168,6 +168,10 @@ public class NativeToJavaBridge {
 			}
 			catch ( Exception ex ) {
 				err.append("\n\tno Java class '").append(classPath).append("'");
+			}
+			catch ( Throwable ex ) {
+				ex.printStackTrace();
+				err.append("\n\terror loading class '").append(classPath).append("': ").append(ex);
 			}
 			if(result == 0) {
 				L.pushString(err.toString());
@@ -1554,6 +1558,7 @@ public class NativeToJavaBridge {
 			CoronaStatusBarApiListener listener = runtime.getController().getCoronaStatusBarApiListener();
 			CoronaStatusBarSettings statusBarMode = listener.getStatusBarMode();
 			boolean hasNavigationBar = listener.HasSoftwareKeys();
+
 			if (listener != null) {
 				if (listener.IsAndroidTV()) {
 					int contentHeight = JavaToNativeShim.getContentHeightInPixels(runtime);
@@ -1568,7 +1573,12 @@ public class NativeToJavaBridge {
 						result[0] = cutout.getSafeInsetTop();
 						result[1] = cutout.getSafeInsetLeft();
 						result[2] = cutout.getSafeInsetRight();
-						result[3] = cutout.getSafeInsetBottom();
+						//Android InsetBottom does not always return correct navbar height
+						if(hasNavigationBar && cutout.getSafeInsetBottom() == 0 && !runtime.getController().getSystemUiVisibility().contains("immersive")){
+							result[3] = listener.getNavigationBarHeight();
+						}else{
+							result[3] = cutout.getSafeInsetBottom();
+						}
 					}
 					else {
                         result[0] = (statusBarMode != CoronaStatusBarSettings.HIDDEN) ? listener.getStatusBarHeight() : 0;
@@ -2051,6 +2061,10 @@ public class NativeToJavaBridge {
 			luaState.pushBoolean(currentNightMode == android.content.res.Configuration.UI_MODE_NIGHT_YES);
 			valuesPushed = 1;
 		}
+		else if (key.equals("hasSoftwareKeys")) {
+			luaState.pushBoolean(CoronaEnvironment.getCoronaActivity().HasSoftwareKeys());
+			valuesPushed = 1;
+		}
 
 		// Push nil if failed to fetch the requested value.
 		if (valuesPushed <= 0) {
@@ -2291,6 +2305,10 @@ public class NativeToJavaBridge {
 	protected static void callTextFieldSetSelection( CoronaRuntime runtime, int id, int startPosition, int endPosition)
 	{
 		runtime.getViewManager().setTextSelection( id, startPosition, endPosition );
+	}
+
+	protected static int[] callTextFieldGetSelection(CoronaRuntime runtime, int id) {
+	    return runtime.getViewManager().getTextSelection(id);
 	}
 
 	protected static void callTextFieldSetReturnKey( CoronaRuntime runtime, int id, String imeType ) 

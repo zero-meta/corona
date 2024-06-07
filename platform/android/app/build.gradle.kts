@@ -47,7 +47,7 @@ val nativeDir = if (windows) {
     val resourceDir = coronaResourcesDir?.let { file("$it/../Native/").absolutePath }?.takeIf { file(it).exists() }
     (resourceDir ?: "${System.getenv("CORONA_PATH")}/Native").replace("\\", "/")
 } else if (linux) {
-    "$coronaResourcesDir/Native"    
+    "$coronaResourcesDir/Native"
 } else {
     val resourceDir = coronaResourcesDir?.let { file("$it/../../../Native/").absolutePath }?.takeIf { file(it).exists() }
     resourceDir ?: "${System.getenv("HOME")}/Library/Application Support/Corona/Native/"
@@ -65,7 +65,7 @@ fun checkCoronaNativeInstallation() {
     } else {
         val setupNativeApp = File("/Applications").listFiles { f ->
             f.isDirectory && f.name.startsWith("Corona")
-        }?.max()?.let {
+        }.maxOrNull()?.let {
             "${it.absolutePath}/Native/Setup Corona Native.app"
         } ?: "Native/Setup Corona Native.app"
         throw InvalidUserDataException("Corona Native was not set-up properly. Launch '$setupNativeApp'.")
@@ -134,7 +134,7 @@ extra["minSdkVersion"] = parsedBuildProperties.lookup<Any?>("buildSettings.andro
 val coronaBuilder = if (windows) {
     "$nativeDir/Corona/win/bin/CoronaBuilder.exe"
 } else if (linux) {
-    "$coronaResourcesDir/../Solar2DBuilder"    
+    "$coronaResourcesDir/../Solar2DBuilder"
 } else {
     "$nativeDir/Corona/$shortOsName/bin/CoronaBuilder.app/Contents/MacOS/CoronaBuilder"
 }
@@ -190,20 +190,20 @@ if (configureCoronaPlugins == "YES") {
 
 android {
     lintOptions {
-        isCheckReleaseBuilds = false
+        isCheckReleaseBuilds = true
     }
-    compileSdkVersion(32)
+    compileSdk = 33
     defaultConfig {
         applicationId = coronaAppPackage
-        targetSdkVersion(32)
-        minSdkVersion(extra["minSdkVersion"] as Int)
+        targetSdk = 33
+        minSdk = (extra["minSdkVersion"] as Int)
         versionCode = coronaVersionCode
         versionName = coronaVersionName
         multiDexEnabled = true
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility  = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility  = JavaVersion.VERSION_11
     }
     coronaKeystore?.let { keystore ->
         signingConfigs {
@@ -258,6 +258,13 @@ android {
     if (isExpansionFileRequired) {
         assetPacks.add(":preloadedAssets")
     }
+
+    parsedBuildProperties.lookup<JsonArray<JsonObject>>("buildSettings.android.onDemandResources").firstOrNull()?.forEach {
+        it["tag"].let { tag ->
+            assetPacks.add(":pda-$tag")
+        }
+    }
+
     // This is dirty hack because Android Assets refuse to copy assets which start with . or _
     if (!isExpansionFileRequired) {
         android.applicationVariants.all {
@@ -359,6 +366,12 @@ fun coronaAssetsCopySpec(spec: CopySpec) {
         file("$coronaTmpDir/excludesfile.properties").takeIf { it.exists() }?.readLines()?.forEach {
             exclude(it)
         }
+        parsedBuildProperties.lookup<JsonArray<JsonObject>>("buildSettings.android.onDemandResources").firstOrNull()?.forEach {
+            it["resource"].let { res ->
+                exclude("$res")
+                exclude("$res/**")
+            }
+        }
         if (!isSimulatorBuild) {
             // use build.settings properties only if this is not simulator build
             parsedBuildProperties.lookup<JsonArray<String>>("buildSettings.excludeFiles.all").firstOrNull()?.forEach {
@@ -383,6 +396,8 @@ android.applicationVariants.all {
     val isRelease = (baseName == "release")
     val generatedAssetsDir = "$buildDir/generated/corona_assets/$baseName"
     val compiledLuaArchive = "$buildDir/intermediates/compiled_lua_archive/$baseName/resource.car"
+    // fix assets not been merge when lua file changed
+    val luaArchiveInMergedAssets = "$buildDir/intermediates/assets/$baseName/resource.car"
 
     val compileLuaTask = tasks.create("compileLua${baseName.capitalize()}") {
         description = "If required, compiles Lua and archives it into resource.car"
@@ -472,6 +487,8 @@ android.applicationVariants.all {
             }
             delete(metadataConfig)
             val toArchive = outputsList.filter { file(it).name != "config.lu" } + "config.lu"
+            // Make sure it's not appended to an old file
+            delete(compiledLuaArchive)
             mkdir(file(compiledLuaArchive).parent)
             exec {
                 workingDir = file(compiledDir)
@@ -499,9 +516,9 @@ android.applicationVariants.all {
 
         doFirst {
             delete(generatedAssetsDir)
+            delete(luaArchiveInMergedAssets)
             mkdir(generatedAssetsDir)
-        }
-        doFirst {
+
             if (!file(coronaSrcDir).isDirectory) {
                 throw InvalidUserDataException("Unable to find Solar2D project (for example platform/test/assets2/main.lua)!")
             }
@@ -793,6 +810,7 @@ tasks.register<Zip>("exportCoronaAppTemplate") {
         exclude("**/*.iml", "**/\\.*")
         include("setup.sh", "setup.bat")
         include("preloadedAssets/build.gradle.kts")
+        include("PAD.kts.template")
         into("template")
     }
     from(android.sdkDirectory) {
@@ -877,13 +895,20 @@ tasks.register<Copy>("installAppTemplateAndAARToSim") {
 fun copyWithAppFilename(dest: String, appName: String?) {
     delete("$dest/$coronaAppFileName.apk")
     delete("$dest/$coronaAppFileName.aab")
+    var hasODR = false
+    parsedBuildProperties.lookup<JsonArray<JsonObject>>("buildSettings.android.onDemandResources").firstOrNull()?.forEach {
+        it["resource"].let { res ->
+            hasODR = true
+        }
+    }
+
     copy {
         into(dest)
         val copyTask = this
         android.applicationVariants.matching {
             it.name.equals("release", true)
         }.all {
-            if(!isExpansionFileRequired) {
+            if(!isExpansionFileRequired && !hasODR) {
                 copyTask.from(packageApplicationProvider!!.get().outputDirectory) {
                     include("*.apk")
                     exclude("*unsigned*")

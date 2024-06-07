@@ -1,6 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
-// This file is part of the Corona game engine.
+// This file is part of the Solar2D game engine.
+// With contributions from Dianchu Technology
 // For overview and more information on licensing please refer to README.md 
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
@@ -78,9 +79,7 @@ class GraphicsLibrary
 		static int newOutline( lua_State *L ); // This returns an outline in texels.
 		static int newTexture( lua_State *L );
 		static int releaseTextures( lua_State *L );
-    // STEVE CHANGE
         static int undefineEffect( lua_State *L );
-    // /STEVE CHANGE
         static int getFontMetrics( lua_State *L );
 
 	private:
@@ -123,9 +122,7 @@ GraphicsLibrary::Open( lua_State *L )
 		{ "newOutline", newOutline }, // This returns an outline in texels.
 		{ "newTexture", newTexture },
 		{ "releaseTextures", releaseTextures },
-        // STEVE CHANGE
         { "undefineEffect", undefineEffect },
-        // /STEVE CHANGE
         { "getFontMetrics", getFontMetrics },
 
 		{ NULL, NULL }
@@ -432,6 +429,13 @@ GraphicsLibrary::newOutline( lua_State *L )
 
 		paint = BitmapPaint::NewBitmap( runtime, imageFileName, baseDir, PlatformBitmap::kIsNearestAvailablePixelDensity );
 
+		// eg. Image not found
+		if ( ! Rtt_VERIFY( paint ) )
+		{
+			// Nothing to do.
+			return 0;
+		}
+
 		platform_bitmap = paint->GetBitmap();
 
 		// Crop.
@@ -505,6 +509,14 @@ GraphicsLibrary::newOutline( lua_State *L )
 	b2Vec2Vector shape_outline_in_texels;
 
 	const unsigned char *raw_bitmap_buffer = static_cast< const unsigned char * >( platform_bitmap->GetBits( NULL ) );
+
+	if ( ! Rtt_VERIFY( raw_bitmap_buffer ) )
+	{
+		// This is NECESSARY because of the platform_bitmap->GetBits() above.
+		platform_bitmap->FreeBits();
+		Rtt_DELETE(paint);
+		return 0;
+	}
 
 	int alphaIndex;
 	PlatformBitmap::Format format = platform_bitmap->GetFormat();
@@ -793,7 +805,6 @@ GraphicsLibrary::releaseTextures( lua_State *L )
 	return result;
 }
 
-// STEVE CHANGE
 // ----------------------------------------------------------------------------
 
 int
@@ -810,7 +821,6 @@ GraphicsLibrary::undefineEffect( lua_State *L )
 
     return 1;
 }
-// /STEVE CHANGE
 
 // ----------------------------------------------------------------------------
 

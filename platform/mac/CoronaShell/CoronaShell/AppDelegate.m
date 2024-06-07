@@ -30,6 +30,7 @@
 @property (nonatomic, readwrite, copy) CoronaView *coronaView;
 @property (nonatomic, readwrite, copy) NSString *appPath;
 @property (nonatomic, readwrite, assign) BOOL suspendWhenMinimized;
+@property (nonatomic, readwrite, assign) BOOL lastSentWindowStateForeground;
 @end
 
 
@@ -38,6 +39,12 @@
 @synthesize appPath = _appPath;
 @synthesize coronaView = _coronaView;
 @synthesize suspendWhenMinimized = _suspendWhenMinimized;
+@synthesize lastSentWindowStateForeground;
+
+- (BOOL)applicationSupportsSecureRestorableState:(NSApplication *)app
+{
+	return NO;
+}
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification
 {
@@ -53,6 +60,17 @@
     {
         [[NSRunningApplication currentApplication] activateWithOptions:(NSApplicationActivateAllWindows | NSApplicationActivateIgnoringOtherApps)];
     }
+}
+
+- (void)sentWindowForegroundEvent:(BOOL)foreground
+{
+	if(foreground!=self.lastSentWindowStateForeground) {
+		self.lastSentWindowStateForeground = foreground;
+		NSDictionary *event = @{ @"name" : @"windowState",
+						 @"phase" : foreground?@"foreground":@"background" };
+
+		[_coronaView sendEvent:event];
+	}
 }
 
 - (void)applicationWillTerminate:(NSNotification *)aNotification
@@ -75,6 +93,8 @@
 
 - (void)awakeFromNib
 {
+	self.lastSentWindowStateForeground = true;
+	
 	[super awakeFromNib];
     
  	[_window setDelegate:self];
@@ -529,6 +549,17 @@
 	NSLog(@"notifyRuntimeError: %@", mesg);
 }
 
+- (void)applicationWillResignActive:(NSNotification *)notification
+{
+	[self sentWindowForegroundEvent:false];
+}
+
+- (void) applicationDidBecomeActive:(NSNotification *)notification
+{
+	[self sentWindowForegroundEvent:true];
+}
+
+
 - (void) performPause:(id) sender
 {
 	// NSDEBUG(@"performPause: %@", sender);
@@ -555,6 +586,8 @@
 
 - (void) windowDidMiniaturize:(NSNotification *)notification
 {
+	[self sentWindowForegroundEvent:false];
+
     if (_suspendWhenMinimized)
     {
         [_coronaView suspend];
@@ -563,6 +596,8 @@
 
 - (void)windowDidDeminiaturize:(NSNotification *)notification
 {
+	[self sentWindowForegroundEvent:true];
+
     if (_suspendWhenMinimized)
     {
         [_coronaView resume];

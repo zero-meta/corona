@@ -575,15 +575,53 @@ local function generateXcent( options )
 end
 
 
+-- xcprivacy
+local templateXcprivacy = [[
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+{{CUSTOM_XCPRIVACY}}
+</dict>
+</plist>
+]]
+local function generateXcprivacy( options )
+	local filename = options.tmpDir .. "/PrivacyInfo.xcprivacy"
+	local outFile = assert( io.open( filename, "wb" ) )
+
+	local data = templateXcprivacy
+
+	local generatedPrivacy = CoronaPListSupport.generateXcprivacy( options.settings, 'iphone')
+	if(  generatedPrivacy and generatedPrivacy ~= "" ) then
+		data, numMatches = string.gsub( data, "{{CUSTOM_XCPRIVACY}}", generatedPrivacy )
+		assert( numMatches == 1 )
+	end
+
+	outFile:write(data)
+	assert( outFile:close() )
+
+	print( "Created XCPRIACY: " .. filename );
+
+	if debugBuildProcess and debugBuildProcess ~= 0 then
+		runScript("cat "..filename)
+	end
+end
+
+
 --
 -- generateFiles
 --
--- Create the .xcent and Info.plist files
+-- Create the .xcent, .xcprivacy, and Info.plist files
 --
 -- returns an error message or nil on success
 --
 local function generateFiles( options )
 	local result = nil
+
+	result = generateXcprivacy( options )
+	if result then
+		return result
+	end
 
 	result = generateXcent( options )
 	if result then
@@ -776,8 +814,6 @@ export PATH="$DEVELOPER_BASE/Platforms/iPhoneOS.platform/Developer/usr/bin:$DEVE
   return nil
 end
 
-
-
 --
 -- prePackageApp
 --
@@ -915,7 +951,21 @@ local function packageApp( options )
 			identity=options.signingIdentity,
 			platform="iphoneos"
 		}
-		local bundleScript = '$(xcrun -f swift-stdlib-tool) --copy --verbose --scan-executable "{app}/{exe}" --scan-folder "{app}/Frameworks" --platform {platform} --toolchain "{sdkBase}/Toolchains/XcodeDefault.xctoolchain" --destination "{app}/Frameworks" --strip-bitcode '
+		local sdkVersion = captureCommandOutput("xcrun --sdk iphoneos --show-sdk-version")
+		if not sdkVersion then
+			return "Unable to get iOS SDK version"
+		end
+		sdkVersion = tonumber(string.match(sdkVersion, '%d+%.?%d*'))
+		if not sdkVersion then
+			return "Unable to parse SDK version"
+		end
+
+		local bundleScript
+		if sdkVersion >= 16.4 then
+			bundleScript = '$(xcrun -f swift-stdlib-tool) --copy --verbose --scan-executable "{app}/{exe}" --scan-folder "{app}/Frameworks" --platform {platform} --destination "{app}/Frameworks" --strip-bitcode '
+		else
+			bundleScript = '$(xcrun -f swift-stdlib-tool) --copy --verbose --scan-executable "{app}/{exe}" --scan-folder "{app}/Frameworks" --platform {platform} --toolchain "{sdkBase}/Toolchains/XcodeDefault.xctoolchain" --destination "{app}/Frameworks" --strip-bitcode '
+		end
 
 		if not options.signingIdentity then
 			bundleOptions.identity = "-"
@@ -949,6 +999,17 @@ local function packageApp( options )
 			return errMsg
 		end
 	end
+
+	--remove standard resources(Corona Resources Bundle) if users selects
+	if options.includeStandardResources == false then
+		runScript("rm -rf "..quoteString(makepath(appBundleFileUnquoted, "CoronaResources.bundle")))
+	end
+	
+	--add xcprivacy file to the bundle
+	if options.settings.iphone and options.settings.iphone.xcprivacy then
+		runScript("cp -v " .. quoteString(options.tmpDir .. "/PrivacyInfo.xcprivacy") .. " " .. quoteString(makepath(appBundleFileUnquoted, "PrivacyInfo.xcprivacy")))
+	end
+	
 
 	-- bundle is now ready to be signed (don't sign if we don't have a signingIdentity, e.g. Xcode Simulator)
 	if options.signingIdentity then
@@ -1008,12 +1069,12 @@ local function packageApp( options )
 			setStatus("Creating IPA for store submission...")
 			-- note we move the app to the "Payload" directory to preserve permissions and for speed which means the .app doesn't exist anymore
 			runScript( "mv " .. quoteString(makepath(options.dstDir, options.dstFile..".app")) .." ".. quoteString(makepath(ipaTmpDir, "Payload")) )
-			
+
 			--move odr resources to "Payload" folder
 			if odrOutputDir then
 				runScript( "mv " .. quoteString(makepath(odrOutputDir)) .." ".. quoteString(makepath(ipaTmpDir, "Payload")) )
 			end
-			
+
 			if bundleSwiftSupportDir then
 				runScript( "mv " .. bundleSwiftSupportDir .." ".. quoteString(ipaTmpDir) )
 			end
@@ -1322,6 +1383,7 @@ function iPhonePostPackage( params )
 	local targetDevice = params.targetDevice
 	local targetPlatform = params.targetPlatform
 	local liveBuild = params.liveBuild
+	local includeStandardResources = params.includeStandardResources
 	local verbose = ( debugBuildProcess and debugBuildProcess > 1 )
 	local osPlatform = params.osPlatform
 	local err = nil
@@ -1344,6 +1406,7 @@ function iPhonePostPackage( params )
 		osPlatform=osPlatform,
 		sdkType=params.sdkType,
 		liveBuild=liveBuild,
+		includeStandardResources=includeStandardResources,
 	}
 
 	local customSettingsFile = srcAssets .. "/build.settings"
