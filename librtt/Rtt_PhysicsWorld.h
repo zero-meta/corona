@@ -12,15 +12,16 @@
 
 // ----------------------------------------------------------------------------
 
-class b2Body;
-class b2DebugDraw;
-class b2World;
-class b2DestructionListener;
+// class b2Body;
+// class b2DebugDraw;
+// class b2World;
+// class b2DestructionListener;
+#include "box2d/box2d.h"
 
 namespace Rtt
 {
 
-class b2GLESDebugDraw;
+// class b2GLESDebugDraw;
 class PhysicsContactListener;
 class Runtime;
 class Renderer;
@@ -56,8 +57,10 @@ class PhysicsWorld
 		void StartWorld( Runtime& runtime, bool noSleep );
 		void PauseWorld();
 		void StopWorld();
-		b2World* GetWorld() const { return fWorld; }
-		b2Body* GetGroundBody() const { return fGroundBody; }
+		// b2World* GetWorld() const { return fWorld; }
+		b2WorldId GetWorldId() const { return fWorldId; }
+		// b2Body* GetGroundBody() const { return fGroundBody; }
+		b2BodyId GetGroundBodyId() const { return fGroundBodyId; }
 
 	public:
 		Rtt_Allocator *Allocator() const { return & fAllocator; }
@@ -103,14 +106,17 @@ class PhysicsWorld
 
 	private:
 		Rtt_Allocator& fAllocator;
-		b2GLESDebugDraw *fWorldDebugDraw;
-		b2DestructionListener *fWorldDestructionListener;
+		// b2GLESDebugDraw *fWorldDebugDraw;
+		// b2DestructionListener *fWorldDestructionListener;
 		PhysicsContactListener *fWorldContactListener;
 
 		U32 fProperties;
-		b2World *fWorld;
+		b2WorldId fWorldId;
+		// b2World *fWorld;
 		Real fPixelsPerMeter;
-		b2Body *fGroundBody;
+		// b2Body *fGroundBody;
+		b2BodyId fGroundBodyId;
+		S32 fSubStepCount;
 		S32 fVelocityIterations;
 		S32 fPositionIterations;
 		float fFrameInterval;

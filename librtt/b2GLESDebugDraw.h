@@ -21,7 +21,8 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "Box2D/Box2D.h"
+// #include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 #include "Renderer/Rtt_RenderData.h"
 
@@ -42,7 +43,8 @@ class Shader;
 
 // This class implements debug drawing callbacks that are invoked
 // inside b2World::Step.
-class b2GLESDebugDraw : public b2Draw
+// class b2GLESDebugDraw : public b2Draw
+class b2GLESDebugDraw
 {
 	public:
 		b2GLESDebugDraw( Display &display );
@@ -56,53 +58,53 @@ class b2GLESDebugDraw : public b2Draw
 		void DrawDebugData( const PhysicsWorld& physics, Renderer &renderer );
 
 	protected:
-		void DrawShape( b2Fixture* fixture, const b2Transform& xf, const b2Color& color);
-		void DrawJoint( b2Joint* joint );
-		void DrawParticleSystem( const b2ParticleSystem& system );
+		void DrawShape( b2ShapeId fixture, const b2Transform& xf, const b2HexColor& color);
+		void DrawJoint( b2JointId joint );
+		// void DrawParticleSystem( const b2ParticleSystem& system );
 
 	public:
 		// b2Draw.
 
-		virtual void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color);
 
-		virtual void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+		virtual void DrawSolidPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color);
 
 
-		virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color);
+		virtual void DrawCircle(const b2Vec2& center, float radius, const b2HexColor& color);
 
-		virtual void DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count);
+		// virtual void DrawParticles(const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count);
 
-		void DrawParticlesOffset( const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count, const b2Vec2 *offset );
+		// void DrawParticlesOffset( const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count, const b2Vec2 *offset );
 
-		virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color);
+		virtual void DrawSolidCircle(const b2Vec2& center, float radius, const b2Vec2& axis, const b2HexColor& color);
 
-		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color);
+		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2HexColor& color);
 
 		virtual void DrawTransform(const b2Transform& xf);
 
-		virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color);
+		virtual void DrawPoint(const b2Vec2& p, float size, const b2HexColor& color);
 
 		virtual void DrawString(int x, int y, const char* string, ...);
 
-		virtual void DrawAABB(b2AABB* aabb, const b2Color& color);
+		virtual void DrawAABB(b2AABB* aabb, const b2HexColor& color);
 
 	public:
 
 		void DrawCircle( bool fill_body,
 							const b2Vec2& center,
-							float32 radius,
+							float radius,
 							const b2Vec2 *optionalAxis,
-							const b2Color& color,
+							const b2HexColor& color,
 							const b2Vec2 *optionalOffset );
 
 	private:
 
-		void _SetVerticesUsed( int32 vertexCount );
+		void _SetVerticesUsed( int vertexCount );
 
 		void _DrawPolygon( bool fill_body,
 							const b2Vec2* vertices,
-							int32 vertexCount,
-							const b2Color& color );
+							int vertexCount,
+							const b2HexColor& color );
 
 		//! fRenderer and fScale are only valid between Begin() and End().
 		Renderer *fRenderer;

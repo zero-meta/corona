@@ -35,11 +35,11 @@ class PhysicsContact
 	public:
 		static const char kMetatableName[];
 
-	public:
-		static UserdataWrapper *CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, b2Contact *contact );
+	// public:
+	// 	static UserdataWrapper *CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, b2Contact *contact );
 
-	public:
-		static b2Contact* GetContact( lua_State *L, int index );
+	// public:
+	// 	static b2Contact* GetContact( lua_State *L, int index );
 
 	public:
 		static void Initialize( lua_State *L );

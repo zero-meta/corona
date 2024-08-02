@@ -14,7 +14,7 @@
 
 #include "Renderer/Rtt_Geometry_Renderer.h"
 
-#include <Box2D/Common/b2Math.h>
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -680,6 +680,7 @@ Matrix::ToGLMatrix3x3( Rtt_Real m[9] ) const
 	m[2] = Rtt_REAL_0;	m[5] = Rtt_REAL_0;	m[8] = Rtt_REAL_1;
 }
 
+/*
 void
 Matrix::Tob2Mat33( b2Mat33 &m ) const
 {
@@ -712,7 +713,7 @@ Matrix::Tob2Mat33( b2Mat33 &m ) const
 		m.ez.z = 1.0f;
 	}
 }
-
+*/
 #ifdef Rtt_DEBUG
 
 bool

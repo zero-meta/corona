@@ -16,12 +16,12 @@
 
 // ----------------------------------------------------------------------------
 
-class b2Draw;
-class b2Fixture;
-class b2Joint;
-class b2World;
-struct b2Transform;
-struct b2Color;
+// class b2Draw;
+// class b2Fixture;
+// class b2Joint;
+// class b2World;
+// struct b2Transform;
+// struct b2Color;
 
 namespace Rtt
 {

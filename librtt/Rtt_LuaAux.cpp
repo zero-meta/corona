@@ -170,7 +170,8 @@ int PushUserdataWrapperTable( lua_State *L )
 	return 1;
 }
 
-UserdataWrapper::UserdataWrapper( const ResourceHandle< lua_State >& handle, void *ud, const char *mtName )
+// UserdataWrapper::UserdataWrapper( const ResourceHandle< lua_State >& handle, void *ud, const char *mtName )
+UserdataWrapper::UserdataWrapper( const ResourceHandle< lua_State >& handle, b2JointId ud, const char *mtName )
 :	fHandle( handle ),
 	fData( ud )
 {

@@ -22,7 +22,7 @@
 #include "Core/Rtt_SharedPtr.h"
 #include "Rtt_PhysicsTypes.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -84,10 +84,11 @@ public:
 	void SetParticleRenderRadiusInContentUnits( float r ){ fRenderRadiusInPixels.x = fRenderRadiusInPixels.y = r; }
 	float GetParticleRenderRadiusInContentUnits() const { return fRenderRadiusInPixels.x; }
 
-	b2ParticleSystem *GetB2ParticleSystem() const { Rtt_ASSERT( fParticleSystem ); return fParticleSystem; }
+	// b2ParticleSystem *GetB2ParticleSystem() const { Rtt_ASSERT( fParticleSystem ); return fParticleSystem; }
 
 private:
 
+	/*
 	void _InitializeFromLua_ParticleSystemDef( lua_State *L,
 												b2ParticleSystemDef &particleSystemDef );
 	void _InitializeFromLua_ParticleDef( lua_State *L,
@@ -102,14 +103,14 @@ private:
 	void _CopyParticleFromParticleSystemToVertexData( b2Vec2 &base_position,
 														b2ParticleColor &color,
 														Geometry::Vertex *output_vertices );
-
+	*/
 	void _ResizeRenderBuffers();
 
 	void _Update( const Display &display );
 	void _Cleanup();
 
-	int _CommonRayCast( lua_State *L,
-						b2RayCastCallback *callback );
+	// int _CommonRayCast( lua_State *L,
+	// 					b2RayCastCallback *callback );
 
 	// MUpdatable
 	bool fShouldUpdate;
@@ -119,10 +120,10 @@ private:
 	float fWorldScaleInPixelsPerMeter;
 	float fWorldScaleInMetersPerPixel;
 	b2Vec2 fRenderRadiusInPixels;
-	b2World *fWorld;
+	b2WorldId fWorldId;
 	const PhysicsWorld *fPhysics;
 
-	b2ParticleSystem *fParticleSystem;
+	// b2ParticleSystem *fParticleSystem;
 	//
 	////
 

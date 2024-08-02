@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -9,7 +9,7 @@
 
 #include "Core/Rtt_Build.h"
 
-#ifdef Rtt_PHYSICS	
+#ifdef Rtt_PHYSICS
 
 #include "Rtt_PhysicsJoint.h"
 
@@ -22,7 +22,7 @@
 #include "Rtt_LuaProxyVTable.h"
 #include "Rtt_LuaContext.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -33,17 +33,18 @@ namespace Rtt
 
 const char PhysicsJoint::kMetatableName[] = "physics.joint"; // unique identifier for this userdata type
 
-b2Joint*
+b2JointId
 PhysicsJoint::GetJoint( lua_State *L, int index )
 {
-	b2Joint *result = NULL;
+	b2JointId result = b2_nullJointId;
 
 	UserdataWrapper **ud = (UserdataWrapper **)luaL_checkudata( L, index, Self::kMetatableName );
 	if ( ud )
 	{
 		UserdataWrapper *wrapper = *ud;
 
-		result = (b2Joint*)wrapper->Dereference();
+		// result = (b2Joint*)wrapper->Dereference();
+		result = wrapper->Dereference();
 	}
 
 	return result;
@@ -52,42 +53,44 @@ PhysicsJoint::GetJoint( lua_State *L, int index )
 int
 PhysicsJoint::getAnchorA( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is common to all joint types
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
-		
-		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorA().x ), scale );
-		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorA().y ), scale );
-		
+
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyA(baseJoint), b2Joint_GetLocalAnchorA(baseJoint));
+		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
+		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
+
 		lua_pushnumber( L, px );
 		lua_pushnumber( L, py );
 	}
-	
+
 	return 2;
 }
 
 int
 PhysicsJoint::getAnchorB( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is common to all joint types
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
-		
-		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().x ), scale );
-		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().y ), scale );
-		
+
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalAnchorB(baseJoint));
+		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
+		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
+
 		lua_pushnumber( L, px );
 		lua_pushnumber( L, py );
 	}
-	
+
 	return 2;
 }
 
@@ -100,13 +103,13 @@ ShouldGetLocalAnchor( b2JointType jointType )
 
 	switch ( jointType )
 	{
-		case e_distanceJoint:
-		case e_revoluteJoint:
-		case e_prismaticJoint:
-		case e_frictionJoint:
-		case e_wheelJoint:
-		case e_weldJoint:
-		case e_ropeJoint:
+		case b2_distanceJoint:
+		case b2_revoluteJoint:
+		case b2_prismaticJoint:
+		// case b2_frictionJoint:
+		case b2_wheelJoint:
+		case b2_weldJoint:
+		// case b2_ropeJoint:
 			result = true;
 			break;
 
@@ -117,17 +120,18 @@ ShouldGetLocalAnchor( b2JointType jointType )
 	return result;
 }
 
+/*
 template < typename T >
-static const b2Vec2& GetLocalAnchorA( b2Joint *baseJoint )
+static const b2Vec2& GetLocalAnchorA( b2JointId baseJoint )
 {
-	T *joint = static_cast< T * >( baseJoint ); Rtt_ASSERT( baseJoint );
+	T *joint = static_cast< T * >( baseJoint ); Rtt_ASSERT( b2Joint_IsValid(baseJoint) );
 	return joint->GetLocalAnchorA();
 }
 
 template < typename T >
-static const b2Vec2& GetLocalAnchorB( b2Joint *baseJoint )
+static const b2Vec2& GetLocalAnchorB( b2JointId baseJoint )
 {
-	T *joint = static_cast< T * >( baseJoint ); Rtt_ASSERT( baseJoint );
+	T *joint = static_cast< T * >( baseJoint ); Rtt_ASSERT( b2Joint_IsValid(baseJoint) );
 	return joint->GetLocalAnchorB();
 }
 
@@ -204,66 +208,95 @@ GetLocalAnchorBCallback( b2JointType jointType )
 
 	return result;
 }
+*/
 
 // ----------------------------------------------------------------------------
 
 bool
-PhysicsJoint::HasLocalAnchor( b2Joint& joint )
+PhysicsJoint::HasLocalAnchor( b2JointId jointId )
 {
-	return ShouldGetLocalAnchor( joint.GetType() );
+	return ShouldGetLocalAnchor( b2Joint_GetType(jointId) );
 }
 
 b2Vec2
-PhysicsJoint::GetLocalAnchorA( b2Joint& joint )
+PhysicsJoint::GetLocalAnchorA( b2JointId jointId )
 {
-	b2JointType jointType = joint.GetType();
+	b2JointType jointType = b2Joint_GetType(jointId);
 	if ( ShouldGetLocalAnchor( jointType ) )
 	{
-		GetLocalAnchorCallback Callback = GetLocalAnchorACallback( jointType );
-		return Callback( & joint );
+		// GetLocalAnchorCallback Callback = GetLocalAnchorACallback( jointType );
+		// return Callback( & joint );
+		return b2Joint_GetLocalAnchorA(jointId);
 	}
-	
+
 	return b2Vec2_zero;
 }
 
 b2Vec2
-PhysicsJoint::GetLocalAnchorB( b2Joint& joint )
+PhysicsJoint::GetLocalAnchorB( b2JointId jointId )
 {
-	b2JointType jointType = joint.GetType();
+	b2JointType jointType = b2Joint_GetType(jointId);
 	if ( ShouldGetLocalAnchor( jointType ) )
 	{
-		GetLocalAnchorCallback Callback = GetLocalAnchorBCallback( jointType );
-		return Callback( & joint );
+		// GetLocalAnchorCallback Callback = GetLocalAnchorBCallback( jointType );
+		// return Callback( & joint );
+		return b2Joint_GetLocalAnchorB(jointId);
 	}
-	
+
 	return b2Vec2_zero;
 }
 
 // ----------------------------------------------------------------------------
 
 int
-PhysicsJoint::getLocalAnchor( lua_State *L )
+PhysicsJoint::getLocalAnchorA( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is common to all joint types
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2Vec2 anchor;
-		GetLocalAnchorCallback callback =
-			(GetLocalAnchorCallback)lua_touserdata( L, lua_upvalueindex( 1 ) ); Rtt_ASSERT( callback );
-		anchor = ( * callback )( baseJoint );
+		b2Vec2 anchor = GetLocalAnchorA(baseJoint);
+		// GetLocalAnchorCallback callback =
+		// 	(GetLocalAnchorCallback)lua_touserdata( L, lua_upvalueindex( 1 ) ); Rtt_ASSERT( callback );
+		// anchor = ( * callback )( baseJoint );
 
 		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
 		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
-		
+
 		lua_pushnumber( L, px );
 		lua_pushnumber( L, py );
 	}
-	
+
+	return 2;
+}
+
+int
+PhysicsJoint::getLocalAnchorB( lua_State *L )
+{
+	b2JointId baseJoint = GetJoint( L, 1 );
+
+	// This is common to all joint types
+	if ( b2Joint_IsValid(baseJoint) )
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		b2Vec2 anchor = GetLocalAnchorB(baseJoint);
+		// GetLocalAnchorCallback callback =
+		// 	(GetLocalAnchorCallback)lua_touserdata( L, lua_upvalueindex( 1 ) ); Rtt_ASSERT( callback );
+		// anchor = ( * callback )( baseJoint );
+
+		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
+		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
+
+		lua_pushnumber( L, px );
+		lua_pushnumber( L, py );
+	}
+
 	return 2;
 }
 
@@ -277,8 +310,8 @@ ShouldGetLocalAxis( b2JointType jointType )
 
 	switch ( jointType )
 	{
-		case e_prismaticJoint:
-		case e_wheelJoint:
+		case b2_prismaticJoint:
+		case b2_wheelJoint:
 			result = true;
 			break;
 
@@ -290,8 +323,9 @@ ShouldGetLocalAxis( b2JointType jointType )
 }
 #endif // Rtt_DEBUG
 
+/*
 template < typename T >
-static const b2Vec2& GetLocalAxisA( b2Joint *baseJoint )
+static const b2Vec2& GetLocalAxisA( b2JointId baseJoint )
 {
 	T *joint = static_cast< T * >( baseJoint ); Rtt_ASSERT( baseJoint );
 	return joint->GetLocalAxisA();
@@ -319,25 +353,29 @@ GetLocalAxisACallback( b2JointType jointType )
 
 	return result;
 }
+*/
 
 int
 PhysicsJoint::getLocalAxis( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is common to all joint types
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
-		
-		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().x ), scale );
-		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().y ), scale );
-		
+
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalAnchorB(baseJoint));
+		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
+		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
+		// Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().x ), scale );
+		// Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().y ), scale );
+
 		lua_pushnumber( L, px );
 		lua_pushnumber( L, py );
 	}
-	
+
 	return 2;
 }
 
@@ -346,20 +384,21 @@ PhysicsJoint::getLocalAxis( lua_State *L )
 int
 PhysicsJoint::getReactionForce( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is common to all joint types
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		Runtime& runtime = * LuaContext::GetRuntime( L );
-		float32 inverseDeltaTime = (float)runtime.GetFPS();
-		Rtt_Real px = Rtt_FloatToReal( baseJoint->GetReactionForce( inverseDeltaTime ).x );
-		Rtt_Real py = Rtt_FloatToReal( baseJoint->GetReactionForce( inverseDeltaTime ).y );
-		
+		float inverseDeltaTime = (float)runtime.GetFPS();
+		b2Vec2 force = b2Joint_GetConstraintForce(baseJoint);
+		Rtt_Real px = Rtt_FloatToReal( force.x );
+		Rtt_Real py = Rtt_FloatToReal( force.y );
+
 		lua_pushnumber( L, px );
 		lua_pushnumber( L, py );
 	}
-	
+
 	return 2;
 }
 
@@ -367,19 +406,20 @@ PhysicsJoint::getReactionForce( lua_State *L )
 int
 PhysicsJoint::setRotationLimits( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is for revolute ("pivot") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		Rtt_Real lowerLimit = Rtt_RealDegreesToRadians( lua_tonumber( L, 2 ) );
 		Rtt_Real upperLimit = Rtt_RealDegreesToRadians( lua_tonumber( L, 3 ) );
-		
-		b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
-		
-		joint->SetLimits( Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( upperLimit ) );
+
+		// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
+
+		// joint->SetLimits( Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( lowerLimit ) );
+		b2RevoluteJoint_SetLimits(baseJoint, Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( lowerLimit ) );
 	}
-	
+
 	return 0;
 }
 
@@ -387,30 +427,30 @@ PhysicsJoint::setRotationLimits( lua_State *L )
 int
 PhysicsJoint::getRotationLimits( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
+	b2JointId baseJoint = GetJoint( L, 1 );
 
 	// This is for revolute ("pivot") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
-		b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
-		
-		Rtt_Real lowerLimit = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetLowerLimit() ) );
-		Rtt_Real upperLimit = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetUpperLimit() ) );
-		
+		// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
+
+		Rtt_Real lowerLimit = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetLowerLimit(baseJoint) ) );
+		Rtt_Real upperLimit = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetUpperLimit(baseJoint) ) );
+
 		lua_pushnumber( L, lowerLimit );
 		lua_pushnumber( L, upperLimit );
 	}
-	
+
 	return 2;
 }
 
 int
 PhysicsJoint::setLimits( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is for prismatic ("piston") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
@@ -426,43 +466,44 @@ PhysicsJoint::setLimits( lua_State *L )
 							 "%g and the upper limit as %g.\n", lowerLimit, upperLimit ) );
 		}
 
-		b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;		
-		joint->SetLimits( Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( upperLimit ) );
+		// b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;
+		// joint->SetLimits( Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( upperLimit ) );
+		b2PrismaticJoint_SetLimits( baseJoint, Rtt_RealToFloat( lowerLimit ), Rtt_RealToFloat( upperLimit ) );
 	}
-	
+
 	return 0;
 }
 
 int
 PhysicsJoint::getLimits( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is for prismatic ("piston") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint; // assumption: this cast is OK for both cases (otherwise check type)
+		// b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint; // assumption: this cast is OK for both cases (otherwise check type)
 
-		Rtt_Real lowerLimit = Rtt_RealMul( Rtt_FloatToReal( joint->GetLowerLimit() ), scale );
-		Rtt_Real upperLimit = Rtt_RealMul( Rtt_FloatToReal( joint->GetUpperLimit() ), scale );
-		
+		Rtt_Real lowerLimit = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetLowerLimit(baseJoint) ), scale );
+		Rtt_Real upperLimit = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetUpperLimit(baseJoint) ), scale );
+
 		lua_pushnumber( L, lowerLimit );
 		lua_pushnumber( L, upperLimit );
 	}
-	
+
 	return 2;
 }
 
 int
 PhysicsJoint::setLinearOffset( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
+	b2JointId baseJoint = GetJoint( L, 1 );
 
 	// This is for motor joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
@@ -470,9 +511,10 @@ PhysicsJoint::setLinearOffset( lua_State *L )
 		Rtt_Real ox = Rtt_RealDiv( luaL_toreal( L, 2 ), scale );
 		Rtt_Real oy = Rtt_RealDiv( luaL_toreal( L, 3 ), scale );
 
-		b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
-		b2Vec2 offset( ox, oy );
-		joint->SetLinearOffset(offset);
+		// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
+		b2Vec2 offset = { ox, oy };
+		// joint->SetLinearOffset(offset);
+		b2MotorJoint_SetLinearOffset(baseJoint, offset);
 	}
 
 	return 0;
@@ -481,18 +523,19 @@ PhysicsJoint::setLinearOffset( lua_State *L )
 int
 PhysicsJoint::getLinearOffset( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
+	b2JointId baseJoint = GetJoint( L, 1 );
 
 	// This is for prismatic ("piston") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2MotorJoint *joint = (b2MotorJoint*)baseJoint; // assumption: this cast is OK for both cases (otherwise check type)
+		// b2MotorJoint *joint = (b2MotorJoint*)baseJoint; // assumption: this cast is OK for both cases (otherwise check type)
 
-		Rtt_Real ox = Rtt_RealMul( Rtt_FloatToReal( joint->GetLinearOffset().x ), scale );
-		Rtt_Real oy = Rtt_RealMul( Rtt_FloatToReal( joint->GetLinearOffset().y ), scale );
+		b2Vec2 offset = b2MotorJoint_GetLinearOffset( baseJoint );
+		Rtt_Real ox = Rtt_RealMul( Rtt_FloatToReal( offset.x ), scale );
+		Rtt_Real oy = Rtt_RealMul( Rtt_FloatToReal( offset.y ), scale );
 
 		lua_pushnumber( L, ox );
 		lua_pushnumber( L, oy );
@@ -504,62 +547,66 @@ PhysicsJoint::getLinearOffset( lua_State *L )
 int
 PhysicsJoint::getGroundAnchorA( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
-	// This is for pulley joints only
-	if ( baseJoint )
-	{
-		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-		Real scale = physics.GetPixelsPerMeter();
-		
-		b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
-		
-		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorA().x ), scale );
-		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorA().y ), scale );
-		
-		lua_pushnumber( L, px );
-		lua_pushnumber( L, py );
-	}
-	
+	// b2JointId baseJoint = GetJoint( L, 1 );
+
+	// // This is for pulley joints only
+	// if ( b2Joint_IsValid(baseJoint) )
+	// {
+	// 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	// 	Real scale = physics.GetPixelsPerMeter();
+
+	// 	b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
+
+	// 	Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorA().x ), scale );
+	// 	Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorA().y ), scale );
+
+	// 	lua_pushnumber( L, px );
+	// 	lua_pushnumber( L, py );
+	// }
+	lua_pushnumber( L, 0.0f );
+	lua_pushnumber( L, 0.0f );
+
 	return 2;
 }
 
 int
 PhysicsJoint::getGroundAnchorB( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	// b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is for pulley joints only
-	if ( baseJoint )
-	{
-		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-		Real scale = physics.GetPixelsPerMeter();
-		
-		b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
-		
-		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorB().x ), scale );
-		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorB().y ), scale );
-		
-		lua_pushnumber( L, px );
-		lua_pushnumber( L, py );
-	}
-	
+	// if ( b2Joint_IsValid(baseJoint) )
+	// {
+	// 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	// 	Real scale = physics.GetPixelsPerMeter();
+
+	// 	b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
+
+	// 	Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorB().x ), scale );
+	// 	Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( joint->GetGroundAnchorB().y ), scale );
+
+	// 	lua_pushnumber( L, px );
+	// 	lua_pushnumber( L, py );
+	// }
+	lua_pushnumber( L, 0.0f );
+	lua_pushnumber( L, 0.0f );
+
 	return 2;
 }
 
 int
 PhysicsJoint::getTarget( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
+	b2JointId baseJoint = GetJoint( L, 1 );
 
 	// This is for mouse ("touch") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
-		b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+		// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
 
-		b2Vec2 v( joint->GetTarget() * physics.GetPixelsPerMeter() );
+		b2Vec2 v( b2MouseJoint_GetTarget(baseJoint) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, v.x );
 		lua_pushnumber( L, v.y );
@@ -571,50 +618,54 @@ PhysicsJoint::getTarget( lua_State *L )
 int
 PhysicsJoint::setTarget( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
+	b2JointId baseJoint = GetJoint( L, 1 );
+
 	// This is for mouse ("touch") joints only
-	if ( baseJoint )
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
-		b2Vec2 v( lua_tonumber( L, 2 ),
-					lua_tonumber( L, 3 ) );
+		b2Vec2 v = { (float)lua_tonumber( L, 2 ),
+					(float)lua_tonumber( L, 3 ) };
 
 		v *= physics.GetMetersPerPixel();
 
-		b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
-		joint->SetTarget( v );
+		// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+		// joint->SetTarget( v );
+		b2MouseJoint_SetTarget( baseJoint, v );
 	}
-	
+
 	return 0;
 }
 
 int
 PhysicsJoint::removeSelf( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
-	if ( baseJoint )
+	b2JointId baseJoint = GetJoint( L, 1 );
+
+	if ( b2Joint_IsValid(baseJoint) )
 	{
 		// Disconnect joint and wrapper from each other
 
 		// (1) Remove wrapper's ref to joint
-		UserdataWrapper *wrapper = (UserdataWrapper*)baseJoint->GetUserData();
+		UserdataWrapper *wrapper = (UserdataWrapper*)b2Joint_GetUserData( baseJoint );
 		if ( wrapper && UserdataWrapper::GetFinalizedValue() != wrapper )
 		{
 			wrapper->Invalidate();
 		}
-		
+
 		// (2) Remove joint's ref to wrapper.
-		// Any joint with a finalized userdata value to signal it should be 
+		// Any joint with a finalized userdata value to signal it should be
 		// destroyed after the world step (similar to body destruction cycle)
-		baseJoint->SetUserData( UserdataWrapper::GetFinalizedValue() );
+		// baseJoint->SetUserData( UserdataWrapper::GetFinalizedValue() );
+		b2Joint_SetUserData( baseJoint, UserdataWrapper::GetFinalizedValue() );
+		b2DestroyJoint(baseJoint);
 	}
 
 	return 0;
 }
 
+/*
 static const char *
 StringForLimitState( b2LimitState value )
 {
@@ -642,24 +693,25 @@ StringForLimitState( b2LimitState value )
 
 	return result;
 }
+*/
 
 int
 PhysicsJoint::ValueForKey( lua_State *L )
 {
 	int result = 0;    // number of args pushed on the stack
-	
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
-	if ( baseJoint )
+
+	b2JointId baseJoint = GetJoint( L, 1 );
+
+	if ( b2Joint_IsValid(baseJoint) )
 	{
-		const char *key = luaL_checkstring( L, 2 );		
+		const char *key = luaL_checkstring( L, 2 );
 		result = 1;
 
-		b2JointType jointType = baseJoint->GetType();
+		b2JointType jointType = b2Joint_GetType(baseJoint);
 
 		//////////////////////////////////////////////
 		// These methods are common to all joint types
-		
+
 		if ( strcmp( "getAnchorA", key ) == 0 )
 		{
 			lua_pushcfunction( L, Self::getAnchorA );
@@ -675,8 +727,8 @@ PhysicsJoint::ValueForKey( lua_State *L )
 		else if ( 0 == strcmp( "reactionTorque", key ) )  // read-only
 		{
 			Runtime& runtime = * LuaContext::GetRuntime( L );
-			float32 inverseDeltaTime = (float)runtime.GetFPS();
-			lua_pushnumber( L, baseJoint->GetReactionTorque( inverseDeltaTime ) );
+			float inverseDeltaTime = (float)runtime.GetFPS();
+			lua_pushnumber( L, b2Joint_GetConstraintTorque(baseJoint) * inverseDeltaTime );
 		}
 		else if ( 0 == strcmp( "removeSelf", key ) )
 		{
@@ -684,98 +736,103 @@ PhysicsJoint::ValueForKey( lua_State *L )
 		}
 		else if ( 0 == strcmp( "isActive", key ) )
 		{
-			lua_pushboolean( L, baseJoint->IsActive() );
+			// lua_pushboolean( L, baseJoint->IsActive() );
+			lua_pushboolean( L, true );
 		}
 		else if ( 0 == strcmp( "isCollideConnected", key ) )
 		{
-			lua_pushboolean( L, baseJoint->GetCollideConnected() );
+			lua_pushboolean( L, b2Joint_GetCollideConnected(baseJoint) );
 		}
 		else if ( 0 == strcmp( "getLocalAnchorA", key ) && ShouldGetLocalAnchor( jointType ) )
 		{
-			lua_pushlightuserdata( L, (void*)GetLocalAnchorACallback( jointType ) );
-			lua_pushcclosure( L, Self::getLocalAnchor, 1 );
+			// lua_pushlightuserdata( L, (void*)GetLocalAnchorACallback( jointType ) );
+			// lua_pushcclosure( L, Self::getLocalAnchorA, 1 );
+			lua_pushcfunction( L, Self::getLocalAnchorA );
 		}
 		else if ( 0 == strcmp( "getLocalAnchorB", key ) && ShouldGetLocalAnchor( jointType ) )
 		{
-			lua_pushlightuserdata( L, (void*)GetLocalAnchorBCallback( jointType ) );
-			lua_pushcclosure( L, Self::getLocalAnchor, 1 );
+			// lua_pushlightuserdata( L, (void*)GetLocalAnchorBCallback( jointType ) );
+			// lua_pushcclosure( L, Self::getLocalAnchorB, 1 );
+			lua_pushcfunction( L, Self::getLocalAnchorB );
 		}
 		else
 		{
 			// No common property found. Look at specific properties depending on joint type
 
-			if ( jointType == e_distanceJoint ) 
+			if ( jointType == b2_distanceJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
 				// This is exposed as a "distance" joint in Corona
-				
-				b2DistanceJoint *joint = (b2DistanceJoint*)baseJoint;
-				
+
+				// b2DistanceJoint *joint = (b2DistanceJoint*)baseJoint;
+
 				if ( 0 == strcmp( "length", key ) )
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetLength() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2DistanceJoint_GetLength(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, b2DistanceJoint_GetHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, b2DistanceJoint_GetDampingRatio(baseJoint) );
 				}
 				else
 				{
 					result = 0;
 				}
 			}
-			else if ( jointType == e_revoluteJoint ) 
+			else if ( jointType == b2_revoluteJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
-				// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)			
+				// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)
 
-				b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
-				
+				// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
+
 				if ( 0 == strcmp( "isMotorEnabled", key ) )
 				{
-					lua_pushboolean( L, joint->IsMotorEnabled() );
+					lua_pushboolean( L, b2RevoluteJoint_IsMotorEnabled(baseJoint) );
 				}
 				else if ( 0 == strcmp( "motorSpeed", key ) )
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetMotorSpeed() ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetMotorSpeed(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "motorTorque", key ) )  // read-only
 				{
 					Runtime& runtime = * LuaContext::GetRuntime( L );
-					float32 inverseDeltaTime = (float)runtime.GetFPS();
+					float inverseDeltaTime = (float)runtime.GetFPS();
 
-					lua_pushnumber( L, joint->GetMotorTorque( inverseDeltaTime ) );
+					lua_pushnumber( L, b2RevoluteJoint_GetMotorTorque(baseJoint) * inverseDeltaTime );
 				}
 				else if ( 0 == strcmp( "maxMotorTorque", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxMotorTorque() );
+					lua_pushnumber( L, b2RevoluteJoint_GetMaxMotorTorque(baseJoint) );
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
+					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetReferenceAngle(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "jointAngle", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetJointAngle() ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetAngle(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetJointSpeed() ) );
+					float speed = b2Body_GetAngularVelocity( b2Joint_GetBodyB(baseJoint) ) - b2Body_GetAngularVelocity( b2Joint_GetBodyA(baseJoint) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( speed ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "isLimitEnabled", key ) )
 				{
-					lua_pushboolean( L, joint->IsLimitEnabled() );
+					lua_pushboolean( L, b2RevoluteJoint_IsLimitEnabled(baseJoint) );
 				}
 				else if ( strcmp( "setRotationLimits", key ) == 0 )
 				{
@@ -784,34 +841,34 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				else if ( strcmp( "getRotationLimits", key ) == 0 )
 				{
 					lua_pushcfunction( L, Self::getRotationLimits );
-				}		
+				}
 				else
 				{
 					result = 0;
 				}
 			}
-			else if ( jointType == e_motorJoint )
+			else if ( jointType == b2_motorJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
 				// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)
 
-				b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
+				// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
 
 				if ( 0 == strcmp( "correctionFactor", key ) )
 				{
-					lua_pushnumber( L, joint->GetCorrectionFactor() );
+					lua_pushnumber( L, b2MotorJoint_GetCorrectionFactor(baseJoint) );
 				}
 				else if ( 0 == strcmp( "maxTorque", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxTorque() );
+					lua_pushnumber( L, b2MotorJoint_GetMaxTorque(baseJoint) );
 				}
 				else if ( 0 == strcmp( "maxForce", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxForce() );
+					lua_pushnumber( L, b2MotorJoint_GetMaxForce(baseJoint) );
 				}
 				else if ( 0 == strcmp( "angularOffset", key ) )
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetAngularOffset() ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2MotorJoint_GetAngularOffset(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( strcmp( "setLinearOffset", key ) == 0 )
@@ -827,62 +884,64 @@ PhysicsJoint::ValueForKey( lua_State *L )
 					result = 0;
 				}
 			}
-			else if ( jointType == e_prismaticJoint ) 
+			else if ( jointType == b2_prismaticJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
 				// This is exposed as a "piston" joint in Corona (aka "prismatic" in Box2D terms)
-				
-				b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;
-				
+
+				// b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;
+
 				if ( 0 == strcmp( "isMotorEnabled", key ) )
 				{
-					lua_pushboolean( L, joint->IsMotorEnabled() );
+					lua_pushboolean( L, b2PrismaticJoint_IsMotorEnabled(baseJoint) );
 				}
 				else if ( 0 == strcmp( "motorSpeed", key ) )
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetMotorSpeed() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetMotorSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "motorForce", key ) ) // read-only
 				{
 					Runtime& runtime = * LuaContext::GetRuntime( L );
-					float32 inverseDeltaTime = (float)runtime.GetFPS();
+					float inverseDeltaTime = (float)runtime.GetFPS();
 
-					lua_pushnumber( L, joint->GetMotorForce( inverseDeltaTime ) );
+					lua_pushnumber( L,  b2PrismaticJoint_GetMotorForce(baseJoint) * inverseDeltaTime );
 				}
 				else if ( 0 == strcmp( "maxMotorForce", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxMotorForce() );
+					lua_pushnumber( L,  b2PrismaticJoint_GetMaxMotorForce(baseJoint) );
 				}
 				else if ( strcmp( "getLocalAxisA", key ) == 0 )
 				{
-					lua_pushlightuserdata( L, (void *)GetLocalAxisACallback( e_prismaticJoint ) );
-					lua_pushcclosure( L, Self::getLocalAxis, 1 );
+					// lua_pushlightuserdata( L, (void *)GetLocalAxisACallback( e_prismaticJoint ) );
+					// lua_pushcclosure( L, Self::getLocalAxis, 1 );
+					lua_pushcfunction( L, Self::getLocalAxis );
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					lua_pushnumber( L, valueDegrees );
+					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2PrismaticJoint_ ) );
+					// lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "jointTranslation", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointTranslation() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetJointTranslation(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
+					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetMotorSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "isLimitEnabled", key ) )
 				{
-					lua_pushboolean( L, joint->IsLimitEnabled() );
+					lua_pushboolean( L, b2PrismaticJoint_IsLimitEnabled(baseJoint) );
 				}
 				else if ( strcmp( "setLimits", key ) == 0 )
 				{
@@ -897,37 +956,37 @@ PhysicsJoint::ValueForKey( lua_State *L )
 					result = 0;
 				}
 			}
-			else if ( jointType == e_frictionJoint ) 
+			// else if ( jointType == e_frictionJoint )
+			// {
+			// 	//////////////////////////////////////////////////////////////////////////////
+			// 	// This is exposed as a "friction" joint in Corona (also "friction" in Box2D terms)
+			// 	// A friction joint is a pivot joint that resists motion, and is therefore "sticky"
+
+			// 	b2FrictionJoint *joint = (b2FrictionJoint*)baseJoint;
+
+			// 	if ( 0 == strcmp( "maxForce", key ) )
+			// 	{
+			// 		lua_pushnumber( L, joint->GetMaxForce() );
+			// 	}
+			// 	else if ( 0 == strcmp( "maxTorque", key ) )
+			// 	{
+			// 		lua_pushnumber( L, joint->GetMaxTorque() );
+			// 	}
+			// 	else
+			// 	{
+			// 		result = 0;
+			// 	}
+			// }
+			else if ( jointType == b2_wheelJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
-				// This is exposed as a "friction" joint in Corona (also "friction" in Box2D terms)
-				// A friction joint is a pivot joint that resists motion, and is therefore "sticky"	
+				// This is exposed as a "wheel" joint in Corona (aka "line" in Box2D terms)
 
-				b2FrictionJoint *joint = (b2FrictionJoint*)baseJoint;
-				
-				if ( 0 == strcmp( "maxForce", key ) )
-				{
-					lua_pushnumber( L, joint->GetMaxForce() );
-				}
-				else if ( 0 == strcmp( "maxTorque", key ) )
-				{
-					lua_pushnumber( L, joint->GetMaxTorque() );
-				}
-				else
-				{
-					result = 0;
-				}
-			}
-			else if ( jointType == e_wheelJoint ) 
-			{
-				//////////////////////////////////////////////////////////////////////////////
-				// This is exposed as a "wheel" joint in Corona (aka "line" in Box2D terms)			
+				// b2WheelJoint *joint = (b2WheelJoint*)baseJoint;
 
-				b2WheelJoint *joint = (b2WheelJoint*)baseJoint;
-				
 				if ( 0 == strcmp( "isMotorEnabled", key ) )
 				{
-					lua_pushboolean( L, joint->IsMotorEnabled() );
+					lua_pushboolean( L, b2WheelJoint_IsMotorEnabled(baseJoint) );
 				}
 				else if ( 0 == strcmp( "motorSpeed", key ) )
 				{
@@ -935,108 +994,110 @@ PhysicsJoint::ValueForKey( lua_State *L )
 					// Real scale = physics.GetPixelsPerMeter();
 					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetMotorSpeed() ), scale );
 					// lua_pushnumber( L, valuePixels );
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetMotorSpeed() ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2WheelJoint_GetMotorSpeed(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "motorTorque", key ) )  // read-only
 				{
-					lua_pushnumber( L, joint->GetMaxMotorTorque() );
+					lua_pushnumber( L, b2WheelJoint_GetMotorTorque(baseJoint) );
 				}
 				else if ( 0 == strcmp( "maxMotorTorque", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxMotorTorque() );
+					lua_pushnumber( L, b2WheelJoint_GetMaxMotorTorque(baseJoint) );
 				}
 				else if ( strcmp( "getLocalAxisA", key ) == 0 )
 				{
-					lua_pushlightuserdata( L, (void *)GetLocalAxisACallback( e_wheelJoint ) );
-					lua_pushcclosure( L, Self::getLocalAxis, 1 );
+					// lua_pushlightuserdata( L, (void *)GetLocalAxisACallback( e_wheelJoint ) );
+					// lua_pushcclosure( L, Self::getLocalAxis, 1 );
+					lua_pushcfunction( L, Self::getLocalAxis );
 				}
 				else if ( 0 == strcmp( "jointTranslation", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointTranslation() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2WheelJoint_GetJointTranslation(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
+					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2WheelJoint_GetMotorSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( strcmp( "springFrequency", key ) == 0 )
 				{
-					lua_pushnumber( L, joint->GetSpringFrequencyHz() );
-				}		
+					lua_pushnumber( L, b2WheelJoint_GetSpringHertz(baseJoint) );
+				}
 				else if ( strcmp( "springDampingRatio", key ) == 0 )
 				{
-					lua_pushnumber( L, joint->GetSpringDampingRatio() );
-				}		
-				else
-				{
-					result = 0;
-				}
-			}
-			else if ( jointType == e_pulleyJoint ) 
-			{
-				//////////////////////////////////////////////////////////////////////////////
-				// This is exposed as a "pulley" joint in Corona
-				
-				b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
-				
-				if ( 0 == strcmp( "getGroundAnchorA", key ) ) // read-only
-				{
-					lua_pushcfunction( L, Self::getGroundAnchorA );
-				}
-				else if ( 0 == strcmp( "getGroundAnchorB", key ) ) // read-only
-				{
-					lua_pushcfunction( L, Self::getGroundAnchorB );
-				}
-				else if ( 0 == strcmp( "length1", key ) ) // read-only
-				{
-					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetLengthA() ), scale );
-					lua_pushnumber( L, valuePixels );
-				}
-				else if ( 0 == strcmp( "length2", key ) ) // read-only
-				{
-					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetLengthB() ), scale );
-					lua_pushnumber( L, valuePixels );
-				}
-				else if ( 0 == strcmp( "ratio", key ) ) // read-only
-				{
-					lua_pushnumber( L, joint->GetRatio() );
+					lua_pushnumber( L, b2WheelJoint_GetSpringDampingRatio(baseJoint) );
 				}
 				else
 				{
 					result = 0;
 				}
 			}
-			else if ( jointType == e_mouseJoint ) 
+			// else if ( jointType == e_pulleyJoint )
+			// {
+			// 	//////////////////////////////////////////////////////////////////////////////
+			// 	// This is exposed as a "pulley" joint in Corona
+
+			// 	b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
+
+			// 	if ( 0 == strcmp( "getGroundAnchorA", key ) ) // read-only
+			// 	{
+			// 		lua_pushcfunction( L, Self::getGroundAnchorA );
+			// 	}
+			// 	else if ( 0 == strcmp( "getGroundAnchorB", key ) ) // read-only
+			// 	{
+			// 		lua_pushcfunction( L, Self::getGroundAnchorB );
+			// 	}
+			// 	else if ( 0 == strcmp( "length1", key ) ) // read-only
+			// 	{
+			// 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+			// 		Real scale = physics.GetPixelsPerMeter();
+			// 		Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetLengthA() ), scale );
+			// 		lua_pushnumber( L, valuePixels );
+			// 	}
+			// 	else if ( 0 == strcmp( "length2", key ) ) // read-only
+			// 	{
+			// 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+			// 		Real scale = physics.GetPixelsPerMeter();
+			// 		Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetLengthB() ), scale );
+			// 		lua_pushnumber( L, valuePixels );
+			// 	}
+			// 	else if ( 0 == strcmp( "ratio", key ) ) // read-only
+			// 	{
+			// 		lua_pushnumber( L, joint->GetRatio() );
+			// 	}
+			// 	else
+			// 	{
+			// 		result = 0;
+			// 	}
+			// }
+			else if ( jointType == b2_mouseJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
 				// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
-				// A touch joint is used for dragging objects without overriding the simulation; 
-				// it creates an elastic link between the current touch point -- or any point submitted 
+				// A touch joint is used for dragging objects without overriding the simulation;
+				// it creates an elastic link between the current touch point -- or any point submitted
 				// by the end developer using SetTarget() -- and the specified body
 
-				b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
-				
+				// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+
 				if ( 0 == strcmp( "maxForce", key ) )
 				{
-					lua_pushnumber( L, joint->GetMaxForce() );
+					lua_pushnumber( L, b2MouseJoint_GetMaxForce(baseJoint) );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, b2MouseJoint_GetSpringHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, b2MouseJoint_GetSpringDampingRatio(baseJoint) );
 				}
 				else if ( strcmp( "setTarget", key ) == 0 )
 				{
@@ -1045,117 +1106,121 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				else if ( strcmp( "getTarget", key ) == 0 )
 				{
 					lua_pushcfunction( L, Self::getTarget );
-				}		
-				else
-				{
-					result = 0;
-				}
-			}
-			else if ( jointType == e_gearJoint ) 
-			{
-				//////////////////////////////////////////////////////////////////////////////
-				b2GearJoint *joint = (b2GearJoint*)baseJoint;
-				
-				if ( 0 == strcmp( "ratio", key ) )
-				{
-					lua_pushnumber( L, joint->GetRatio() );
-				}
-				else if ( 0 == strcmp( "joint1", key ) )
-				{
-					UserdataWrapper *wrapper = (UserdataWrapper *)joint->GetJoint1()->GetUserData();
-					wrapper->Push();
-				}
-				else if ( 0 == strcmp( "joint2", key ) )
-				{
-					UserdataWrapper *wrapper = (UserdataWrapper *)joint->GetJoint2()->GetUserData();
-					wrapper->Push();
 				}
 				else
 				{
 					result = 0;
 				}
 			}
-			else if ( jointType == e_weldJoint ) 
+			// else if ( jointType == e_gearJoint )
+			// {
+			// 	//////////////////////////////////////////////////////////////////////////////
+			// 	b2GearJoint *joint = (b2GearJoint*)baseJoint;
+
+			// 	if ( 0 == strcmp( "ratio", key ) )
+			// 	{
+			// 		lua_pushnumber( L, joint->GetRatio() );
+			// 	}
+			// 	else if ( 0 == strcmp( "joint1", key ) )
+			// 	{
+			// 		UserdataWrapper *wrapper = (UserdataWrapper *)joint->GetJoint1()->GetUserData();
+			// 		wrapper->Push();
+			// 	}
+			// 	else if ( 0 == strcmp( "joint2", key ) )
+			// 	{
+			// 		UserdataWrapper *wrapper = (UserdataWrapper *)joint->GetJoint2()->GetUserData();
+			// 		wrapper->Push();
+			// 	}
+			// 	else
+			// 	{
+			// 		result = 0;
+			// 	}
+			// }
+			else if ( jointType == b2_weldJoint )
 			{
 				//////////////////////////////////////////////////////////////////////////////
-				b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
-				
+				// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
+
 				if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					lua_pushnumber( L, valueDegrees );
+					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
+					// lua_pushnumber( L, valueDegrees );
+					lua_pushnumber( L, 0.0f );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, joint->GetFrequency() );
+					lua_pushnumber( L, b2WeldJoint_GetLinearHertz(baseJoint) );
+					// lua_pushnumber( L, b2WeldJoint_GetAngularHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, joint->GetDampingRatio() );
+					lua_pushnumber( L, b2WeldJoint_GetLinearDampingRatio(baseJoint) );
+					// lua_pushnumber( L, b2WeldJoint_GetAngularDampingRatio(baseJoint) );
 				}
 				else
 				{
 					result = 0;
 				}
 			}
-			else if ( jointType == e_ropeJoint ) 
-			{
-				//////////////////////////////////////////////////////////////////////////////
-				b2RopeJoint *joint = (b2RopeJoint*)baseJoint;
-				
-				if ( 0 == strcmp( "maxLength", key ) )  // read-only
-				{
-					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+			// else if ( jointType == e_ropeJoint )
+			// {
+			// 	//////////////////////////////////////////////////////////////////////////////
+			// 	b2RopeJoint *joint = (b2RopeJoint*)baseJoint;
 
-					float value = LuaLibPhysics::FromMKS( LuaLibPhysics::kLengthUnitType, physics, joint->GetMaxLength() );
-					lua_pushnumber( L, value );
-				}
-				else if ( 0 == strcmp( "limitState", key ) )
-				{
-					lua_pushstring( L, StringForLimitState( joint->GetLimitState() ) );
-				}
-				else
-				{
-					result = 0;
-				}
-			}
+			// 	if ( 0 == strcmp( "maxLength", key ) )  // read-only
+			// 	{
+			// 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+			// 		float value = LuaLibPhysics::FromMKS( LuaLibPhysics::kLengthUnitType, physics, joint->GetMaxLength() );
+			// 		lua_pushnumber( L, value );
+			// 	}
+			// 	else if ( 0 == strcmp( "limitState", key ) )
+			// 	{
+			// 		// lua_pushstring( L, StringForLimitState( joint->GetLimitState() ) );
+			// 		lua_pushstring( L, "missing" );
+			// 	}
+			// 	else
+			// 	{
+			// 		result = 0;
+			// 	}
+			// }
 			else
 			{
 				result = 0;
 			}
 		}
 	}
-	
+
 	return result;
 }
 
 int
 PhysicsJoint::SetValueForKey( lua_State *L )
 {
-	b2Joint *baseJoint = GetJoint( L, 1 );
-	
-	if ( baseJoint )
-	{		
+	b2JointId baseJoint = GetJoint( L, 1 );
+
+	if ( b2Joint_IsValid(baseJoint) )
+	{
 		const char *key = luaL_checkstring( L, 2 );
-				
-		b2JointType jointType = baseJoint->GetType();
+
+		b2JointType jointType = b2Joint_GetType(baseJoint);
 
 		//////////////////////////////////////////////
 		// These methods are common to all joint types
-		
+
 		if ( 0 == strcmp( "reactionTorque", key ) )
 		{
 			// No-op for read-only property
 		}
 
-			
-		if (jointType == e_distanceJoint) 
+
+		if (jointType == b2_distanceJoint)
 		{
 			//////////////////////////////////////////////////////////////////////////////
  			// This is exposed as a "distance" joint in Corona
 
-			b2DistanceJoint *joint = (b2DistanceJoint*)baseJoint;
-			
+			// b2DistanceJoint *joint = (b2DistanceJoint*)baseJoint;
+
 			if ( 0 == strcmp( "length", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
@@ -1163,7 +1228,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
 					Real valueMeters = Rtt_RealDiv( luaL_toreal( L, 3 ), scale );
-					joint->SetLength( Rtt_RealToFloat( valueMeters ) );
+					b2DistanceJoint_SetLength( baseJoint, valueMeters );
 				}
 			}
 			else if ( 0 == strcmp( "frequency", key ) )
@@ -1171,7 +1236,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real newValue = luaL_toreal( L, 3 );
-					joint->SetFrequency( newValue );
+					b2DistanceJoint_SetSpringHertz( baseJoint, newValue );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
@@ -1179,37 +1244,37 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real newValue = luaL_toreal( L, 3 );
-					joint->SetDampingRatio( newValue );
+					b2DistanceJoint_SetSpringDampingRatio( baseJoint, newValue );
 				}
 			}
 		}
 
-		else if ( jointType == e_motorJoint )
+		else if ( jointType == b2_motorJoint )
 		{
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)
 
-			b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
+			// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
 
 			if ( 0 == strcmp( "correctionFactor", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetCorrectionFactor( lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetCorrectionFactor( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "maxTorque", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxTorque( lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetMaxTorque( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "maxForce", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxForce( lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetMaxForce( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "angularOffset", key ) )
@@ -1217,23 +1282,23 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
-					joint->SetAngularOffset( Rtt_RealToFloat( valueRadians ) );
+					b2MotorJoint_SetAngularOffset( baseJoint, Rtt_RealToFloat( valueRadians ) );
 				}
 			}
 		}
-		
-		else if (jointType == e_revoluteJoint) 
+
+		else if (jointType == b2_revoluteJoint)
 		{
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)
 
-			b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
-			
+			// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
+
 			if ( 0 == strcmp( "isMotorEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
-					joint->EnableMotor( lua_toboolean( L, 3 ) );
+					b2RevoluteJoint_EnableMotor( baseJoint, lua_toboolean( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorSpeed", key ) )
@@ -1241,7 +1306,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
-					joint->SetMotorSpeed( Rtt_RealToFloat( valueRadians ) );
+					b2RevoluteJoint_SetMotorSpeed( baseJoint, Rtt_RealToFloat( valueRadians ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorTorque", key ) )
@@ -1252,14 +1317,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxMotorTorque( lua_tonumber( L, 3 ) );
+					b2RevoluteJoint_SetMaxMotorTorque( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "isLimitEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
-					joint->EnableLimit( lua_toboolean( L, 3 ) );
+					b2RevoluteJoint_EnableLimit( baseJoint, lua_toboolean( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "jointAngle", key ) )
@@ -1269,21 +1334,21 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			else if ( 0 == strcmp( "jointSpeed", key ) )
 			{
 				// No-op for read-only property
-			}		
+			}
 		}
 
-		else if (jointType == e_prismaticJoint) 
+		else if (jointType == b2_prismaticJoint)
 		{
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "piston" joint in Corona (aka "prismatic" in Box2D terms)
 
-			b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;
-			
+			// b2PrismaticJoint *joint = (b2PrismaticJoint*)baseJoint;
+
 			if ( 0 == strcmp( "isMotorEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
-					joint->EnableMotor( lua_toboolean( L, 3 ) );
+					b2PrismaticJoint_EnableMotor( baseJoint, lua_toboolean( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorSpeed", key ) )
@@ -1293,7 +1358,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
 					Real valueMeters = Rtt_RealDiv( luaL_toreal( L, 3 ), scale );
-					joint->SetMotorSpeed( Rtt_RealToFloat( valueMeters ) );
+					b2PrismaticJoint_SetMotorSpeed( baseJoint, Rtt_RealToFloat( valueMeters ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorForce", key ) )
@@ -1304,14 +1369,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxMotorForce( lua_tonumber( L, 3 ) );
+					b2PrismaticJoint_SetMaxMotorForce( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "isLimitEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
-					joint->EnableLimit( lua_toboolean( L, 3 ) );
+					b2PrismaticJoint_EnableLimit( baseJoint, lua_toboolean( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "jointTranslation", key ) )
@@ -1322,45 +1387,45 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				// No-op for read-only property
 			}
-		
-		}
-		
-		else if ( jointType == e_frictionJoint ) 
-		{
-			//////////////////////////////////////////////////////////////////////////////
-			// This is exposed as a "friction" joint in Corona (also "friction" in Box2D terms)
-			// A friction joint is a pivot joint that resists motion, and is therefore "sticky"	
 
-			b2FrictionJoint *joint = (b2FrictionJoint*)baseJoint;
-			
-			if ( 0 == strcmp( "maxForce", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					joint->SetMaxForce( lua_tonumber( L, 3 ) );
-				}
-			}
-			else if ( 0 == strcmp( "maxTorque", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					joint->SetMaxTorque( lua_tonumber( L, 3 ) );
-				}
-			}
 		}
-		
-		else if (jointType == e_wheelJoint) 
+
+		// else if ( jointType == e_frictionJoint )
+		// {
+		// 	//////////////////////////////////////////////////////////////////////////////
+		// 	// This is exposed as a "friction" joint in Corona (also "friction" in Box2D terms)
+		// 	// A friction joint is a pivot joint that resists motion, and is therefore "sticky"
+
+		// 	b2FrictionJoint *joint = (b2FrictionJoint*)baseJoint;
+
+		// 	if ( 0 == strcmp( "maxForce", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			joint->SetMaxForce( lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// 	else if ( 0 == strcmp( "maxTorque", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			joint->SetMaxTorque( lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// }
+
+		else if (jointType == b2_wheelJoint)
 		{
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "wheel" joint in Corona (aka "line" in Box2D terms)
 
-			b2WheelJoint *joint = (b2WheelJoint*)baseJoint;
-			
+			// b2WheelJoint *joint = (b2WheelJoint*)baseJoint;
+
 			if ( 0 == strcmp( "isMotorEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
-					joint->EnableMotor( lua_toboolean( L, 3 ) );
+					b2WheelJoint_EnableMotor( baseJoint, lua_toboolean( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorSpeed", key ) )
@@ -1375,7 +1440,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
-					joint->SetMotorSpeed( Rtt_RealToFloat( valueRadians ) );
+					b2WheelJoint_SetMotorSpeed( baseJoint, Rtt_RealToFloat( valueRadians ) );
 				}
 			}
 			else if ( 0 == strcmp( "motorTorque", key ) )
@@ -1386,7 +1451,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxMotorTorque( lua_tonumber( L, 3 ) );
+					b2WheelJoint_SetMaxMotorTorque( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "jointTranslation", key ) )
@@ -1401,102 +1466,102 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetSpringFrequencyHz( lua_tonumber( L, 3 ) );
+					b2WheelJoint_SetSpringHertz( baseJoint, lua_tonumber( L, 3 ) );
 				}
-			}		
+			}
 			else if ( strcmp( "springDampingRatio", key ) == 0 )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetSpringDampingRatio( lua_tonumber( L, 3 ) );
+					b2WheelJoint_SetSpringDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
 				}
-			}		
+			}
 		}
 
-		else if ( jointType == e_pulleyJoint ) 
-		{
-			//////////////////////////////////////////////////////////////////////////////
- 			// This is exposed as a "pulley" joint in Corona (type-specific methods are read-only)
-			
-			// TODO: maxLength1 and maxLength2 settable properties? (check docs)
-			
-			// b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
-			
-			if ( 0 == strcmp( "length1", key ) )
-			{
-				// No-op for read-only property
-			}
-			else if ( 0 == strcmp( "length2", key ) )
-			{
-				// No-op for read-only property
-			}
-			else if ( 0 == strcmp( "ratio", key ) )
-			{
-				// No-op for read-only property
-			}
-			
-		}
-		
-		else if ( jointType == e_mouseJoint ) 
+		// else if ( jointType == e_pulleyJoint )
+		// {
+		// 	//////////////////////////////////////////////////////////////////////////////
+ 	// 		// This is exposed as a "pulley" joint in Corona (type-specific methods are read-only)
+
+		// 	// TODO: maxLength1 and maxLength2 settable properties? (check docs)
+
+		// 	// b2PulleyJoint *joint = (b2PulleyJoint*)baseJoint;
+
+		// 	if ( 0 == strcmp( "length1", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+		// 	else if ( 0 == strcmp( "length2", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+		// 	else if ( 0 == strcmp( "ratio", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+
+		// }
+
+		else if ( jointType == b2_mouseJoint )
 		{
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
-			// A touch joint is used for dragging objects without overriding the simulation; 
-			// it creates an elastic link between the current touch point -- or any point submitted 
+			// A touch joint is used for dragging objects without overriding the simulation;
+			// it creates an elastic link between the current touch point -- or any point submitted
 			// by the end developer using SetTarget() -- and the specified body
 
-			b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
-			
+			// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+
 			if ( 0 == strcmp( "maxForce", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetMaxForce( lua_tonumber( L, 3 ) );
+					b2MouseJoint_SetMaxForce( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "frequency", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetFrequency( lua_tonumber( L, 3 ) );
+					b2MouseJoint_SetSpringHertz( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetDampingRatio( lua_tonumber( L, 3 ) );
+					b2MouseJoint_SetSpringDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
 				}
-			}
-		} 
-
-		else if ( jointType == e_gearJoint ) 
-		{
-			//////////////////////////////////////////////////////////////////////////////
-			b2GearJoint *joint = (b2GearJoint*)baseJoint;
-			
-			if ( 0 == strcmp( "ratio", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					joint->SetRatio( lua_tonumber( L, 3 ) );
-				}
-			}
-			else if ( 0 == strcmp( "joint1", key ) )
-			{
-				// No-op for read-only property
-			}
-			else if ( 0 == strcmp( "joint2", key ) )
-			{
-				// No-op for read-only property
 			}
 		}
 
-		else if ( jointType == e_weldJoint ) 
+		// else if ( jointType == e_gearJoint )
+		// {
+		// 	//////////////////////////////////////////////////////////////////////////////
+		// 	b2GearJoint *joint = (b2GearJoint*)baseJoint;
+
+		// 	if ( 0 == strcmp( "ratio", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			joint->SetRatio( lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// 	else if ( 0 == strcmp( "joint1", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+		// 	else if ( 0 == strcmp( "joint2", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+		// }
+
+		else if ( jointType == b2_weldJoint )
 		{
 			//////////////////////////////////////////////////////////////////////////////
-			b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
-			
+			// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
+
 			if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 			{
 				// No-op for read-only property
@@ -1505,38 +1570,42 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetFrequency( lua_tonumber( L, 3 ) );
+					// joint->SetFrequency( lua_tonumber( L, 3 ) );
+					b2WeldJoint_SetLinearHertz( baseJoint, lua_tonumber( L, 3 ) );
+					// b2WeldJoint_SetAngularHertz(baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					joint->SetDampingRatio( lua_tonumber( L, 3 ) );
+					// joint->SetDampingRatio( lua_tonumber( L, 3 ) );
+					b2WeldJoint_SetLinearDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+					// b2WeldJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 		}
 
-		else if ( jointType == e_ropeJoint ) 
-		{
-			//////////////////////////////////////////////////////////////////////////////
-			b2RopeJoint *joint = (b2RopeJoint*)baseJoint;
-			
-			if ( 0 == strcmp( "maxLength", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					float value = lua_tonumber( L, 3 );
-					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-					value = LuaLibPhysics::ToMKS( LuaLibPhysics::kLengthUnitType, physics, value );
-					joint->SetMaxLength( value );
-				}
-			}
-			else if ( 0 == strcmp( "limitState", key ) )
-			{
-				// No-op for read-only property
-			}
-		}
+		// else if ( jointType == e_ropeJoint )
+		// {
+		// 	//////////////////////////////////////////////////////////////////////////////
+		// 	b2RopeJoint *joint = (b2RopeJoint*)baseJoint;
+
+		// 	if ( 0 == strcmp( "maxLength", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			float value = lua_tonumber( L, 3 );
+		// 			const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		// 			value = LuaLibPhysics::ToMKS( LuaLibPhysics::kLengthUnitType, physics, value );
+		// 			joint->SetMaxLength( value );
+		// 		}
+		// 	}
+		// 	else if ( 0 == strcmp( "limitState", key ) )
+		// 	{
+		// 		// No-op for read-only property
+		// 	}
+		// }
 
 	}
 
@@ -1552,11 +1621,11 @@ PhysicsJoint::Finalizer( lua_State *L )
 	{
 		UserdataWrapper *wrapper = *ud;
 
-		b2Joint *joint = (b2Joint*)wrapper->Dereference();
-		if ( joint )
+		b2JointId joint = wrapper->Dereference();
+		if ( b2Joint_IsValid(joint) )
 		{
 			// Make sure joint no longer points to this wrapper that we're about to destroy
-			joint->SetUserData( NULL );
+			b2Joint_SetUserData( joint, NULL );
 		}
 
 		Rtt_DELETE( wrapper );
@@ -1578,14 +1647,14 @@ PhysicsJoint::Initialize( lua_State *L )
 		{ "__gc", Self::Finalizer },
 		{ NULL, NULL }
 	};
-		
+
 	Lua::InitializeMetatable( L, Self::kMetatableName, kVTable );
 }
 
 // ----------------------------------------------------------------------------
-	
+
 } // namespace Rtt
 
 // ----------------------------------------------------------------------------
 
-#endif // Rtt_PHYSICS	
+#endif // Rtt_PHYSICS

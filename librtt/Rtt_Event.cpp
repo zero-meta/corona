@@ -17,7 +17,7 @@
 #endif
 
 #include "Rtt_PhysicsWorld.h"
-#include "Rtt_ParticleSystemObject.h"
+// #include "Rtt_ParticleSystemObject.h"
 
 #include "Display/Rtt_BitmapPaint.h"
 #include "Display/Rtt_Display.h"
@@ -34,7 +34,7 @@
 #include "Rtt_Runtime.h"
 #include "Display/Rtt_SpriteObject.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -1098,6 +1098,7 @@ PostCollisionEvent::Push( lua_State *L ) const
 	return 1;
 }
 
+/*
 static void _PushCommonParticleCollisionEvent( lua_State *L,
 												Runtime &runtime,
 												const char *phase,
@@ -1292,6 +1293,7 @@ void EndParticleCollisionEvent::Dispatch( lua_State *L,
 											static_cast< ParticleSystemObject * >( fParticleSystem->GetUserDataBuffer()[ fParticleIndex ] ) );
 }
 
+*/
 #endif // Rtt_PHYSICS
 
 // ----------------------------------------------------------------------------

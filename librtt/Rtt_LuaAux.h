@@ -17,6 +17,8 @@
 #include "Core/Rtt_Geometry.h"
 #include "Core/Rtt_ResourceHandle.h"
 
+#include "box2d/box2d.h"
+
 namespace Rtt
 {
 
@@ -95,17 +97,19 @@ class UserdataWrapper
 		static void* GetFinalizedValue();
 
 	public:
-		UserdataWrapper( const ResourceHandle< lua_State >& handle, void *ud, const char *mtName );
+		// UserdataWrapper( const ResourceHandle< lua_State >& handle, void *ud, const char *mtName );
+		UserdataWrapper( const ResourceHandle< lua_State >& handle, b2JointId ud, const char *mtName );
 		~UserdataWrapper();
 
 	public:
 		int Push() const;
-		void Invalidate() { fData = NULL; }
-		void* Dereference() const { return fData; }
+		void Invalidate() { fData = b2_nullJointId; }
+		b2JointId Dereference() const { return fData; }
 
 	private:
 		ResourceHandle< lua_State > fHandle;
-		void *fData;
+		// void *fData;
+		b2JointId fData;
 };
 
 // ----------------------------------------------------------------------------

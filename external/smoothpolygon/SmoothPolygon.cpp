@@ -223,7 +223,7 @@ namespace // anonymous namespace.
 		while (true) {
 			step(x, y);
 			if (m_png.IsValid(x, y)) {
-				m_result->push_back( b2Vec2( (float)x, (float)y ) );
+				m_result->push_back( b2Vec2 { (float)x, (float)y } );
 			}
 			switch (m_nextStep)
 			{

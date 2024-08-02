@@ -21,7 +21,7 @@
 #include "Rtt_LuaProxyVTable.h"
 #include "Rtt_LuaContext.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ namespace Rtt
 
 const char PhysicsContact::kMetatableName[] = "physics.contact"; // unique identifier for this userdata type
 
+/*
 UserdataWrapper *
 PhysicsContact::CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, b2Contact *contact )
 {
@@ -58,44 +59,45 @@ PhysicsContact::GetContact( lua_State *L, int index )
 
 	return result;
 }
+*/
 
 int
 PhysicsContact::ValueForKey( lua_State *L )
 {
 	int result = 0;    // number of args pushed on the stack
 	
-	b2Contact *contact = GetContact( L, 1 );
+	// b2Contact *contact = GetContact( L, 1 );
 	
-	if ( contact )
-	{
-		const char *key = luaL_checkstring( L, 2 );		
-		result = 1;
+	// if ( contact )
+	// {
+	// 	const char *key = luaL_checkstring( L, 2 );
+	// 	result = 1;
 
-		if ( 0 == strcmp( "isTouching", key ) )
-		{
-			lua_pushboolean( L, contact->IsTouching() );
-		}
-		else if ( 0 == strcmp( "isEnabled", key ) )
-		{
-			lua_pushboolean( L, contact->IsEnabled() );
-		}
-		else if ( 0 == strcmp( "friction", key ) )
-		{
-			lua_pushnumber( L, contact->GetFriction() );
-		}
-		else if ( 0 == strcmp( "bounce", key ) )
-		{
-			lua_pushnumber( L, contact->GetRestitution() );
-		}
-		else if ( 0 == strcmp( "tangentSpeed", key ) )
-		{
-			lua_pushnumber( L, contact->GetTangentSpeed() );
-		}
-		else
-		{
-			result = 0;
-		}
-	}
+	// 	if ( 0 == strcmp( "isTouching", key ) )
+	// 	{
+	// 		lua_pushboolean( L, contact->IsTouching() );
+	// 	}
+	// 	else if ( 0 == strcmp( "isEnabled", key ) )
+	// 	{
+	// 		lua_pushboolean( L, contact->IsEnabled() );
+	// 	}
+	// 	else if ( 0 == strcmp( "friction", key ) )
+	// 	{
+	// 		lua_pushnumber( L, contact->GetFriction() );
+	// 	}
+	// 	else if ( 0 == strcmp( "bounce", key ) )
+	// 	{
+	// 		lua_pushnumber( L, contact->GetRestitution() );
+	// 	}
+	// 	else if ( 0 == strcmp( "tangentSpeed", key ) )
+	// 	{
+	// 		lua_pushnumber( L, contact->GetTangentSpeed() );
+	// 	}
+	// 	else
+	// 	{
+	// 		result = 0;
+	// 	}
+	// }
 	
 	return result;
 }
@@ -103,29 +105,29 @@ PhysicsContact::ValueForKey( lua_State *L )
 int
 PhysicsContact::SetValueForKey( lua_State *L )
 {
-	b2Contact *contact = GetContact( L, 1 );
+	// b2Contact *contact = GetContact( L, 1 );
 	
-	if ( contact )
-	{		
-		const char *key = luaL_checkstring( L, 2 );
+	// if ( contact )
+	// {
+	// 	const char *key = luaL_checkstring( L, 2 );
 
-		if ( 0 == strcmp( "isEnabled", key ) )
-		{
-			contact->SetEnabled( lua_toboolean( L, 3 ) );
-		}
-		else if ( 0 == strcmp( "friction", key ) )
-		{
-			contact->SetFriction( lua_tonumber( L, 3 ) );
-		}
-		else if ( 0 == strcmp( "bounce", key ) )
-		{
-			contact->SetRestitution( lua_tonumber( L, 3 ) );
-		}
-		else if ( 0 == strcmp( "tangentSpeed", key ) )
-		{
-			contact->SetTangentSpeed( lua_tonumber( L, 3 ) );
-		}
-	}
+	// 	if ( 0 == strcmp( "isEnabled", key ) )
+	// 	{
+	// 		contact->SetEnabled( lua_toboolean( L, 3 ) );
+	// 	}
+	// 	else if ( 0 == strcmp( "friction", key ) )
+	// 	{
+	// 		contact->SetFriction( lua_tonumber( L, 3 ) );
+	// 	}
+	// 	else if ( 0 == strcmp( "bounce", key ) )
+	// 	{
+	// 		contact->SetRestitution( lua_tonumber( L, 3 ) );
+	// 	}
+	// 	else if ( 0 == strcmp( "tangentSpeed", key ) )
+	// 	{
+	// 		contact->SetTangentSpeed( lua_tonumber( L, 3 ) );
+	// 	}
+	// }
 
 	return 0;
 }
