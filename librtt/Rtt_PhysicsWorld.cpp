@@ -11,9 +11,7 @@
 
 #include "Rtt_PhysicsWorld.h"
 
-// #include "Box2D/Box2D.h"
-#include "box2d/box2d.h"
-// #include "b2GLESDebugDraw.h"
+#include "b2GLESDebugDraw.h"
 
 #include "Display/Rtt_Display.h"
 #include "Display/Rtt_DisplayObject.h"
@@ -64,7 +62,7 @@ const S32 kPositionIterations = 3;
 
 PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 :	fAllocator( allocator ),
-	// fWorldDebugDraw( NULL ),
+	fWorldDebugDraw( NULL ),
 	// fWorldDestructionListener( NULL ),
 	fWorldContactListener( NULL ),
 	fReportCollisionsInContentCoordinates( false ),
@@ -155,7 +153,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		fWorldContactListener = Rtt_NEW( Allocator(), PhysicsContactListener( runtime ) );
 		// fWorld->SetContactListener( fWorldContactListener );
 
-		// fWorldDebugDraw = Rtt_NEW( Allocator(), b2GLESDebugDraw( runtime.GetDisplay() ) );
+		fWorldDebugDraw = Rtt_NEW( Allocator(), b2GLESDebugDraw( runtime.GetDisplay() ) );
 
 // 		uint32 debugFlags =
 // 			b2Draw::e_shapeBit |
@@ -241,8 +239,8 @@ PhysicsWorld::StopWorld()
 		Rtt_DELETE( fWorldContactListener );
 		fWorldContactListener = NULL;
 
-		// Rtt_DELETE( fWorldDebugDraw );
-		// fWorldDebugDraw = NULL;
+		Rtt_DELETE( fWorldDebugDraw );
+		fWorldDebugDraw = NULL;
 	}
 }
 

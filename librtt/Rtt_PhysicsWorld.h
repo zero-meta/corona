@@ -21,7 +21,7 @@
 namespace Rtt
 {
 
-// class b2GLESDebugDraw;
+class b2GLESDebugDraw;
 class PhysicsContactListener;
 class Runtime;
 class Renderer;
@@ -106,7 +106,7 @@ class PhysicsWorld
 
 	private:
 		Rtt_Allocator& fAllocator;
-		// b2GLESDebugDraw *fWorldDebugDraw;
+		b2GLESDebugDraw *fWorldDebugDraw;
 		// b2DestructionListener *fWorldDestructionListener;
 		PhysicsContactListener *fWorldContactListener;
 

@@ -55,13 +55,75 @@
 namespace Rtt
 {
 
+struct RGBA8
+{
+	uint8_t r, g, b, a;
+};
+
+static inline RGBA8 MakeRGBA8(b2HexColor c, float alpha)
+{
+	return {uint8_t((c >> 16) & 0xFF), uint8_t((c >> 8) & 0xFF), uint8_t(c & 0xFF), uint8_t(0xFF * alpha)};
+}
+
+void DrawPolygonFcn(const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon(vertices, vertexCount, color);
+}
+
+void DrawSolidPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
+						 void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawSolidPolygon(transform, vertices, vertexCount, radius, color);
+}
+
+void DrawCircleFcn(b2Vec2 center, float radius, b2HexColor color, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawCircle(center, radius, color);
+}
+
+void DrawSolidCircleFcn(b2Transform transform, float radius, b2HexColor color, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawSolidCircle(transform, b2Vec2_zero, radius, color);
+}
+
+void DrawCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
+{
+	// static_cast<b2GLESDebugDraw*>(context)->DrawCapsule(p1, p2, radius, color);
+}
+
+void DrawSolidCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
+{
+	// static_cast<b2GLESDebugDraw*>(context)->DrawSolidCapsule(p1, p2, radius, color);
+}
+
+void DrawSegmentFcn(b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawSegment(p1, p2, color);
+}
+
+void DrawTransformFcn(b2Transform transform, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawTransform(transform);
+}
+
+void DrawPointFcn(b2Vec2 p, float size, b2HexColor color, void* context)
+{
+	static_cast<b2GLESDebugDraw*>(context)->DrawPoint(p, size, color);
+}
+
+void DrawStringFcn(b2Vec2 p, const char* s, void* context)
+{
+	// static_cast<b2GLESDebugDraw*>(context)->DrawString(p, s);
+}
+
 // ----------------------------------------------------------------------------
 
 b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 :	fRenderer( NULL ),
 	fPixelsPerMeter( Rtt_REAL_1 ),
 	fMetersPerPixel( Rtt_REAL_1 ),
-	fData()
+	fData(),
+	fDebugDraw({})
 {
 	// Init fData.
 	{
@@ -86,6 +148,31 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 		fData.fUserUniform1 = NULL;
 		fData.fUserUniform2 = NULL;
 		fData.fUserUniform3 = NULL;
+
+		b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
+		fDebugDraw = {DrawPolygonFcn,
+					   DrawSolidPolygonFcn,
+					   DrawCircleFcn,
+					   DrawSolidCircleFcn,
+					   DrawCapsuleFcn,
+					   DrawSolidCapsuleFcn,
+					   DrawSegmentFcn,
+					   DrawTransformFcn,
+					   DrawPointFcn,
+					   DrawStringFcn,
+					   bounds,
+					   false, // drawUsingBounds
+					   true,  // shapes
+					   true,  // joints
+					   false, // joint extras
+					   false, // aabbs
+					   false, // mass
+					   false, // contacts
+					   false, // colors
+					   false, // normals
+					   false, // impulse
+					   false, // friction
+					   this};
 	}
 }
 
@@ -145,13 +232,15 @@ void b2GLESDebugDraw::End()
 // the display object's object-to-world-space transform.
 void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &renderer )
 {
-	// b2World *world = physics.GetWorld();
-	// if ( ! world )
-	// {
-	// 	return;
-	// }
+	b2WorldId worldId = physics.GetWorldId();
+	if ( ! b2World_IsValid( worldId ) )
+	{
+		return;
+	}
 
-	// Begin( physics, renderer );
+	Begin( physics, renderer );
+
+	b2World_Draw( worldId, &fDebugDraw );
 
 	// uint32 flags = GetFlags();
 
@@ -236,10 +325,10 @@ void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &rend
 	// // Restore flags
 	// SetFlags( flags );
 
-	// End();
+	End();
 }
 
-void b2GLESDebugDraw::DrawShape( b2ShapeId fixture, const b2Transform& xf, const b2HexColor& color)
+void b2GLESDebugDraw::DrawShape( b2ShapeId fixture, const b2Transform& xf, b2HexColor color)
 {
 	// switch (fixture->GetType())
 	// {
@@ -402,64 +491,65 @@ void b2GLESDebugDraw::_SetVerticesUsed( int vertexCount )
 void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
 									const b2Vec2* vertices,
 									int vertexCount,
-									const b2HexColor& color )
+									b2HexColor hexColor )
 {
-	// _SetVerticesUsed( vertexCount );
+	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
+	_SetVerticesUsed( vertexCount );
 
-	// Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
+	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
 
-	// // Copy the vertices from Box2D to our own rendering format.
-	// for( int i = 0;
-	// 		i < vertexCount;
-	// 		++i )
-	// {
-	// 	const b2Vec2 &input_vert = vertices[ i ];
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
+	// Copy the vertices from Box2D to our own rendering format.
+	for( int i = 0;
+			i < vertexCount;
+			++i )
+	{
+		const b2Vec2 &input_vert = vertices[ i ];
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
 
-	// 	output_vert.Zero();
-	// 	output_vert.SetPos( ( input_vert.x * fPixelsPerMeter ),
-	// 						( input_vert.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
+		output_vert.SetPos( ( input_vert.x * fPixelsPerMeter ),
+							( input_vert.y * fPixelsPerMeter ) );
+	}
 
-	// // We're iterating multiple times over the input and output arrays.
-	// // From a cache point of view, this is only ok with small arrays.
-	// // With large arrays, it's more efficient to set all the fields of
-	// // each entries in a single pass.
+	// We're iterating multiple times over the input and output arrays.
+	// From a cache point of view, this is only ok with small arrays.
+	// With large arrays, it's more efficient to set all the fields of
+	// each entries in a single pass.
 
-	// // Draw the body of the polygon.
-	// if( fill_body )
-	// {
-	// 	// Set the color.
-	// 	Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 										output_vertices,
-	// 										0.5*color.r,
-	// 										0.5*color.g,
-	// 										0.5*color.b,
-	// 										0.5 );
+	// Draw the body of the polygon.
+	if( fill_body )
+	{
+		// Set the color.
+		Rtt::Geometry::Vertex::SetColor( vertexCount,
+											output_vertices,
+											0.5*color.r,
+											0.5*color.g,
+											0.5*color.b,
+											0.5 );
 
-	// 	fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
-	// 	fRenderer->Insert( &fData );
-	// }
+		fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
+		fRenderer->Insert( &fData );
+	}
 
-	// // Set the color.
-	// Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 									output_vertices,
-	// 									color.r,
-	// 									color.g,
-	// 									color.b,
-	// 									1.f );
+	// Set the color.
+	Rtt::Geometry::Vertex::SetColor( vertexCount,
+										output_vertices,
+										color.r,
+										color.g,
+										color.b,
+										1.f );
 
-	// // Draw the outline of the polygon.
-	// fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	// fRenderer->Insert( &fData );
+	// Draw the outline of the polygon.
+	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
+	fRenderer->Insert( &fData );
 }
 
-void b2GLESDebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color)
+void b2GLESDebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor color)
 {
 	_DrawPolygon( false, vertices, vertexCount, color );
 }
 
-void b2GLESDebugDraw::DrawSolidPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color)
+void b2GLESDebugDraw::DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color)
 {
 	_DrawPolygon( true, vertices, vertexCount, color );
 }
@@ -505,138 +595,146 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 									const b2Vec2& center,
 									float radius,
 									const b2Vec2 *optionalAxis,
-									const b2HexColor& color,
+									b2HexColor hexColor,
 									const b2Vec2 *optionalOffset )
 {
-	// b2Vec2 circleOrigin( center + ( optionalOffset ? *optionalOffset : b2Vec2_zero ) );
+	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
 
-	// const int vertexCount = 16;
+	b2Vec2 circleOrigin( center + ( optionalOffset ? *optionalOffset : b2Vec2_zero ) );
 
-	// _SetVerticesUsed( vertexCount );
+	const int vertexCount = 16;
 
-	// Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
+	_SetVerticesUsed( vertexCount );
 
-	// float theta = 0.0f;
+	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
 
-	// for( int i = 0;
-	// 		i < vertexCount;
-	// 		++i,
-	// 		theta += ( ( 2.0f * b2_pi ) / (float)vertexCount ) )
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
+	float theta = 0.0f;
 
-	// 	b2Vec2 pos = { cosf( theta ), sinf( theta ) };
-	// 	pos *= radius;
-	// 	pos += circleOrigin;
-	// 	pos *= fPixelsPerMeter;
+	for( int i = 0;
+			i < vertexCount;
+			++i,
+			theta += ( ( 2.0f * b2_pi ) / (float)vertexCount ) )
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
 
-	// 	output_vert.Zero();
-	// 	output_vert.SetPos( pos.x, pos.y );
-	// }
+		b2Vec2 pos = { cosf( theta ), sinf( theta ) };
+		pos *= radius;
+		pos += circleOrigin;
+		pos *= fPixelsPerMeter;
 
-	// // Draw the body of the circle.
-	// if( fill_body )
-	// {
-	// 	// Set the color.
-	// 	Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 										output_vertices,
-	// 										0.5*color.r,
-	// 										0.5*color.g,
-	// 										0.5*color.b,
-	// 										0.5 );
+		output_vert.Zero();
+		output_vert.SetPos( pos.x, pos.y );
+	}
 
-	// 	fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
-	// 	fRenderer->Insert( &fData );
-	// }
+	// Draw the body of the circle.
+	if( fill_body )
+	{
+		// Set the color.
+		Rtt::Geometry::Vertex::SetColor( vertexCount,
+											output_vertices,
+											0.5*color.r,
+											0.5*color.g,
+											0.5*color.b,
+											0.5 );
 
-	// Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 									output_vertices,
-	// 									color.r,
-	// 									color.g,
-	// 									color.b,
-	// 									1.f );
+		fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
+		fRenderer->Insert( &fData );
+	}
 
-	// // Draw the outline of the circle.
-	// fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	// fRenderer->Insert( &fData );
+	Rtt::Geometry::Vertex::SetColor( vertexCount,
+										output_vertices,
+										color.r,
+										color.g,
+										color.b,
+										1.f );
 
-	// if( optionalAxis )
-	// {
-	// 	// Draw the axis line
-	// 	DrawSegment( circleOrigin,
-	// 					( circleOrigin + ( radius * *optionalAxis ) ),
-	// 					color );
-	// }
+	// Draw the outline of the circle.
+	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
+	fRenderer->Insert( &fData );
+
+	if( optionalAxis )
+	{
+		// Draw the axis line
+		DrawSegment( circleOrigin,
+						( circleOrigin + ( radius * *optionalAxis ) ),
+						hexColor );
+	}
 }
 
-void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, const b2HexColor& color)
+void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, b2HexColor color)
 {
 	DrawCircle( true, center, radius, NULL, color, NULL );
 }
 
-void b2GLESDebugDraw::DrawSolidCircle( const b2Vec2& center,
+void b2GLESDebugDraw::DrawSolidCircle( b2Transform transform,
+										b2Vec2 center,
 										float radius,
-										const b2Vec2& axis,
-										const b2HexColor& color )
+										b2HexColor color )
 {
+	b2Vec2 axis = b2Rot_GetXAxis(transform.q);
 	DrawCircle( true, center, radius, &axis, color, NULL );
 }
 
-void b2GLESDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2HexColor& color)
+void b2GLESDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, b2HexColor hexColor)
 {
-	// const int vertexCount = 2;
+	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
 
-	// _SetVerticesUsed( vertexCount );
+	const int vertexCount = 2;
 
-	// Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
+	_SetVerticesUsed( vertexCount );
 
-	// // Start point.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
+	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
 
-	// 	output_vert.Zero();
+	// Start point.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
 
-	// 	output_vert.SetPos( ( p1.x * fPixelsPerMeter ),
-	// 						( p1.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // End point.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
+		output_vert.SetPos( ( p1.x * fPixelsPerMeter ),
+							( p1.y * fPixelsPerMeter ) );
+	}
 
-	// 	output_vert.Zero();
+	// End point.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
 
-	// 	output_vert.SetPos( ( p2.x * fPixelsPerMeter ),
-	// 						( p2.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // Set the color.
-	// Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 									output_vertices,
-	// 									color.r,
-	// 									color.g,
-	// 									color.b,
-	// 									1.0f );
+		output_vert.SetPos( ( p2.x * fPixelsPerMeter ),
+							( p2.y * fPixelsPerMeter ) );
+	}
 
-	// // Draw.
-	// fData.fGeometry->SetPrimitiveType( Geometry::kLines );
-	// fRenderer->Insert( &fData );
+	// Set the color.
+	Rtt::Geometry::Vertex::SetColor( vertexCount,
+										output_vertices,
+										color.r,
+										color.g,
+										color.b,
+										1.0f );
+
+	// Draw.
+	fData.fGeometry->SetPrimitiveType( Geometry::kLines );
+	fRenderer->Insert( &fData );
 }
 
 void b2GLESDebugDraw::DrawTransform(const b2Transform& xf)
 {
-	// b2Vec2 p1 = xf.p, p2;
-	// // const float k_axisScale = 0.4f;
-	// const float k_axisScale = 24.0f * fMetersPerPixel;
+	b2Vec2 p1 = xf.p, p2;
+	// const float k_axisScale = 0.4f;
+	const float k_axisScale = 24.0f * fMetersPerPixel;
 
 	// p2 = p1 + k_axisScale * xf.q.GetXAxis();
 	// DrawSegment(p1,p2,b2HexColor(1,0,0));
+	p2 = p1 + k_axisScale * b2Rot_GetXAxis( xf.q );
+	DrawSegment( p1, p2, b2_colorRed );
 
-	// p2 = p1 + k_axisScale * xf.q.GetYAxis();
+	p2 = p1 + k_axisScale * b2Rot_GetYAxis( xf.q );
 	// DrawSegment(p1,p2,b2HexColor(0,1,0));
+	DrawSegment( p1, p2, b2_colorGreen );
 }
 
-void b2GLESDebugDraw::DrawPoint(const b2Vec2& p, float size, const b2HexColor& color)
+void b2GLESDebugDraw::DrawPoint(const b2Vec2& p, float size, b2HexColor color)
 {
 	// We're aware that this isn't the most efficient way to draw a point.
 	// We'll make this more efficient if necessary.
@@ -648,65 +746,67 @@ void b2GLESDebugDraw::DrawString(int x, int y, const char *string, ...)
 	/* Unsupported as yet. Could replace with bitmap font renderer at a later date */
 }
 
-void b2GLESDebugDraw::DrawAABB(b2AABB* aabb, const b2HexColor& c)
+void b2GLESDebugDraw::DrawAABB(b2AABB* aabb, b2HexColor hexC)
 {
-	// const int vertexCount = 4;
+	RGBA8 c = MakeRGBA8( hexC, 1.0f );
 
-	// _SetVerticesUsed( vertexCount );
+	const int vertexCount = 4;
 
-	// Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
+	_SetVerticesUsed( vertexCount );
 
-	// // Upper left.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
+	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
 
-	// 	output_vert.Zero();
+	// Upper left.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
 
-	// 	output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
-	// 						( aabb->lowerBound.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // Upper right.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
+		output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
+							( aabb->lowerBound.y * fPixelsPerMeter ) );
+	}
 
-	// 	output_vert.Zero();
+	// Upper right.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
 
-	// 	output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
-	// 						( aabb->lowerBound.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // Lower right.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 2 ];
+		output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
+							( aabb->lowerBound.y * fPixelsPerMeter ) );
+	}
 
-	// 	output_vert.Zero();
+	// Lower right.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 2 ];
 
-	// 	output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
-	// 						( aabb->upperBound.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // Lower left.
-	// {
-	// 	Rtt::Geometry::Vertex &output_vert = output_vertices[ 3 ];
+		output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
+							( aabb->upperBound.y * fPixelsPerMeter ) );
+	}
 
-	// 	output_vert.Zero();
+	// Lower left.
+	{
+		Rtt::Geometry::Vertex &output_vert = output_vertices[ 3 ];
 
-	// 	output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
-	// 						( aabb->upperBound.y * fPixelsPerMeter ) );
-	// }
+		output_vert.Zero();
 
-	// // Set the color.
-	// Rtt::Geometry::Vertex::SetColor( vertexCount,
-	// 									output_vertices,
-	// 									c.r,
-	// 									c.g,
-	// 									c.b,
-	// 									1.0f );
+		output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
+							( aabb->upperBound.y * fPixelsPerMeter ) );
+	}
 
-	// // Draw.
-	// fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	// fRenderer->Insert( &fData );
+	// Set the color.
+	Rtt::Geometry::Vertex::SetColor( vertexCount,
+										output_vertices,
+										c.r,
+										c.g,
+										c.b,
+										1.0f );
+
+	// Draw.
+	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
+	fRenderer->Insert( &fData );
 }
 
 // ----------------------------------------------------------------------------

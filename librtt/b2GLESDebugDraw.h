@@ -58,35 +58,35 @@ class b2GLESDebugDraw
 		void DrawDebugData( const PhysicsWorld& physics, Renderer &renderer );
 
 	protected:
-		void DrawShape( b2ShapeId fixture, const b2Transform& xf, const b2HexColor& color);
+		void DrawShape( b2ShapeId fixture, const b2Transform& xf, b2HexColor color);
 		void DrawJoint( b2JointId joint );
 		// void DrawParticleSystem( const b2ParticleSystem& system );
 
 	public:
 		// b2Draw.
 
-		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color);
+		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor color);
 
-		virtual void DrawSolidPolygon(const b2Vec2* vertices, int vertexCount, const b2HexColor& color);
+		virtual void DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color);
 
 
-		virtual void DrawCircle(const b2Vec2& center, float radius, const b2HexColor& color);
+		virtual void DrawCircle(const b2Vec2& center, float radius, b2HexColor color);
 
 		// virtual void DrawParticles(const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count);
 
 		// void DrawParticlesOffset( const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count, const b2Vec2 *offset );
 
-		virtual void DrawSolidCircle(const b2Vec2& center, float radius, const b2Vec2& axis, const b2HexColor& color);
+		virtual void DrawSolidCircle(b2Transform transform, b2Vec2 center, float radius, b2HexColor color);
 
-		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2HexColor& color);
+		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, b2HexColor color);
 
 		virtual void DrawTransform(const b2Transform& xf);
 
-		virtual void DrawPoint(const b2Vec2& p, float size, const b2HexColor& color);
+		virtual void DrawPoint(const b2Vec2& p, float size, b2HexColor color);
 
 		virtual void DrawString(int x, int y, const char* string, ...);
 
-		virtual void DrawAABB(b2AABB* aabb, const b2HexColor& color);
+		virtual void DrawAABB(b2AABB* aabb, b2HexColor color);
 
 	public:
 
@@ -94,7 +94,7 @@ class b2GLESDebugDraw
 							const b2Vec2& center,
 							float radius,
 							const b2Vec2 *optionalAxis,
-							const b2HexColor& color,
+							b2HexColor color,
 							const b2Vec2 *optionalOffset );
 
 	private:
@@ -104,7 +104,7 @@ class b2GLESDebugDraw
 		void _DrawPolygon( bool fill_body,
 							const b2Vec2* vertices,
 							int vertexCount,
-							const b2HexColor& color );
+							b2HexColor color );
 
 		//! fRenderer and fScale are only valid between Begin() and End().
 		Renderer *fRenderer;
@@ -113,6 +113,8 @@ class b2GLESDebugDraw
 
 		RenderData fData;
 		Shader *fShader;
+
+		b2DebugDraw fDebugDraw;
 };
 
 // ----------------------------------------------------------------------------
