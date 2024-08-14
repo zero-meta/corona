@@ -103,8 +103,8 @@ PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 	fLuaAssertEnabled( false ),
 	fAverageCollisionPositions( false ),
 	fProperties( 0 ),
-	// fWorld( NULL ),
-	fWorldId( b2_nullWorldId ),
+	fWorld( NULL ),
+	// fWorldId( b2_nullWorldId ),
 	fPixelsPerMeter( 30.0f ), // default on iPhone
 	// fGroundBody( NULL ),
 	fGroundBodyId( b2_nullBodyId ),
@@ -153,8 +153,7 @@ PhysicsWorld::WillDestroyDisplay()
 void
 PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 {
-	// if ( ! fWorld )
-	if ( ! b2World_IsValid(fWorldId))
+	if ( ! fWorld )
 	{
 		Rtt_ASSERT( ! IsProperty( kIsWorldRunning ) );
 
@@ -185,7 +184,9 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		}
 		worldDef.gravity = gravity;
 		worldDef.enableSleep = !noSleep;
-		fWorldId = b2CreateWorld( &worldDef );
+		b2WorldId worldId = b2CreateWorld( &worldDef );
+
+		fWorld = Rtt_NEW( Allocator(), b2LiquidWorld( worldId ) );
 
 		// The noSleep flag sets whether to simulate inactive bodies, or allow them to "sleep" after a few seconds
 		// of no interaction. The recommended default is to allow sleep. Our exposed boolean should be the opposite,
@@ -217,7 +218,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		b2BodyDef bd = b2DefaultBodyDef();
 		bd.type = b2_staticBody;
 		bd.userData = const_cast< void* >( LuaLibPhysics::GetGroundBodyUserdata() );
-		fGroundBodyId = b2CreateBody( fWorldId, &bd );
+		fGroundBodyId = b2CreateBody( fWorld->GetWorldId(), &bd );
 		b2ShapeDef shapeDef = b2DefaultShapeDef();
 		shapeDef.filter = { 0x00000001, 0x00000000, 0 };
 		shapeDef.isSensor = true;
@@ -234,7 +235,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 void
 PhysicsWorld::PauseWorld()
 {
-	if ( b2World_IsValid(fWorldId) )
+	if ( fWorld )
 	{
 		SetProperty( kIsWorldRunning, false );
 	}
@@ -243,15 +244,14 @@ PhysicsWorld::PauseWorld()
 void
 PhysicsWorld::StopWorld()
 {
-	// if ( fWorld )
-	if ( b2World_IsValid(fWorldId) )
+	if ( fWorld )
 	{
 		SetProperty( kIsWorldRunning, false );
 
 		// fWorld->SetContactListener( NULL );
 
-		b2DestroyWorld( fWorldId );
-		fWorldId = b2_nullWorldId;
+		b2DestroyWorld( fWorld->GetWorldId() );
+		// fWorldId = b2_nullWorldId;
 
 		// The b2World is about to destroy the block allocator that owns
 		// the memory for b2Body objects, so we have to pre-emptively
@@ -273,8 +273,8 @@ PhysicsWorld::StopWorld()
 		// 	}
 		// }
 
-		// Rtt_DELETE( fWorld );
-		// fWorld = NULL;
+		Rtt_DELETE( fWorld );
+		fWorld = NULL;
 
 		// These need to outlive fWorld
 		// Rtt_DELETE( fWorldDestructionListener );
@@ -352,8 +352,8 @@ PhysicsWorld::GetAverageCollisionPositions() const
 void
 PhysicsWorld::DebugDraw( Renderer &renderer ) const
 {
-	// if( ! fWorld )
-	if ( !b2World_IsValid(fWorldId) )
+	if( ! fWorld )
+	// if ( !b2World_IsValid(fWorldId) )
 	{
 		// Nothing to do.
 		return;
@@ -374,8 +374,8 @@ PhysicsWorld::DebugDraw( Renderer &renderer ) const
 void
 PhysicsWorld::StepWorld( double elapsedMS )
 {
-	// if ( fWorld && IsProperty( kIsWorldRunning ) )
-	if ( b2World_IsValid( fWorldId ) && IsProperty( kIsWorldRunning ) )
+	if ( fWorld && IsProperty( kIsWorldRunning ) )
+	// if ( b2World_IsValid( fWorldId ) && IsProperty( kIsWorldRunning ) )
 	{
 		// Rtt_Log( "PhysicsWorld::StepWorld, world gravity = (%f, %f)", b2World_GetGravity(fWorldId).x, b2World_GetGravity(fWorldId).y );
 
@@ -383,7 +383,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 		// S32 velocityIterations = GetVelocityIterations();
 		// S32 positionIterations = GetPositionIterations();
 
-		// b2World& world = * fWorld;
+		b2LiquidWorld& world = * fWorld;
 
 		float dt = GetTimeStep();
 		if ( dt > Rtt_REAL_0 )
@@ -397,7 +397,8 @@ PhysicsWorld::StepWorld( double elapsedMS )
 				// Simulation timesteps are driven by the render frame rate
 				// world.Step( dt * fTimeScale, velocityIterations, positionIterations );
 				// Rtt_Log( "PhysicsWorld::StepWorld A, timeStep = %f, step=%d, fSubStepCount=%d", dt * fTimeScale, i, fSubStepCount );
-				b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+				// b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+				world.Step(dt * fTimeScale, fSubStepCount);
 				fTaskCount = 0;
 			}
 		}
@@ -426,7 +427,8 @@ PhysicsWorld::StepWorld( double elapsedMS )
 					// }
 					// world.Step( dt * fTimeScale, velocityIterations, positionIterations );
 					// Rtt_Log( "PhysicsWorld::StepWorld B, timeStep = %f, tStep = %f, step=%d", dt, tStep, i );
-					b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+					// b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+					world.Step(dt * fTimeScale, fSubStepCount);
 					fTaskCount = 0;
 				}
 				tStep -= dt;
@@ -441,7 +443,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 		const void *groundBodyUserdata = LuaLibPhysics::GetGroundBodyUserdata();
 
 		// Iterate over bodies, and update sprites (display objects)
-		b2BodyEvents events = b2World_GetBodyEvents(fWorldId);
+		b2BodyEvents events = b2World_GetBodyEvents(world.GetWorldId());
 		// for ( b2Body *body = world.GetBodyList(), *nextBody = NULL;
 		// 	  NULL != body;
 		// 	  body = nextBody )
@@ -512,7 +514,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 		}
 		*/
 
-		b2ContactEvents contactEvents = b2World_GetContactEvents( fWorldId );
+		b2ContactEvents contactEvents = b2World_GetContactEvents( world.GetWorldId() );
 		for ( int i = 0; i < contactEvents.beginCount; ++i )
 		{
 			b2ContactBeginTouchEvent event = contactEvents.beginEvents[i];
@@ -525,7 +527,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 			fWorldContactListener->EndContact( event.shapeIdA, event.shapeIdB );
 		}
 
-		b2SensorEvents sensorEvents = b2World_GetSensorEvents( fWorldId );
+		b2SensorEvents sensorEvents = b2World_GetSensorEvents( world.GetWorldId() );
 		for ( int i = 0; i < sensorEvents.beginCount; ++i )
 		{
 			b2SensorBeginTouchEvent event = sensorEvents.beginEvents[i];

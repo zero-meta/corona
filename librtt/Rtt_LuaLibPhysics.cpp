@@ -38,7 +38,7 @@
 // #include "b2Separator.h"
 // #include "b2GLESDebugDraw.h"
 
-// #include "Rtt_ParticleSystemObject.h"
+#include "Rtt_ParticleSystemObject.h"
 
 #include "CoronaLua.h"
 
@@ -77,11 +77,11 @@ LuaLibPhysics::IsWorldLocked( lua_State *L, const char caller[] )
 		result = true; // Behave as if locked to avoid accessing NULL physics world
 	}
 	// Emit 'errorMsg' if attempting to access World while locked
-	// else if ( world->IsLocked() )
-	// {
-	//     CoronaLuaError(L, "%s cannot be called when the world is locked and in the middle of number crunching, such as during a collision event", caller);
-	//     result = true;
-	// }
+	else if ( physics.GetWorld()->IsLocked() )
+	{
+	    CoronaLuaError(L, "%s cannot be called when the world is locked and in the middle of number crunching, such as during a collision event", caller);
+	    result = true;
+	}
 
 	return result;
 }
@@ -1793,43 +1793,41 @@ newJoint( lua_State *L )
 static int
 newParticleSystem( lua_State *L )
 {
-	// if( LuaLibPhysics::IsWorldLocked( L, "physics.newParticleSystem()" ) )
-	// {
-	// 	return 0;
-	// }
+	if( LuaLibPhysics::IsWorldLocked( L, "physics.newParticleSystem()" ) )
+	{
+		return 0;
+	}
 
-	// Runtime& runtime = * LuaContext::GetRuntime( L );
-	// Display& display = runtime.GetDisplay();
+	Runtime& runtime = * LuaContext::GetRuntime( L );
+	Display& display = runtime.GetDisplay();
 
-	// if( display.ShouldRestrict( Display::kPhysicsNewParticleSystem ) )
-	// {
-	// 	return 0;
-	// }
+	if( display.ShouldRestrict( Display::kPhysicsNewParticleSystem ) )
+	{
+		return 0;
+	}
 
-	// PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-	// b2World *world = physics.GetWorld();
-	// if( ! world )
-	// {
-	// 	return 0;
-	// }
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	b2LiquidWorld *world = physics.GetWorld();
+	if( ! world )
+	{
+		return 0;
+	}
 
-	// ParticleSystemObject *pso = Rtt_NEW( runtime.Allocator(),
-	// 										ParticleSystemObject( /* C'TOR PARAMS HERE, IF ANY!!! */ ) );
-	// if( pso->Initialize( L, display ) )
-	// {
-	// 	return LuaLibDisplay::AssignParentAndPushResult( L, display, pso, NULL );
-	// }
-	// else
-	// {
-	// 	Rtt_DELETE( pso );
+	ParticleSystemObject *pso = Rtt_NEW( runtime.Allocator(),
+											ParticleSystemObject( /* C'TOR PARAMS HERE, IF ANY!!! */ ) );
+	if( pso->Initialize( L, display ) )
+	{
+		return LuaLibDisplay::AssignParentAndPushResult( L, display, pso, NULL );
+	}
+	else
+	{
+		Rtt_DELETE( pso );
 
-	// 	luaL_error( L,
-	// 				"Invalid ParticleSystemObject." );
+		luaL_error( L,
+					"Invalid ParticleSystemObject." );
 
-	// 	return 0;
-	// }
-
-	return 0;
+		return 0;
+	}
 }
 
 // addBody() helpers.
@@ -2446,6 +2444,8 @@ InitializeFixtureUsing_Chain( lua_State *L,
 		chainDef.points = &vertexList[ 0 ];
 		chainDef.count = (int)vertexList.size();
 
+		// if ( vertexList.size() < 4 ) {
+		// }
 		if( connectFirstAndLastChainVertex )
 		{
 			if( vertexList.size() >= 3 )

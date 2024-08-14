@@ -14,6 +14,8 @@
 
 #include "box2d/box2d.h"
 #include "TaskScheduler.h"
+#include "liquid_world.h"
+
 // class b2Body;
 // class b2DebugDraw;
 // class b2World;
@@ -74,8 +76,8 @@ class PhysicsWorld
 		void StartWorld( Runtime& runtime, bool noSleep );
 		void PauseWorld();
 		void StopWorld();
-		// b2World* GetWorld() const { return fWorld; }
-		b2WorldId GetWorldId() const { return fWorldId; }
+		b2LiquidWorld* GetWorld() const { return fWorld; }
+		b2WorldId GetWorldId() const { return fWorld->GetWorldId(); }
 		// b2Body* GetGroundBody() const { return fGroundBody; }
 		b2BodyId GetGroundBodyId() const { return fGroundBodyId; }
 
@@ -128,8 +130,8 @@ class PhysicsWorld
 		PhysicsContactListener *fWorldContactListener;
 
 		U32 fProperties;
-		b2WorldId fWorldId;
-		// b2World *fWorld;
+		// b2WorldId fWorldId;
+		b2LiquidWorld *fWorld;
 		Real fPixelsPerMeter;
 		// b2Body *fGroundBody;
 		b2BodyId fGroundBodyId;

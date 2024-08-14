@@ -23,6 +23,8 @@
 #include "Rtt_PhysicsTypes.h"
 
 #include "box2d/box2d.h"
+#include "liquid_world.h"
+#include "liquid_shape.h"
 
 // ----------------------------------------------------------------------------
 
@@ -84,26 +86,24 @@ public:
 	void SetParticleRenderRadiusInContentUnits( float r ){ fRenderRadiusInPixels.x = fRenderRadiusInPixels.y = r; }
 	float GetParticleRenderRadiusInContentUnits() const { return fRenderRadiusInPixels.x; }
 
-	// b2ParticleSystem *GetB2ParticleSystem() const { Rtt_ASSERT( fParticleSystem ); return fParticleSystem; }
+	b2ParticleSystem *GetB2ParticleSystem() const { Rtt_ASSERT( fParticleSystem ); return fParticleSystem; }
 
 private:
 
-	/*
 	void _InitializeFromLua_ParticleSystemDef( lua_State *L,
 												b2ParticleSystemDef &particleSystemDef );
 	void _InitializeFromLua_ParticleDef( lua_State *L,
 											b2ParticleDef &particleDef );
 	void _InitializeFromLua_ParticleGroupDef( lua_State *L,
 												b2ParticleGroupDef &particleGroupDef,
-												b2PolygonShape &polygonDef,
-												b2CircleShape &circleDef,
+												b2LiquidShape &liquidShape,
 												b2PolygonShapePtrVector &polyVec );
 
 	void _CopyAllParticlesFromParticleSystemToVertexData();
 	void _CopyParticleFromParticleSystemToVertexData( b2Vec2 &base_position,
 														b2ParticleColor &color,
 														Geometry::Vertex *output_vertices );
-	*/
+
 	void _ResizeRenderBuffers();
 
 	void _Update( const Display &display );
@@ -120,10 +120,10 @@ private:
 	float fWorldScaleInPixelsPerMeter;
 	float fWorldScaleInMetersPerPixel;
 	b2Vec2 fRenderRadiusInPixels;
-	b2WorldId fWorldId;
+	b2LiquidWorld *fWorld;
 	const PhysicsWorld *fPhysics;
 
-	// b2ParticleSystem *fParticleSystem;
+	b2ParticleSystem *fParticleSystem;
 	//
 	////
 

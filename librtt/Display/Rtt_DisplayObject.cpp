@@ -508,8 +508,7 @@ DisplayObject::Translate( Real dx, Real dy )
 				{
 					const PhysicsWorld& physics = stage->GetDisplay().GetRuntime().GetPhysicsWorld();
 
-					// if ( physics.GetWorld()->IsLocked() )
-					if ( ! b2World_IsValid(physics.GetWorldId()) )
+					if ( physics.GetWorld()->IsLocked() )
 					{
 						Rtt_TRACE_SIM( ( "ERROR: Cannot translate an object before collision is resolved.\n" ) );
 					}
@@ -589,8 +588,7 @@ DisplayObject::Rotate( Real deltaTheta )
 				{
 					const PhysicsWorld& physics = stage->GetDisplay().GetRuntime().GetPhysicsWorld();
 
-					// if ( physics.GetWorld()->IsLocked() )
-					if ( ! b2World_IsValid(physics.GetWorldId()) )
+					if ( physics.GetWorld()->IsLocked() )
 					{
 						Rtt_TRACE_SIM( ( "ERROR: Cannot rotate an object before collision is resolved.\n" ) );
 					}
