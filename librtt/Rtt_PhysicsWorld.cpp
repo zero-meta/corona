@@ -60,6 +60,40 @@ const S32 kPositionIterations = 3;
 
 // ----------------------------------------------------------------------------
 
+static void* EnqueueTask(b2TaskCallback* taskCallback, int32_t itemCount, int32_t minRange, void* taskContext, void* userContext)
+{
+	PhysicsWorld* world = static_cast<PhysicsWorld*>(userContext);
+	if (world->fTaskCount < maxTasks)
+	{
+		// Rtt_Log("EnqueueTask, fTaskCount %d", world->fTaskCount);
+		PhysicsTask& task = world->fTasks[world->fTaskCount];
+		task.m_SetSize = itemCount;
+		task.m_MinRange = minRange;
+		task.m_task = taskCallback;
+		task.m_taskContext = taskContext;
+		world->fScheduler.AddTaskSetToPipe(&task);
+		++world->fTaskCount;
+		return &task;
+	}
+	else
+	{
+		// This is not fatal but the maxTasks should be increased
+		assert(false);
+		taskCallback(0, itemCount, 0, taskContext);
+		return nullptr;
+	}
+}
+
+static void FinishTask(void* taskPtr, void* userContext)
+{
+	if (taskPtr != nullptr)
+	{
+		PhysicsTask* task = static_cast<PhysicsTask*>(taskPtr);
+		PhysicsWorld* world = static_cast<PhysicsWorld*>(userContext);
+		world->fScheduler.WaitforTask(task);
+	}
+}
+
 PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 :	fAllocator( allocator ),
 	fWorldDebugDraw( NULL ),
@@ -84,6 +118,9 @@ PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 	fTimeRemainder( 0.0f ),
 	fNumSteps(1)
 {
+	fWorkerCount = b2MinInt( 8, b2MaxInt((int)enki::GetNumHardwareThreads() / 4, 1) );
+	fScheduler.Initialize( fWorkerCount );
+	fTaskCount = 0;
 }
 
 PhysicsWorld::~PhysicsWorld()
@@ -139,6 +176,13 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		// fWorldDestructionListener = Rtt_NEW( Allocator(), PhysicsDestructionListener );
 		// fWorld->SetDestructionListener( fWorldDestructionListener );
 		b2WorldDef worldDef = b2DefaultWorldDef();
+		// Rtt_Log("PhysicsWorld::StartWorld, workerCount = %d", fWorkerCount);
+		if ( fWorkerCount > 1 ) {
+			worldDef.workerCount = fWorkerCount;
+			worldDef.enqueueTask = EnqueueTask;
+			worldDef.finishTask = FinishTask;
+			worldDef.userTaskContext = this;
+		}
 		worldDef.gravity = gravity;
 		worldDef.enableSleep = !noSleep;
 		fWorldId = b2CreateWorld( &worldDef );
@@ -354,6 +398,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 				// world.Step( dt * fTimeScale, velocityIterations, positionIterations );
 				// Rtt_Log( "PhysicsWorld::StepWorld A, timeStep = %f, step=%d, fSubStepCount=%d", dt * fTimeScale, i, fSubStepCount );
 				b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+				fTaskCount = 0;
 			}
 		}
 		else
@@ -382,6 +427,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 					// world.Step( dt * fTimeScale, velocityIterations, positionIterations );
 					// Rtt_Log( "PhysicsWorld::StepWorld B, timeStep = %f, tStep = %f, step=%d", dt, tStep, i );
 					b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
+					fTaskCount = 0;
 				}
 				tStep -= dt;
 			}

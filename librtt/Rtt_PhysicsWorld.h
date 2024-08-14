@@ -12,11 +12,12 @@
 
 // ----------------------------------------------------------------------------
 
+#include "box2d/box2d.h"
+#include "TaskScheduler.h"
 // class b2Body;
 // class b2DebugDraw;
 // class b2World;
 // class b2DestructionListener;
-#include "box2d/box2d.h"
 
 namespace Rtt
 {
@@ -25,6 +26,22 @@ class b2GLESDebugDraw;
 class PhysicsContactListener;
 class Runtime;
 class Renderer;
+
+class PhysicsTask : public enki::ITaskSet
+{
+  public:
+	PhysicsTask() = default;
+
+	void ExecuteRange(enki::TaskSetPartition range, uint32_t threadIndex) override
+	{
+		m_task(range.start, range.end, threadIndex, m_taskContext);
+	}
+
+	b2TaskCallback* m_task = nullptr;
+	void* m_taskContext = nullptr;
+};
+
+constexpr int32_t maxTasks = 64;
 
 // ----------------------------------------------------------------------------
 
@@ -147,6 +164,12 @@ class PhysicsWorld
 		//! false: The point of contact reported is the first one reported by Box2D. The order is arbitrary.
 		//! true: The point of contact reported is the average of all contact points.
 		bool fAverageCollisionPositions;
+
+	public:
+		int fWorkerCount;
+		enki::TaskScheduler fScheduler;
+		PhysicsTask fTasks[maxTasks];
+		int32_t fTaskCount;
 };
 
 // ----------------------------------------------------------------------------

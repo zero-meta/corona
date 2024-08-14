@@ -86,3 +86,6 @@
 	path = external/box2c
 	url = https://github.com/zero-meta/box2c.git
     branch = dev_solar2d
+[submodule "external/enkiTS"]
+	path = external/enkiTS
+	url = https://github.com/zero-meta/enkiTS.git
