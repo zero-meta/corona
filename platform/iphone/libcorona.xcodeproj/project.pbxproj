@@ -343,6 +343,11 @@
 		0797EB6E181F0F6A00FA57B5 /* Rtt_PlatformVideoProvider.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0797EB6C181F0F6900FA57B5 /* Rtt_PlatformVideoProvider.cpp */; };
 		0797EB6F181F0F6A00FA57B5 /* Rtt_PlatformVideoProvider.h in Headers */ = {isa = PBXBuildFile; fileRef = 0797EB6D181F0F6900FA57B5 /* Rtt_PlatformVideoProvider.h */; };
 		07EB77C6178DD3450089B3C5 /* Rtt_SurfaceInfo.h in Headers */ = {isa = PBXBuildFile; fileRef = 07EB77C5178DD3450089B3C5 /* Rtt_SurfaceInfo.h */; };
+		4155A5EA2C61E486002F8BBD /* LockLessMultiReadPipe.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A5C92C61E486002F8BBD /* LockLessMultiReadPipe.h */; };
+		4155A5EB2C61E486002F8BBD /* TaskScheduler_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A5CA2C61E486002F8BBD /* TaskScheduler_c.cpp */; };
+		4155A5EC2C61E486002F8BBD /* TaskScheduler_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A5CB2C61E486002F8BBD /* TaskScheduler_c.h */; };
+		4155A5ED2C61E486002F8BBD /* TaskScheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A5CC2C61E486002F8BBD /* TaskScheduler.cpp */; };
+		4155A5EE2C61E486002F8BBD /* TaskScheduler.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A5CD2C61E486002F8BBD /* TaskScheduler.h */; };
 		41B9AD6C2C5B9B5C000F59B1 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACC52C5B9B5C000F59B1 /* jsmn.h */; };
 		41B9AD6D2C5B9B5C000F59B1 /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACC72C5B9B5C000F59B1 /* aes.h */; };
 		41B9AD6E2C5B9B5D000F59B1 /* avx.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACC82C5B9B5C000F59B1 /* avx.h */; };
@@ -1240,6 +1245,14 @@
 		0797EB6C181F0F6900FA57B5 /* Rtt_PlatformVideoProvider.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_PlatformVideoProvider.cpp; sourceTree = "<group>"; };
 		0797EB6D181F0F6900FA57B5 /* Rtt_PlatformVideoProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_PlatformVideoProvider.h; sourceTree = "<group>"; };
 		07EB77C5178DD3450089B3C5 /* Rtt_SurfaceInfo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_SurfaceInfo.h; sourceTree = "<group>"; };
+		4155A5C92C61E486002F8BBD /* LockLessMultiReadPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockLessMultiReadPipe.h; sourceTree = "<group>"; };
+		4155A5CA2C61E486002F8BBD /* TaskScheduler_c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskScheduler_c.cpp; sourceTree = "<group>"; };
+		4155A5CB2C61E486002F8BBD /* TaskScheduler_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler_c.h; sourceTree = "<group>"; };
+		4155A5CC2C61E486002F8BBD /* TaskScheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskScheduler.cpp; sourceTree = "<group>"; };
+		4155A5CD2C61E486002F8BBD /* TaskScheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler.h; sourceTree = "<group>"; };
+		4155A5D02C61E486002F8BBD /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		4155A5D12C61E486002F8BBD /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
+		4155A5D22C61E486002F8BBD /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		41B9ACC52C5B9B5C000F59B1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
 		41B9ACC72C5B9B5C000F59B1 /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
 		41B9ACC82C5B9B5C000F59B1 /* avx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avx.h; sourceTree = "<group>"; };
@@ -1851,6 +1864,7 @@
 		000DC9D812B05B7000042A5E /* libbox2d */ = {
 			isa = PBXGroup;
 			children = (
+				4155A5D32C61E486002F8BBD /* enkiTS */,
 				41B9AD622C5B9B5C000F59B1 /* box2c */,
 			);
 			name = libbox2d;
@@ -2370,6 +2384,30 @@
 				000DCEDB12B0824800042A5E /* libz.dylib */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		4155A5CE2C61E486002F8BBD /* src */ = {
+			isa = PBXGroup;
+			children = (
+				4155A5C92C61E486002F8BBD /* LockLessMultiReadPipe.h */,
+				4155A5CA2C61E486002F8BBD /* TaskScheduler_c.cpp */,
+				4155A5CB2C61E486002F8BBD /* TaskScheduler_c.h */,
+				4155A5CC2C61E486002F8BBD /* TaskScheduler.cpp */,
+				4155A5CD2C61E486002F8BBD /* TaskScheduler.h */,
+			);
+			path = src;
+			sourceTree = "<group>";
+		};
+		4155A5D32C61E486002F8BBD /* enkiTS */ = {
+			isa = PBXGroup;
+			children = (
+				4155A5CE2C61E486002F8BBD /* src */,
+				4155A5D02C61E486002F8BBD /* CMakeLists.txt */,
+				4155A5D12C61E486002F8BBD /* License.txt */,
+				4155A5D22C61E486002F8BBD /* README.md */,
+			);
+			name = enkiTS;
+			path = ../../external/enkiTS;
 			sourceTree = "<group>";
 		};
 		41B9ACC62C5B9B5C000F59B1 /* jsmn */ = {
@@ -2967,11 +3005,13 @@
 				41B9AD7E2C5B9B5E000F59B1 /* simde-arch.h in Headers */,
 				41B9AD802C5B9B5E000F59B1 /* simde-constify.h in Headers */,
 				41B9ADD92C5B9B62000F59B1 /* table.h in Headers */,
+				4155A5EE2C61E486002F8BBD /* TaskScheduler.h in Headers */,
 				41B9AD742C5B9B5D000F59B1 /* sse2.h in Headers */,
 				41B9AD852C5B9B5E000F59B1 /* simde-math.h in Headers */,
 				41B9ADD72C5B9B62000F59B1 /* stack_allocator.h in Headers */,
 				41B9AD882C5B9B5E000F59B1 /* collision.h in Headers */,
 				41B9AD822C5B9B5E000F59B1 /* simde-diagnostic.h in Headers */,
+				4155A5EC2C61E486002F8BBD /* TaskScheduler_c.h in Headers */,
 				41B9ADBB2C5B9B60000F59B1 /* contact.h in Headers */,
 				41B9AD6F2C5B9B5D000F59B1 /* avx2.h in Headers */,
 				41B9AD7F2C5B9B5E000F59B1 /* simde-common.h in Headers */,
@@ -2990,6 +3030,7 @@
 				41B9AD792C5B9B5D000F59B1 /* check.h in Headers */,
 				41B9AD892C5B9B5E000F59B1 /* id.h in Headers */,
 				41B9AD7B2C5B9B5D000F59B1 /* hedley.h in Headers */,
+				4155A5EA2C61E486002F8BBD /* LockLessMultiReadPipe.h in Headers */,
 				41B9AD7C2C5B9B5D000F59B1 /* simde-aes.h in Headers */,
 				41B9AD702C5B9B5D000F59B1 /* f16c.h in Headers */,
 				41B9ADD52C5B9B62000F59B1 /* solver.h in Headers */,
@@ -3521,7 +3562,9 @@
 				41B9ADD42C5B9B61000F59B1 /* solver.c in Sources */,
 				41B9ADC02C5B9B61000F59B1 /* distance.c in Sources */,
 				41B9ADB62C5B9B60000F59B1 /* constraint_graph.c in Sources */,
+				4155A5ED2C61E486002F8BBD /* TaskScheduler.cpp in Sources */,
 				41B9ADAA2C5B9B60000F59B1 /* allocate.c in Sources */,
+				4155A5EB2C61E486002F8BBD /* TaskScheduler_c.cpp in Sources */,
 				41B9ADDD2C5B9B62000F59B1 /* wheel_joint.c in Sources */,
 				41B9ADCF2C5B9B61000F59B1 /* revolute_joint.c in Sources */,
 				41B9ADDA2C5B9B62000F59B1 /* timer.c in Sources */,
