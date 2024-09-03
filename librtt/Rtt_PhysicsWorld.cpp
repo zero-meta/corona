@@ -220,7 +220,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		bd.userData = const_cast< void* >( LuaLibPhysics::GetGroundBodyUserdata() );
 		fGroundBodyId = b2CreateBody( fWorld->GetWorldId(), &bd );
 		b2ShapeDef shapeDef = b2DefaultShapeDef();
-		shapeDef.filter = { 0x00000001, 0x00000000, 0 };
+		shapeDef.filter = { 1, 0, 0 };
 		shapeDef.isSensor = true;
 		shapeDef.enableContactEvents = false;
 		shapeDef.enableSensorEvents = false;

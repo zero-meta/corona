@@ -372,31 +372,6 @@
 		4155A63A2C6B64CA002F8BBD /* voronoi_diagram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A6162C6B64CA002F8BBD /* voronoi_diagram.cpp */; };
 		4155A63B2C6B64CA002F8BBD /* voronoi_diagram.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A6172C6B64CA002F8BBD /* voronoi_diagram.h */; };
 		41B9AA722C5A4468000F59B1 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9CB2C5A4468000F59B1 /* jsmn.h */; };
-		41B9AA732C5A4468000F59B1 /* aes.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9CD2C5A4468000F59B1 /* aes.h */; };
-		41B9AA742C5A4468000F59B1 /* avx.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9CE2C5A4468000F59B1 /* avx.h */; };
-		41B9AA752C5A4468000F59B1 /* avx2.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9CF2C5A4468000F59B1 /* avx2.h */; };
-		41B9AA762C5A4468000F59B1 /* f16c.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D02C5A4468000F59B1 /* f16c.h */; };
-		41B9AA772C5A4468000F59B1 /* fma.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D12C5A4468000F59B1 /* fma.h */; };
-		41B9AA782C5A4468000F59B1 /* mmx.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D22C5A4468000F59B1 /* mmx.h */; };
-		41B9AA792C5A4468000F59B1 /* sse.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D32C5A4468000F59B1 /* sse.h */; };
-		41B9AA7A2C5A4468000F59B1 /* sse2.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D42C5A4468000F59B1 /* sse2.h */; };
-		41B9AA7B2C5A4468000F59B1 /* sse3.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D52C5A4468000F59B1 /* sse3.h */; };
-		41B9AA7C2C5A4468000F59B1 /* sse4.1.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D62C5A4468000F59B1 /* sse4.1.h */; };
-		41B9AA7D2C5A4468000F59B1 /* sse4.2.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D72C5A4468000F59B1 /* sse4.2.h */; };
-		41B9AA7E2C5A4468000F59B1 /* ssse3.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9D82C5A4468000F59B1 /* ssse3.h */; };
-		41B9AA7F2C5A4469000F59B1 /* check.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9DA2C5A4468000F59B1 /* check.h */; };
-		41B9AA802C5A4469000F59B1 /* debug-trap.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9DC2C5A4468000F59B1 /* debug-trap.h */; };
-		41B9AA812C5A4469000F59B1 /* hedley.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9DD2C5A4468000F59B1 /* hedley.h */; };
-		41B9AA822C5A4469000F59B1 /* simde-aes.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9DE2C5A4468000F59B1 /* simde-aes.h */; };
-		41B9AA832C5A4469000F59B1 /* simde-align.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9DF2C5A4468000F59B1 /* simde-align.h */; };
-		41B9AA842C5A4469000F59B1 /* simde-arch.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E02C5A4468000F59B1 /* simde-arch.h */; };
-		41B9AA852C5A4469000F59B1 /* simde-common.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E12C5A4468000F59B1 /* simde-common.h */; };
-		41B9AA862C5A4469000F59B1 /* simde-constify.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E22C5A4468000F59B1 /* simde-constify.h */; };
-		41B9AA872C5A4469000F59B1 /* simde-detect-clang.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E32C5A4468000F59B1 /* simde-detect-clang.h */; };
-		41B9AA882C5A4469000F59B1 /* simde-diagnostic.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E42C5A4468000F59B1 /* simde-diagnostic.h */; };
-		41B9AA892C5A4469000F59B1 /* simde-f16.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E52C5A4468000F59B1 /* simde-f16.h */; };
-		41B9AA8A2C5A4469000F59B1 /* simde-features.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E62C5A4468000F59B1 /* simde-features.h */; };
-		41B9AA8B2C5A4469000F59B1 /* simde-math.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9E72C5A4468000F59B1 /* simde-math.h */; };
 		41B9AA8C2C5A4469000F59B1 /* base.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EA2C5A4468000F59B1 /* base.h */; };
 		41B9AA8D2C5A4469000F59B1 /* box2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EB2C5A4468000F59B1 /* box2d.h */; };
 		41B9AA8E2C5A4469000F59B1 /* collision.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EC2C5A4468000F59B1 /* collision.h */; };
@@ -2815,32 +2790,6 @@
 		4155A6162C6B64CA002F8BBD /* voronoi_diagram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = voronoi_diagram.cpp; sourceTree = "<group>"; };
 		4155A6172C6B64CA002F8BBD /* voronoi_diagram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voronoi_diagram.h; sourceTree = "<group>"; };
 		41B9A9CB2C5A4468000F59B1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
-		41B9A9CD2C5A4468000F59B1 /* aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aes.h; sourceTree = "<group>"; };
-		41B9A9CE2C5A4468000F59B1 /* avx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avx.h; sourceTree = "<group>"; };
-		41B9A9CF2C5A4468000F59B1 /* avx2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = avx2.h; sourceTree = "<group>"; };
-		41B9A9D02C5A4468000F59B1 /* f16c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = f16c.h; sourceTree = "<group>"; };
-		41B9A9D12C5A4468000F59B1 /* fma.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = fma.h; sourceTree = "<group>"; };
-		41B9A9D22C5A4468000F59B1 /* mmx.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mmx.h; sourceTree = "<group>"; };
-		41B9A9D32C5A4468000F59B1 /* sse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sse.h; sourceTree = "<group>"; };
-		41B9A9D42C5A4468000F59B1 /* sse2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sse2.h; sourceTree = "<group>"; };
-		41B9A9D52C5A4468000F59B1 /* sse3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sse3.h; sourceTree = "<group>"; };
-		41B9A9D62C5A4468000F59B1 /* sse4.1.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sse4.1.h; sourceTree = "<group>"; };
-		41B9A9D72C5A4468000F59B1 /* sse4.2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = sse4.2.h; sourceTree = "<group>"; };
-		41B9A9D82C5A4468000F59B1 /* ssse3.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ssse3.h; sourceTree = "<group>"; };
-		41B9A9DA2C5A4468000F59B1 /* check.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = check.h; sourceTree = "<group>"; };
-		41B9A9DB2C5A4468000F59B1 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		41B9A9DC2C5A4468000F59B1 /* debug-trap.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "debug-trap.h"; sourceTree = "<group>"; };
-		41B9A9DD2C5A4468000F59B1 /* hedley.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = hedley.h; sourceTree = "<group>"; };
-		41B9A9DE2C5A4468000F59B1 /* simde-aes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-aes.h"; sourceTree = "<group>"; };
-		41B9A9DF2C5A4468000F59B1 /* simde-align.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-align.h"; sourceTree = "<group>"; };
-		41B9A9E02C5A4468000F59B1 /* simde-arch.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-arch.h"; sourceTree = "<group>"; };
-		41B9A9E12C5A4468000F59B1 /* simde-common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-common.h"; sourceTree = "<group>"; };
-		41B9A9E22C5A4468000F59B1 /* simde-constify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-constify.h"; sourceTree = "<group>"; };
-		41B9A9E32C5A4468000F59B1 /* simde-detect-clang.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-detect-clang.h"; sourceTree = "<group>"; };
-		41B9A9E42C5A4468000F59B1 /* simde-diagnostic.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-diagnostic.h"; sourceTree = "<group>"; };
-		41B9A9E52C5A4468000F59B1 /* simde-f16.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-f16.h"; sourceTree = "<group>"; };
-		41B9A9E62C5A4468000F59B1 /* simde-features.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-features.h"; sourceTree = "<group>"; };
-		41B9A9E72C5A4468000F59B1 /* simde-math.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "simde-math.h"; sourceTree = "<group>"; };
 		41B9A9EA2C5A4468000F59B1 /* base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base.h; sourceTree = "<group>"; };
 		41B9A9EB2C5A4468000F59B1 /* box2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box2d.h; sourceTree = "<group>"; };
 		41B9A9EC2C5A4468000F59B1 /* collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = collision.h; sourceTree = "<group>"; };
@@ -4622,53 +4571,11 @@
 			path = jsmn;
 			sourceTree = "<group>";
 		};
-		41B9A9D92C5A4468000F59B1 /* x86 */ = {
-			isa = PBXGroup;
-			children = (
-				41B9A9CD2C5A4468000F59B1 /* aes.h */,
-				41B9A9CE2C5A4468000F59B1 /* avx.h */,
-				41B9A9CF2C5A4468000F59B1 /* avx2.h */,
-				41B9A9D02C5A4468000F59B1 /* f16c.h */,
-				41B9A9D12C5A4468000F59B1 /* fma.h */,
-				41B9A9D22C5A4468000F59B1 /* mmx.h */,
-				41B9A9D32C5A4468000F59B1 /* sse.h */,
-				41B9A9D42C5A4468000F59B1 /* sse2.h */,
-				41B9A9D52C5A4468000F59B1 /* sse3.h */,
-				41B9A9D62C5A4468000F59B1 /* sse4.1.h */,
-				41B9A9D72C5A4468000F59B1 /* sse4.2.h */,
-				41B9A9D82C5A4468000F59B1 /* ssse3.h */,
-			);
-			path = x86;
-			sourceTree = "<group>";
-		};
-		41B9A9E82C5A4468000F59B1 /* simde */ = {
-			isa = PBXGroup;
-			children = (
-				41B9A9D92C5A4468000F59B1 /* x86 */,
-				41B9A9DA2C5A4468000F59B1 /* check.h */,
-				41B9A9DB2C5A4468000F59B1 /* CMakeLists.txt */,
-				41B9A9DC2C5A4468000F59B1 /* debug-trap.h */,
-				41B9A9DD2C5A4468000F59B1 /* hedley.h */,
-				41B9A9DE2C5A4468000F59B1 /* simde-aes.h */,
-				41B9A9DF2C5A4468000F59B1 /* simde-align.h */,
-				41B9A9E02C5A4468000F59B1 /* simde-arch.h */,
-				41B9A9E12C5A4468000F59B1 /* simde-common.h */,
-				41B9A9E22C5A4468000F59B1 /* simde-constify.h */,
-				41B9A9E32C5A4468000F59B1 /* simde-detect-clang.h */,
-				41B9A9E42C5A4468000F59B1 /* simde-diagnostic.h */,
-				41B9A9E52C5A4468000F59B1 /* simde-f16.h */,
-				41B9A9E62C5A4468000F59B1 /* simde-features.h */,
-				41B9A9E72C5A4468000F59B1 /* simde-math.h */,
-			);
-			path = simde;
-			sourceTree = "<group>";
-		};
 		41B9A9E92C5A4468000F59B1 /* extern */ = {
 			isa = PBXGroup;
 			children = (
 				4155A6182C6B64CA002F8BBD /* liquidfun */,
 				41B9A9CC2C5A4468000F59B1 /* jsmn */,
-				41B9A9E82C5A4468000F59B1 /* simde */,
 			);
 			path = extern;
 			sourceTree = "<group>";
@@ -4774,7 +4681,7 @@
 				41B9AA672C5A4468000F59B1 /* README.md */,
 			);
 			name = box2c;
-			path = ../../external/box2c;
+			path = "../../external/box2d-v3";
 			sourceTree = "<group>";
 		};
 		50196067186146140092E97E /* SmoothPolygon */ = {
@@ -5800,38 +5707,24 @@
 			files = (
 				41B9AABF2C5A4469000F59B1 /* contact_solver.h in Headers */,
 				4155A6362C6B64CA002F8BBD /* stack_queue.h in Headers */,
-				41B9AA752C5A4468000F59B1 /* avx2.h in Headers */,
 				41B9AADD2C5A446A000F59B1 /* stack_allocator.h in Headers */,
-				41B9AA832C5A4469000F59B1 /* simde-align.h in Headers */,
-				41B9AA7D2C5A4468000F59B1 /* sse4.2.h in Headers */,
 				4155A63B2C6B64CA002F8BBD /* voronoi_diagram.h in Headers */,
 				41B9AAB52C5A4469000F59B1 /* bitset.h in Headers */,
 				4155A62A2C6B64CA002F8BBD /* liquid_world.h in Headers */,
 				41B9AAB72C5A4469000F59B1 /* block_array.h in Headers */,
-				41B9AA7E2C5A4468000F59B1 /* ssse3.h in Headers */,
-				41B9AA802C5A4469000F59B1 /* debug-trap.h in Headers */,
-				41B9AA732C5A4468000F59B1 /* aes.h in Headers */,
 				41B9AA902C5A4469000F59B1 /* math_functions.h in Headers */,
-				41B9AA782C5A4468000F59B1 /* mmx.h in Headers */,
 				41B9AAE52C5A446A000F59B1 /* world.h in Headers */,
 				41B9AAD72C5A446A000F59B1 /* shape.h in Headers */,
 				4155A6242C6B64CA002F8BBD /* intrusive_list.h in Headers */,
-				41B9AA862C5A4469000F59B1 /* simde-constify.h in Headers */,
-				41B9AA772C5A4468000F59B1 /* fma.h in Headers */,
 				41B9AA8E2C5A4469000F59B1 /* collision.h in Headers */,
 				41B9AADF2C5A446A000F59B1 /* table.h in Headers */,
-				41B9AA872C5A4469000F59B1 /* simde-detect-clang.h in Headers */,
 				41B9AA722C5A4468000F59B1 /* jsmn.h in Headers */,
 				41B9AAB92C5A4469000F59B1 /* body.h in Headers */,
 				4155A6202C6B64CA002F8BBD /* block_allocator.h in Headers */,
 				41B9AA8F2C5A4469000F59B1 /* id.h in Headers */,
-				41B9AA892C5A4469000F59B1 /* simde-f16.h in Headers */,
 				4155A62E2C6B64CA002F8BBD /* particle_group.h in Headers */,
 				4155A6222C6B64CA002F8BBD /* free_list.h in Headers */,
 				41B9AABD2C5A4469000F59B1 /* constraint_graph.h in Headers */,
-				41B9AA822C5A4469000F59B1 /* simde-aes.h in Headers */,
-				41B9AA7C2C5A4468000F59B1 /* sse4.1.h in Headers */,
-				41B9AA792C5A4468000F59B1 /* sse.h in Headers */,
 				4155A56A2C61D917002F8BBD /* TaskScheduler_c.h in Headers */,
 				4155A6342C6B64CA002F8BBD /* settings.h in Headers */,
 				41B9AAC42C5A4469000F59B1 /* ctz.h in Headers */,
@@ -5842,35 +5735,24 @@
 				41B9AADB2C5A446A000F59B1 /* solver.h in Headers */,
 				41B9AAC32C5A4469000F59B1 /* core.h in Headers */,
 				41B9AAD92C5A446A000F59B1 /* solver_set.h in Headers */,
-				41B9AA742C5A4468000F59B1 /* avx.h in Headers */,
-				41B9AA882C5A4469000F59B1 /* simde-diagnostic.h in Headers */,
 				41B9AAB32C5A4469000F59B1 /* array.h in Headers */,
-				41B9AA852C5A4469000F59B1 /* simde-common.h in Headers */,
 				4155A6302C6B64CA002F8BBD /* particle_system.h in Headers */,
 				41B9AABB2C5A4469000F59B1 /* broad_phase.h in Headers */,
-				41B9AA8B2C5A4469000F59B1 /* simde-math.h in Headers */,
-				41B9AA8A2C5A4469000F59B1 /* simde-features.h in Headers */,
-				41B9AA762C5A4468000F59B1 /* f16c.h in Headers */,
 				41B9AACB2C5A446A000F59B1 /* id_pool.h in Headers */,
 				4155A6372C6B64CA002F8BBD /* time_step.h in Headers */,
 				41B9AAAF2C5A4469000F59B1 /* aabb.h in Headers */,
-				41B9AA7B2C5A4468000F59B1 /* sse3.h in Headers */,
 				4155A6262C6B64CA002F8BBD /* liquid_shape.h in Headers */,
 				41B9AAC12C5A4469000F59B1 /* contact.h in Headers */,
 				41B9AA912C5A4469000F59B1 /* types.h in Headers */,
 				4155A56C2C61D922002F8BBD /* TaskScheduler.h in Headers */,
 				41B9AA8C2C5A4469000F59B1 /* base.h in Headers */,
-				41B9AA7F2C5A4469000F59B1 /* check.h in Headers */,
 				4155A6322C6B64CA002F8BBD /* particle.h in Headers */,
-				41B9AA7A2C5A4468000F59B1 /* sse2.h in Headers */,
 				41B9AAB12C5A4469000F59B1 /* allocate.h in Headers */,
-				41B9AA812C5A4469000F59B1 /* hedley.h in Headers */,
 				4155A6282C6B64CA002F8BBD /* liquid_stack_allocator.h in Headers */,
 				41B9AA8D2C5A4469000F59B1 /* box2d.h in Headers */,
 				4155A62C2C6B64CA002F8BBD /* particle_assembly.h in Headers */,
 				4155A5682C61D8FC002F8BBD /* LockLessMultiReadPipe.h in Headers */,
 				4155A6232C6B64CA002F8BBD /* growable_buffer.h in Headers */,
-				41B9AA842C5A4469000F59B1 /* simde-arch.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -8485,10 +8367,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",
@@ -8536,10 +8417,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -8788,10 +8668,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8821,10 +8700,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8850,10 +8728,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8888,10 +8765,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -8950,10 +8826,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -9034,10 +8909,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",
@@ -9113,10 +8987,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/box2c,
-					../../external/box2c/include,
-					../../external/box2c/extern/simde,
-					../../external/box2c/extern/liquidfun,
+					"../../external/box2d-v3",
+					"../../external/box2d-v3/include",
+					"../../external/box2d-v3/extern/liquidfun",
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",

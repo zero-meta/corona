@@ -775,11 +775,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
-					lua_pushnumber( L, b2DistanceJoint_GetHertz(baseJoint) );
+					lua_pushnumber( L, b2DistanceJoint_GetSpringHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
-					lua_pushnumber( L, b2DistanceJoint_GetDampingRatio(baseJoint) );
+					lua_pushnumber( L, b2DistanceJoint_GetSpringDampingRatio(baseJoint) );
 				}
 				else
 				{

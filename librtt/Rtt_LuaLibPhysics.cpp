@@ -1269,7 +1269,7 @@ InitializeShapeFromLua( lua_State *L,
 		lua_getfield( L, -1, "categoryBits" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
-			uint32_t categoryBits = (uint32_t)lua_tonumber( L, -1 );
+			uint64_t categoryBits = (uint64_t)lua_tonumber( L, -1 );
 			filter.categoryBits = categoryBits;
 		}
 		lua_pop( L, 1 );
@@ -1277,7 +1277,7 @@ InitializeShapeFromLua( lua_State *L,
 		lua_getfield( L, -1, "maskBits" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
-			uint32_t maskBits = (uint32_t)lua_tonumber( L, -1 );
+			uint64_t maskBits = (uint64_t)lua_tonumber( L, -1 );
 			filter.maskBits = maskBits;
 		}
 		lua_pop( L, 1 );
@@ -1900,7 +1900,7 @@ InitializeFixtureUsing_Rectangle( lua_State *L,
 	b2Polygon box = b2MakeOffsetBox( halfW,
 									halfH,
 									( center_in_pixels * meter_per_pixels_scale ),
-									0.0f );
+									b2Rot_identity );
 	b2ShapeDef shapeDef = b2DefaultShapeDef();
 	InitializeShapeFromLua( L,
 							shapeDef,
@@ -2549,7 +2549,7 @@ InitializeFixtureUsing_Box( lua_State *L,
 		b2Polygon box = b2MakeOffsetBox( halfW,
 												halfH,
 												center_in_pixels,
-												radians );
+												b2MakeRot( radians ) );
 
 		InitializeShapeFromLua( L,
 								shapeDef,
@@ -2730,7 +2730,7 @@ add_b2Body_to_DisplayObject( lua_State *L,
 		b2Polygon box = b2MakeOffsetBox( halfW,
 										halfH,
 										( center_in_pixels * meter_per_pixels_scale ),
-										0.0f );
+										b2Rot_identity );
 
 		b2ShapeDef shapeDef = b2DefaultShapeDef();
 		InitializeShapePhysicsDefaults( shapeDef );

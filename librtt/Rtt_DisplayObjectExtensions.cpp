@@ -318,7 +318,7 @@ DisplayObjectExtensions::getInertia(lua_State* L)
 		b2BodyId bodyId = extensions->GetBody();
 
 		// float32 inertia = fBody->GetInertia() * scale;
-		float inertia = b2Body_GetInertiaTensor(bodyId);
+		float inertia = b2Body_GetRotationalInertia(bodyId);
 
 		lua_pushnumber(L, inertia);
 
