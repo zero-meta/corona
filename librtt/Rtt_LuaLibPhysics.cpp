@@ -380,9 +380,10 @@ namespace // anonymous namespace.
 			return -1.0f;
 		}
 
+		size_t result_index = 0;
 		add_hit_to_table_of_raycasting_results( rayContext->fL,
 												rayContext->fPixelsPerMeter,
-												rayContext->count,
+												result_index,
 												userData,
 												point,
 												normal,
@@ -408,9 +409,10 @@ namespace // anonymous namespace.
 
 		lua_settop( rayContext->fL, rayContext->fInitialTopIndexOfLuaStack );
 
+		size_t result_index = 0;
 		add_hit_to_table_of_raycasting_results( rayContext->fL,
 												rayContext->fPixelsPerMeter,
-												rayContext->count,
+												result_index,
 												userData,
 												point,
 												normal,
@@ -1873,6 +1875,21 @@ static void _ChainCreator( b2BodyId bodyId,
 	b2CreateChain( bodyId, chainDef );
 }
 
+static void _SegmentsShapeCreator( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
+									const b2Vec2 *points,
+									int32_t numPoints,
+									int &fixtureIndex )
+{
+	for ( int i = 0; i < numPoints - 1; ++i ) {
+		b2Segment segment = { points[i], points[i + 1] };
+
+		b2ShapeDef def = *shapeDef;
+		def.userData = (void *)(intptr_t)fixtureIndex++;
+		b2CreateSegmentShape( bodyId, &def, &segment );
+	}
+}
+
 static bool
 InitializeFixtureUsing_Rectangle( lua_State *L,
 									int lua_arg_index,
@@ -2437,12 +2454,6 @@ InitializeFixtureUsing_Chain( lua_State *L,
 								lua_arg_index );
 
 		// b2ChainShape chainDef;
-		b2ChainDef chainDef = b2DefaultChainDef();
-		chainDef.friction = shapeDef.friction;
-		chainDef.restitution = shapeDef.restitution;
-		chainDef.filter = shapeDef.filter;
-		chainDef.points = &vertexList[ 0 ];
-		chainDef.count = (int)vertexList.size();
 
 		// if ( vertexList.size() < 4 ) {
 		// }
@@ -2452,7 +2463,16 @@ InitializeFixtureUsing_Chain( lua_State *L,
 			{
 				// chainDef.CreateLoop( &vertexList[ 0 ],
 				// 						(int)vertexList.size() );
+				b2ChainDef chainDef = b2DefaultChainDef();
+				chainDef.friction = shapeDef.friction;
+				chainDef.restitution = shapeDef.restitution;
+				chainDef.filter = shapeDef.filter;
+				chainDef.points = &vertexList[ 0 ];
+				chainDef.count = (int32_t)vertexList.size();
 				chainDef.isLoop = true;
+				_ChainCreator( bodyId,
+									&chainDef,
+									fixtureIndex );
 			}
 			else
 			{
@@ -2470,7 +2490,11 @@ InitializeFixtureUsing_Chain( lua_State *L,
 			{
 				// chainDef.CreateChain( &vertexList[ 0 ],
 				// 						(int)vertexList.size() );
-				chainDef.isLoop = false;
+				_SegmentsShapeCreator( bodyId,
+										&shapeDef,
+										&vertexList[ 0 ],
+										(int32_t)vertexList.size(),
+										fixtureIndex );
 			}
 			else
 			{
@@ -2482,10 +2506,6 @@ InitializeFixtureUsing_Chain( lua_State *L,
 				return true;
 			}
 		}
-
-		_ChainCreator( bodyId,
-							&chainDef,
-							fixtureIndex );
 
 		lua_pop( L, 1 );
 		return true;
