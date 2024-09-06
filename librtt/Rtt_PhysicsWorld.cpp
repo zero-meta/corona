@@ -400,6 +400,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 				// b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
 				world.Step(dt * fTimeScale, fSubStepCount);
 				fTaskCount = 0;
+				StepEvents();
 			}
 		}
 		else
@@ -430,6 +431,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 					// b2World_Step(fWorldId, dt * fTimeScale, fSubStepCount);
 					world.Step(dt * fTimeScale, fSubStepCount);
 					fTaskCount = 0;
+					StepEvents();
 				}
 				tStep -= dt;
 			}
@@ -513,32 +515,35 @@ PhysicsWorld::StepWorld( double elapsedMS )
 			}
 		}
 		*/
+	}
+}
 
-		b2ContactEvents contactEvents = b2World_GetContactEvents( world.GetWorldId() );
-		for ( int i = 0; i < contactEvents.beginCount; ++i )
-		{
-			b2ContactBeginTouchEvent event = contactEvents.beginEvents[i];
-			fWorldContactListener->BeginContact( event.shapeIdA, event.shapeIdB );
-		}
+void
+PhysicsWorld::StepEvents() {
+	b2ContactEvents contactEvents = b2World_GetContactEvents( fWorld->GetWorldId() );
+	for ( int i = 0; i < contactEvents.beginCount; ++i )
+	{
+		b2ContactBeginTouchEvent event = contactEvents.beginEvents[i];
+		fWorldContactListener->BeginContact( event.shapeIdA, event.shapeIdB );
+	}
 
-		for ( int i = 0; i < contactEvents.endCount; ++i )
-		{
-			b2ContactEndTouchEvent event = contactEvents.endEvents[i];
-			fWorldContactListener->EndContact( event.shapeIdA, event.shapeIdB );
-		}
+	for ( int i = 0; i < contactEvents.endCount; ++i )
+	{
+		b2ContactEndTouchEvent event = contactEvents.endEvents[i];
+		fWorldContactListener->EndContact( event.shapeIdA, event.shapeIdB );
+	}
 
-		b2SensorEvents sensorEvents = b2World_GetSensorEvents( world.GetWorldId() );
-		for ( int i = 0; i < sensorEvents.beginCount; ++i )
-		{
-			b2SensorBeginTouchEvent event = sensorEvents.beginEvents[i];
-			fWorldContactListener->BeginContact( event.sensorShapeId, event.visitorShapeId );
-		}
+	b2SensorEvents sensorEvents = b2World_GetSensorEvents( fWorld->GetWorldId() );
+	for ( int i = 0; i < sensorEvents.beginCount; ++i )
+	{
+		b2SensorBeginTouchEvent event = sensorEvents.beginEvents[i];
+		fWorldContactListener->BeginContact( event.sensorShapeId, event.visitorShapeId );
+	}
 
-		for ( int i = 0; i < sensorEvents.endCount; ++i )
-		{
-			b2SensorEndTouchEvent event = sensorEvents.endEvents[i];
-			fWorldContactListener->EndContact( event.sensorShapeId, event.visitorShapeId );
-		}
+	for ( int i = 0; i < sensorEvents.endCount; ++i )
+	{
+		b2SensorEndTouchEvent event = sensorEvents.endEvents[i];
+		fWorldContactListener->EndContact( event.sensorShapeId, event.visitorShapeId );
 	}
 }
 

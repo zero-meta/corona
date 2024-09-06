@@ -106,6 +106,8 @@ class PhysicsWorld
 		int GetNumSteps() const { return fNumSteps; }
 		void SetNumSteps( S32 newValue ) { fNumSteps = newValue; }
 
+	private:
+		void StepEvents();
 
 	public:
 		void SetReportCollisionsInContentCoordinates( bool enabled );
