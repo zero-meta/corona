@@ -82,9 +82,9 @@
 	path = external/MetalANGLE
 	url = https://github.com/coronalabs/metalangle.git
 	branch = Solar2D-Changes-Reverted
-[submodule "external/box2d-v3"]
-	path = external/box2d-v3
-	url = https://github.com/zero-meta/box2d.git
+[submodule "external/box2d_v3"]
+	path = external/box2d_v3
+	url = https://github.com/labolado/submodule-box2d_v3.git
 	branch = dev_solar2d
 [submodule "external/enkiTS"]
 	path = external/enkiTS

@@ -2565,7 +2565,7 @@
 				41B9AD5E2C5B9B5C000F59B1 /* CMakeLists.txt */,
 			);
 			name = box2c;
-			path = "../../external/box2d-v3";
+			path = "../../external/box2d_v3";
 			sourceTree = "<group>";
 		};
 		5009C121186239540075E34C /* b2Separator */ = {
