@@ -4681,7 +4681,7 @@
 				41B9AA672C5A4468000F59B1 /* README.md */,
 			);
 			name = box2c;
-			path = "../../external/box2d_v3";
+			path = ../../external/box2d_v3;
 			sourceTree = "<group>";
 		};
 		50196067186146140092E97E /* SmoothPolygon */ = {
@@ -8352,6 +8352,7 @@
 					LUA_USE_APICHECK,
 					NDEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -8367,9 +8368,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",
@@ -8417,9 +8418,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -8557,6 +8558,10 @@
 				GCC_PREPROCESSOR_DEFINITIONS = "$(inherited)";
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				OTHER_CFLAGS = (
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-ffp-contract=off",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -8579,6 +8584,10 @@
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				OTHER_CFLAGS = (
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-ffp-contract=off",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = "Release-template";
@@ -8668,9 +8677,9 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8700,9 +8709,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8728,9 +8737,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 				);
@@ -8765,9 +8774,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -8826,9 +8835,9 @@
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					"../../external/b2Separator-cpp",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
@@ -8894,6 +8903,7 @@
 					LUA_USE_APICHECK,
 					DEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -8909,9 +8919,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",
@@ -8972,6 +8982,7 @@
 					LUA_USE_APICHECK,
 					NDEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -8987,9 +8998,9 @@
 				GCC_WARN_UNUSED_VARIABLE = NO;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
-					"../../external/box2d_v3/extern/liquidfun",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
+					../../external/box2d_v3/extern/liquidfun,
 					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					"../../external/tiny-aes128-c",
