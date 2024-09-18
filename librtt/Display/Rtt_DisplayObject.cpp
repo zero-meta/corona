@@ -515,19 +515,19 @@ DisplayObject::Translate( Real dx, Real dy )
 					else
 					{
 						Real scale = physics.GetPixelsPerMeter();
-						
+
 						// float angle = body->GetAngle();
-						float angle = b2Rot_GetAngle( b2Body_GetRotation(body) );
-						
+						b2Rot rotation = b2Body_GetRotation( body );
+
 						Real x = fTransform.GetProperty( kOriginX );
 						Real y = fTransform.GetProperty( kOriginY );
-						
+
 						x = Rtt_RealDiv( x, scale );
 						y = Rtt_RealDiv( y, scale );
-						
+
 						b2Vec2 position = { Rtt_RealToFloat( x ), Rtt_RealToFloat( y ) };
 						b2Body_SetAwake( body, true );
-						b2Body_SetTransform( body, position, b2MakeRot(angle) );
+						b2Body_SetTransform( body, position, rotation );
 					}
 				}
 			}
