@@ -2565,7 +2565,7 @@
 				41B9AD5E2C5B9B5C000F59B1 /* CMakeLists.txt */,
 			);
 			name = box2c;
-			path = "../../external/box2d_v3";
+			path = ../../external/box2d_v3;
 			sourceTree = "<group>";
 		};
 		5009C121186239540075E34C /* b2Separator */ = {
@@ -4033,8 +4033,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4099,8 +4099,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4166,6 +4166,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c11;
+				"OTHER_CFLAGS[sdk=iphonesimulator*]" = (
+					"-fexceptions",
+					"-DNS_BLOCK_ASSERTIONS=1",
+					"-ffp-contract=off",
+				);
 				PRODUCT_NAME = box2d;
 				SWIFT_VERSION = 3.0;
 				ZERO_LINK = NO;
@@ -4394,8 +4399,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4464,8 +4469,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d_v3",
-					"../../external/box2d_v3/include",
+					../../external/box2d_v3,
+					../../external/box2d_v3/include,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
