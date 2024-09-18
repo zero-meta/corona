@@ -394,6 +394,66 @@ DisplayObjectExtensions::getLinearVelocityFromLocalPoint(lua_State* L)
 	return 0;
 }
 
+typedef void shapeSetStateFcn( b2ShapeId shapeId, bool state );
+
+static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		bool state = lua_toboolean( L, 2 );
+		int count = b2Body_GetShapeCount( bodyId );
+		int shapeIndexStart = 0;
+		int shapeIndexEnd = count;
+		if ( lua_isnumber( L, 3 ) )
+		{
+			shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+		}
+		if ( lua_isnumber( L, 4 ) )
+		{
+			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+		}
+		b2ShapeId shapeArray[ count ];
+		b2Body_GetShapes( bodyId, shapeArray, count );
+		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
+			setState( shapeArray[ i ], state );
+		}
+
+		return 0;
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::setHitEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableHitEvents );
+}
+
+int
+DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableContactEvents );
+}
+
+int
+DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
+}
+
+int
+DisplayObjectExtensions::setPreSolveEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnablePreSolveEvents );
+}
+
 #endif // Rtt_PHYSICS
 
 
@@ -440,9 +500,13 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			"getInertia",						// 22
 			"getLinearVelocityFromWorldPoint",	// 23
 			"getLinearVelocityFromLocalPoint",  // 24
+			"setHitEventsEnabled",              // 25
+			"setContactEventsEnabled",          // 26
+			"setSensorEventsEnabled",           // 27
+			"setPreSolveEventsEnabled",         // 28
 		};
 		static const int numKeys = sizeof( keys ) / sizeof( const char * );
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 25, 19, 14, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 29, 26, 14, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -585,6 +649,26 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint);
 			}
 			break;
+		case 25:
+			{
+				lua_pushcfunction(L, Self::setHitEventsEnabled);
+			}
+			break;
+		case 26:
+			{
+				lua_pushcfunction(L, Self::setContactEventsEnabled);
+			}
+			break;
+		case 27:
+			{
+				lua_pushcfunction(L, Self::setSensorEventsEnabled);
+			}
+			break;
+		case 28:
+			{
+				lua_pushcfunction(L, Self::setPreSolveEventsEnabled);
+			}
+			break;
 		default:
 			{
 				result = 0;
@@ -717,11 +801,11 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			{
 				// Set all fixtures in the body (we call these "body elements") to the desired sensor state
 				bool sensorState = lua_toboolean( L, valueIndex );
-				int count = b2Body_GetShapeCount(fBodyId);
-				b2ShapeId shapeArray[count];
-				b2Body_GetShapes(fBodyId, shapeArray, count);
+				int count = b2Body_GetShapeCount( fBodyId );
+				b2ShapeId shapeArray[ count ];
+				b2Body_GetShapes( fBodyId, shapeArray, count );
 				for ( int i = 0; i < count; ++i ) {
-					b2Shape_SetSensor( shapeArray[i], sensorState );
+					b2Shape_SetSensor( shapeArray[ i ], sensorState );
 				}
 			}
 			break;

@@ -59,6 +59,10 @@ class DisplayObjectExtensions : public LuaProxyVTable
 		static int getInertia( lua_State *L );
 		static int getLinearVelocityFromWorldPoint(lua_State *L);
 		static int getLinearVelocityFromLocalPoint(lua_State* L);
+		static int setHitEventsEnabled( lua_State* L );
+		static int setContactEventsEnabled( lua_State* L );
+		static int setSensorEventsEnabled( lua_State* L );
+		static int setPreSolveEventsEnabled( lua_State* L );
 
 #endif // Rtt_PHYSICS
 
