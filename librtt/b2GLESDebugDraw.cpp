@@ -154,7 +154,6 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 					   DrawSolidPolygonFcn,
 					   DrawCircleFcn,
 					   DrawSolidCircleFcn,
-					   DrawCapsuleFcn,
 					   DrawSolidCapsuleFcn,
 					   DrawSegmentFcn,
 					   DrawTransformFcn,
