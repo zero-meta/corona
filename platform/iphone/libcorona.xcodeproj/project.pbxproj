@@ -4016,6 +4016,7 @@
 					Rtt_IPHONE_ENV,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4032,8 +4033,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d-v3",
-					"../../external/box2d-v3/include",
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4081,6 +4082,7 @@
 					Rtt_TRIAL,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4097,8 +4099,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d-v3",
-					"../../external/box2d-v3/include",
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4375,6 +4377,7 @@
 					Rtt_DEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
 					LUA_USE_APICHECK,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4391,15 +4394,18 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d-v3",
-					"../../external/box2d-v3/include",
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				ONLY_ACTIVE_ARCH = YES;
-				"OTHER_CFLAGS[arch=arm64]" = "-fexceptions";
+				"OTHER_CFLAGS[arch=arm64]" = (
+					"-fexceptions",
+					"-ffp-contract=off",
+				);
 				"OTHER_CFLAGS[sdk=iphonesimulator*]" = "-fexceptions";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				SDKROOT = iphoneos;
@@ -4441,6 +4447,7 @@
 					Rtt_IPHONE_ENV,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
+					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4457,8 +4464,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					"../../external/box2d-v3",
-					"../../external/box2d-v3/include",
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -4468,6 +4475,7 @@
 				"OTHER_CFLAGS[arch=arm64]" = (
 					"-fexceptions",
 					"-DNS_BLOCK_ASSERTIONS=1",
+					"-ffp-contract=off",
 				);
 				"OTHER_CFLAGS[sdk=iphonesimulator*]" = (
 					"-fexceptions",
