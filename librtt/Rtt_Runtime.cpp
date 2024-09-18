@@ -1577,6 +1577,10 @@ Runtime::Suspend(bool sendApplicationEvents /* = true */)
 	{
 		fDelegate->DidSuspend( *this );
 	}
+
+#ifdef Rtt_PHYSICS
+	fPhysicsWorld->onSuspended();
+#endif
 }
 
 void
@@ -1674,6 +1678,9 @@ Runtime::Resume(bool sendApplicationEvents /* = true */)
 		// We may need to track additional information about which specific subsystems were resumed and pass that as additional data to the event.
 		CoronaInvokeSystemResumeEvent();
 	}
+#ifdef Rtt_PHYSICS
+	fPhysicsWorld->onResumed();
+#endif
 }
 
 void

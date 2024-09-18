@@ -1032,6 +1032,19 @@ BaseCollisionEvent::Dispatch( lua_State *L, Runtime& runtime ) const
 	}
 }
 
+bool
+BaseCollisionEvent::DispatchWithResult( lua_State *L, Runtime& runtime ) const
+{
+	Rtt_ASSERT( ! fOther ); // fOther is merely a cache for the Push()
+
+	fOther = & fObject2;
+	bool handled = fObject1.DispatchEvent( L, * this );
+
+	fOther = NULL; // Always reset fOther
+
+	return handled;
+}
+
 CollisionEvent::CollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, const char *phase )
 :	Super( object1, object2, x, y, fixtureIndex1, fixtureIndex2 ),
 	fPhase( phase )
@@ -1057,8 +1070,43 @@ CollisionEvent::Push( lua_State *L ) const
 	return 1;
 }
 
-PreCollisionEvent::PreCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2 )
-:	Super( object1, object2, x, y, fixtureIndex1, fixtureIndex2 )
+HitCollisionEvent::HitCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, Real approachSpeed, Real normalX, Real normalY )
+:	Super( object1, object2, x, y, fixtureIndex1, fixtureIndex2 ),
+	fApproachSpeed( approachSpeed ),
+	fNormalX( normalX ),
+	fNormalY( normalY )
+{
+}
+
+const char*
+HitCollisionEvent::Name() const
+{
+	static const char kName[] = "hitCollision";
+	return kName;
+}
+
+int
+HitCollisionEvent::Push( lua_State *L ) const
+{
+	if ( Rtt_VERIFY( Super::Push( L ) ) )
+	{
+		lua_pushnumber( L, fApproachSpeed );
+		lua_setfield( L, -2, "approachSpeed" );
+
+		lua_pushnumber( L, fNormalX );
+		lua_setfield( L, -2, "normalX" );
+
+		lua_pushnumber( L, fNormalY );
+		lua_setfield( L, -2, "normalY" );
+	}
+
+	return 1;
+}
+
+PreCollisionEvent::PreCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, Runtime& runtime, Box2dPreSolveTempContact* contact )
+:	Super( object1, object2, x, y, fixtureIndex1, fixtureIndex2 ),
+	fRuntime( runtime ),
+	fContact( contact )
 {
 }
 
@@ -1067,6 +1115,31 @@ PreCollisionEvent::Name() const
 {
 	static const char kName[] = "preCollision";
 	return kName;
+}
+
+int
+PreCollisionEvent::Push( lua_State *L ) const
+{
+	if ( Rtt_VERIFY( Super::Push( L ) ) )
+	{
+		// UserdataWrapper *contactWrapper = Rtt_NEW(
+		// 	fRuntime.Allocator(),
+		// 	UserdataWrapper( fRuntime.VMContext().L(), fContact, PhysicsContact::kMetatableName ) );
+		// contactWrapper->Push();
+		// lua_setfield( L, -2, "contact" );
+		// fContact->wrapper = contactWrapper;
+
+		lua_pushnumber( L, fContact->separation );
+		lua_setfield( L, -2, "separation" );
+
+		lua_pushnumber( L, fContact->normalX );
+		lua_setfield( L, -2, "normalX" );
+
+		lua_pushnumber( L, fContact->normalY );
+		lua_setfield( L, -2, "normalY" );
+	}
+
+	return 1;
 }
 
 PostCollisionEvent::PostCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, Real normalImpulse, Real tangentImpulse )

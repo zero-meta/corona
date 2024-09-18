@@ -34,16 +34,16 @@ class PhysicsTask : public enki::ITaskSet
   public:
 	PhysicsTask() = default;
 
-	void ExecuteRange(enki::TaskSetPartition range, uint32_t threadIndex) override
+	void ExecuteRange( enki::TaskSetPartition range, uint32_t threadIndex ) override
 	{
-		m_task(range.start, range.end, threadIndex, m_taskContext);
+		m_task( range.start, range.end, threadIndex, m_taskContext );
 	}
 
 	b2TaskCallback* m_task = nullptr;
 	void* m_taskContext = nullptr;
 };
 
-constexpr int32_t maxTasks = 64;
+static constexpr int32_t maxTasks = 64;
 
 // ----------------------------------------------------------------------------
 
@@ -58,6 +58,7 @@ class PhysicsWorld
 			kPreCollisionListenerExists			= 0x04,
 			kPostCollisionListenerExists		= 0x08,
 			kParticleCollisionListenerExists	= 0x10,
+			kHitCollisionListenerExists	= 0x20,
 		};
 
 		typedef U32 Properties;
@@ -75,7 +76,10 @@ class PhysicsWorld
 	public:
 		void StartWorld( Runtime& runtime, bool noSleep );
 		void PauseWorld();
+		void ResumeWorld();
 		void StopWorld();
+		void onSuspended();
+		void onResumed();
 		b2LiquidWorld* GetWorld() const { return fWorld; }
 		b2WorldId GetWorldId() const { return fWorld->GetWorldId(); }
 		// b2Body* GetGroundBody() const { return fGroundBody; }

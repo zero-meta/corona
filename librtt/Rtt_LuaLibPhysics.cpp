@@ -30,7 +30,7 @@
 #include "Rtt_LuaContext.h"
 #include "Rtt_LuaProxyVTable.h"
 #include "Rtt_MPlatform.h"
-// #include "Rtt_PhysicsContact.h"
+#include "Rtt_PhysicsContact.h"
 #include "Rtt_PhysicsJoint.h"
 #include "Rtt_PhysicsTypes.h"
 #include "Rtt_PhysicsWorld.h"
@@ -1375,9 +1375,9 @@ CreateAndPushJoint(
 		// b2Joint *joint = world->CreateJoint( & jointDef );
 
 		// (2) Lua owns wrapper (which has a weak pointer to joint),
-		UserdataWrapper *wrapper = Rtt_NEW(
+		JointUserdataWrapper *wrapper = Rtt_NEW(
 			runtime.Allocator(),
-			UserdataWrapper( luaStateHandle, jointId, PhysicsJoint::kMetatableName ) );
+			JointUserdataWrapper( luaStateHandle, jointId, PhysicsJoint::kMetatableName ) );
 
 		// and (3) joint has a weak back reference to wrapper.
 		// joint->SetUserData( wrapper );
@@ -3355,7 +3355,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ NULL, NULL }
 	};
 
-	// PhysicsContact::Initialize( L );
+	PhysicsContact::Initialize( L );
 	PhysicsJoint::Initialize( L );
 
 	luaL_register( L, "physics", kVTable );

@@ -60,38 +60,45 @@ const S32 kPositionIterations = 3;
 
 // ----------------------------------------------------------------------------
 
-static void* EnqueueTask(b2TaskCallback* taskCallback, int32_t itemCount, int32_t minRange, void* taskContext, void* userContext)
+static void* EnqueueTask( b2TaskCallback* taskCallback, int32_t itemCount, int32_t minRange, void* taskContext, void* userContext )
 {
-	PhysicsWorld* world = static_cast<PhysicsWorld*>(userContext);
-	if (world->fTaskCount < maxTasks)
+	PhysicsWorld* world = static_cast<PhysicsWorld*>( userContext );
+	if ( world->fTaskCount < maxTasks )
 	{
 		// Rtt_Log("EnqueueTask, fTaskCount %d", world->fTaskCount);
-		PhysicsTask& task = world->fTasks[world->fTaskCount];
+		PhysicsTask& task = world->fTasks[ world->fTaskCount ];
 		task.m_SetSize = itemCount;
 		task.m_MinRange = minRange;
 		task.m_task = taskCallback;
 		task.m_taskContext = taskContext;
-		world->fScheduler.AddTaskSetToPipe(&task);
+		world->fScheduler.AddTaskSetToPipe( &task );
 		++world->fTaskCount;
 		return &task;
 	}
 	else
 	{
 		// This is not fatal but the maxTasks should be increased
-		assert(false);
-		taskCallback(0, itemCount, 0, taskContext);
+		Rtt_Log("Warning: Task queue full, executing task immediately (PhysicsWorld).");
+
+		taskCallback( 0, itemCount, 0, taskContext );
 		return nullptr;
 	}
 }
 
-static void FinishTask(void* taskPtr, void* userContext)
+static void FinishTask( void* taskPtr, void* userContext )
 {
 	if (taskPtr != nullptr)
 	{
-		PhysicsTask* task = static_cast<PhysicsTask*>(taskPtr);
-		PhysicsWorld* world = static_cast<PhysicsWorld*>(userContext);
-		world->fScheduler.WaitforTask(task);
+		PhysicsTask* task = static_cast<PhysicsTask*>( taskPtr );
+		PhysicsWorld* world = static_cast<PhysicsWorld*>( userContext );
+		world->fScheduler.WaitforTask( task );
 	}
+}
+
+static bool PreSolveCallbackFunction( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold* manifold, void* context )
+{
+	PhysicsContactListener* contactListener = (PhysicsContactListener*) context;
+	return contactListener->PreSolve( shapeIdA, shapeIdB, manifold );
 }
 
 PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
@@ -119,6 +126,7 @@ PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 	fNumSteps(1)
 {
 	fWorkerCount = b2MinInt( 8, b2MaxInt((int)enki::GetNumHardwareThreads() / 4, 1) );
+	// fWorkerCount = 1;
 	fScheduler.Initialize( fWorkerCount );
 	fTaskCount = 0;
 }
@@ -227,6 +235,8 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		shapeDef.enablePreSolveEvents = false;
 		b2Segment segment = { {-20.0f, 0.0f}, {20.0f, 0.0f} };
 		b2CreateSegmentShape( fGroundBodyId, &shapeDef, &segment );
+
+		b2World_SetPreSolveCallback( fWorld->GetWorldId(), PreSolveCallbackFunction, fWorldContactListener );
 	}
 
 	SetProperty( kIsWorldRunning, true );
@@ -239,6 +249,29 @@ PhysicsWorld::PauseWorld()
 	{
 		SetProperty( kIsWorldRunning, false );
 	}
+}
+
+void
+PhysicsWorld::ResumeWorld()
+{
+	if ( fWorld )
+	{
+		SetProperty( kIsWorldRunning, true );
+	}
+}
+
+void
+PhysicsWorld::onSuspended()
+{
+}
+
+void
+PhysicsWorld::onResumed()
+{
+#ifdef Rtt_ANDROID_ENV
+	fScheduler.Initialize( fWorkerCount );
+	fTaskCount = 0;
+#endif
 }
 
 void
@@ -531,6 +564,12 @@ PhysicsWorld::StepEvents() {
 	{
 		b2ContactEndTouchEvent event = contactEvents.endEvents[i];
 		fWorldContactListener->EndContact( event.shapeIdA, event.shapeIdB );
+	}
+
+	for ( int i = 0; i < contactEvents.hitCount; ++i )
+	{
+		b2ContactHitEvent* event = contactEvents.hitEvents + i;
+		fWorldContactListener->BeginContactHit( event );
 	}
 
 	b2SensorEvents sensorEvents = b2World_GetSensorEvents( fWorld->GetWorldId() );

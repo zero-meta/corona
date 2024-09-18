@@ -13,6 +13,7 @@
 #ifdef Rtt_PHYSICS	
 
 #include "box2d/box2d.h"
+#include <mutex>
 
 // ----------------------------------------------------------------------------
 
@@ -33,10 +34,11 @@ class PhysicsContactListener
 	public:
 		// b2ContactListener
 		// Fixture <-> Fixture contact.
-		void BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB);
-		void EndContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB);
-		// virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold);
+		void BeginContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB );
+		void EndContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB );
+		bool PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const b2Manifold* manifold );
 		// virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);
+		void BeginContactHit( b2ContactHitEvent* hitEvent );
 
 		// b2ContactListener
 		// Fixture <-> Particle contact.
@@ -58,6 +60,7 @@ class PhysicsContactListener
 		*/
 
 		Runtime& fRuntime;
+		std::mutex fDispatchEventMutex;
 };
 
 

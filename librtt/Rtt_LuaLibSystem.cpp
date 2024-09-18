@@ -1259,6 +1259,7 @@ static const char kLocationName[] = "location";
 static const char kHeadingName[] = "heading";
 static const char kMultitouchName[] = "multitouch";
 static const char kCollisionName[] = "collision";
+static const char kHitCollisionName[] = "hitCollision";
 static const char kPreCollisionName[] = "preCollision";
 static const char kPostCollisionName[] = "postCollision";
 static const char kParticleCollisionName[] = "particleCollision";
@@ -1298,6 +1299,10 @@ EventTypeForName( const char *eventName )
 	else if ( strcmp( kCollisionName, eventName ) == 0 )
 	{
 		result = MPlatformDevice::kCollisionEvent;
+	}
+	else if ( strcmp( kHitCollisionName, eventName ) == 0 )
+	{
+		result = MPlatformDevice::kHitCollisionEvent;
 	}
 	else if ( strcmp( kPreCollisionName, eventName ) == 0 )
 	{
@@ -1350,6 +1355,9 @@ MaskForEvent( MPlatformDevice::EventType t )
 	{
 		case MPlatformDevice::kCollisionEvent:
 			result = PhysicsWorld::kCollisionListenerExists;
+			break;
+		case MPlatformDevice::kHitCollisionEvent:
+			result = PhysicsWorld::kHitCollisionListenerExists;
 			break;
 		case MPlatformDevice::kPreCollisionEvent:
 			result = PhysicsWorld::kPreCollisionListenerExists;

@@ -37,6 +37,7 @@
 #include "Rtt_DeviceOrientation.h"
 #include "Core/Rtt_Real.h"
 #include "Renderer/Rtt_RenderTypes.h"
+#include "Rtt_PhysicsContact.h"
 
 #include <time.h>
 
@@ -579,6 +580,7 @@ class BaseCollisionEvent : public VirtualEvent
 	public:
 		virtual int Push( lua_State *L ) const;
 		virtual void Dispatch( lua_State *L, Runtime& runtime ) const;
+		virtual bool DispatchWithResult( lua_State *L, Runtime& runtime ) const;
 		
 	private:
 		DisplayObject& fObject1;
@@ -608,16 +610,41 @@ class CollisionEvent : public BaseCollisionEvent
 		const char *fPhase;
 };
 
+// Immediately broadcast to "Runtime"
+class HitCollisionEvent : public BaseCollisionEvent
+{
+	public:
+		typedef BaseCollisionEvent Super;
+
+	public:
+		HitCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, Real approachSpeed, Real normalX, Real normalY );
+
+	public:
+		virtual const char* Name() const;
+		virtual int Push( lua_State *L ) const;
+
+	private:
+		Real fApproachSpeed;
+		Real fNormalX;
+		Real fNormalY;
+};
+
 class PreCollisionEvent : public BaseCollisionEvent
 {
 	public:
 		typedef BaseCollisionEvent Super;
 		
 	public:
-		PreCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2 );
+		PreCollisionEvent( DisplayObject& object1, DisplayObject& object2, Real x, Real y, int fixtureIndex1, int fixtureIndex2, Runtime& runtime, Box2dPreSolveTempContact* contact );
 		
 	public:
 		virtual const char* Name() const;
+		virtual int Push( lua_State *L ) const;
+
+	private:
+		Runtime &fRuntime;
+		Box2dPreSolveTempContact *fContact;
+
 };
 
 class PostCollisionEvent : public BaseCollisionEvent

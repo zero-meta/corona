@@ -38,10 +38,10 @@ PhysicsJoint::GetJoint( lua_State *L, int index )
 {
 	b2JointId result = b2_nullJointId;
 
-	UserdataWrapper **ud = (UserdataWrapper **)luaL_checkudata( L, index, Self::kMetatableName );
+	JointUserdataWrapper **ud = (JointUserdataWrapper **)luaL_checkudata( L, index, Self::kMetatableName );
 	if ( ud )
 	{
-		UserdataWrapper *wrapper = *ud;
+		JointUserdataWrapper *wrapper = *ud;
 
 		// result = (b2Joint*)wrapper->Dereference();
 		result = wrapper->Dereference();
@@ -648,8 +648,8 @@ PhysicsJoint::removeSelf( lua_State *L )
 		// Disconnect joint and wrapper from each other
 
 		// (1) Remove wrapper's ref to joint
-		UserdataWrapper *wrapper = (UserdataWrapper*)b2Joint_GetUserData( baseJoint );
-		if ( wrapper && UserdataWrapper::GetFinalizedValue() != wrapper )
+		JointUserdataWrapper *wrapper = (JointUserdataWrapper*)b2Joint_GetUserData( baseJoint );
+		if ( wrapper && JointUserdataWrapper::GetFinalizedValue() != wrapper )
 		{
 			wrapper->Invalidate();
 		}
@@ -658,7 +658,7 @@ PhysicsJoint::removeSelf( lua_State *L )
 		// Any joint with a finalized userdata value to signal it should be
 		// destroyed after the world step (similar to body destruction cycle)
 		// baseJoint->SetUserData( UserdataWrapper::GetFinalizedValue() );
-		b2Joint_SetUserData( baseJoint, UserdataWrapper::GetFinalizedValue() );
+		b2Joint_SetUserData( baseJoint, JointUserdataWrapper::GetFinalizedValue() );
 		b2DestroyJoint(baseJoint);
 	}
 
@@ -1627,10 +1627,10 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 int
 PhysicsJoint::Finalizer( lua_State *L )
 {
-	UserdataWrapper **ud = (UserdataWrapper **)luaL_checkudata( L, 1, Self::kMetatableName );
+	JointUserdataWrapper **ud = (JointUserdataWrapper **)luaL_checkudata( L, 1, Self::kMetatableName );
 	if ( ud )
 	{
-		UserdataWrapper *wrapper = *ud;
+		JointUserdataWrapper *wrapper = *ud;
 
 		b2JointId joint = wrapper->Dereference();
 		if ( b2Joint_IsValid(joint) )

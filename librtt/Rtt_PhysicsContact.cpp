@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -9,7 +9,7 @@
 
 #include "Core/Rtt_Build.h"
 
-#ifdef Rtt_PHYSICS	
+#ifdef Rtt_PHYSICS
 
 #include "Rtt_PhysicsContact.h"
 
@@ -32,9 +32,8 @@ namespace Rtt
 
 const char PhysicsContact::kMetatableName[] = "physics.contact"; // unique identifier for this userdata type
 
-/*
 UserdataWrapper *
-PhysicsContact::CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, b2Contact *contact )
+PhysicsContact::CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, Box2dPreSolveTempContact *contact )
 {
 	// Lua owns wrapper (which has a weak pointer to joint)
 	UserdataWrapper *result = Rtt_NEW(
@@ -44,90 +43,96 @@ PhysicsContact::CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle
 	return result;
 }
 
-b2Contact*
+Box2dPreSolveTempContact*
 PhysicsContact::GetContact( lua_State *L, int index )
 {
-	b2Contact *result = NULL;
+	Box2dPreSolveTempContact *result = NULL;
 
 	UserdataWrapper **ud = (UserdataWrapper **)luaL_checkudata( L, index, Self::kMetatableName );
 	if ( ud )
 	{
 		UserdataWrapper *wrapper = *ud;
 
-		result = (b2Contact*)wrapper->Dereference();
+		result = (Box2dPreSolveTempContact*)wrapper->Dereference();
 	}
 
 	return result;
 }
-*/
 
 int
 PhysicsContact::ValueForKey( lua_State *L )
 {
 	int result = 0;    // number of args pushed on the stack
-	
-	// b2Contact *contact = GetContact( L, 1 );
-	
-	// if ( contact )
-	// {
-	// 	const char *key = luaL_checkstring( L, 2 );
-	// 	result = 1;
 
-	// 	if ( 0 == strcmp( "isTouching", key ) )
-	// 	{
-	// 		lua_pushboolean( L, contact->IsTouching() );
-	// 	}
-	// 	else if ( 0 == strcmp( "isEnabled", key ) )
-	// 	{
-	// 		lua_pushboolean( L, contact->IsEnabled() );
-	// 	}
-	// 	else if ( 0 == strcmp( "friction", key ) )
-	// 	{
-	// 		lua_pushnumber( L, contact->GetFriction() );
-	// 	}
-	// 	else if ( 0 == strcmp( "bounce", key ) )
-	// 	{
-	// 		lua_pushnumber( L, contact->GetRestitution() );
-	// 	}
-	// 	else if ( 0 == strcmp( "tangentSpeed", key ) )
-	// 	{
-	// 		lua_pushnumber( L, contact->GetTangentSpeed() );
-	// 	}
-	// 	else
-	// 	{
-	// 		result = 0;
-	// 	}
-	// }
-	
+	Box2dPreSolveTempContact *contact = GetContact( L, 1 );
+
+	if ( contact )
+	{
+		const char *key = luaL_checkstring( L, 2 );
+
+		if ( 0 == strcmp( "isTouching", key ) )
+		{
+			// lua_pushboolean( L, contact->IsTouching() );
+		}
+		else if ( 0 == strcmp( "isEnabled", key ) )
+		{
+			// lua_pushboolean( L, contact->IsEnabled() );
+			lua_pushboolean( L, contact->isEnabled );
+			result = 1;
+		}
+		else if ( 0 == strcmp( "separation", key ) )
+		{
+			lua_pushnumber( L, contact->separation );
+			result = 1;
+		}
+		else if ( 0 == strcmp( "friction", key ) )
+		{
+			// lua_pushnumber( L, contact->GetFriction() );
+		}
+		else if ( 0 == strcmp( "bounce", key ) )
+		{
+			// lua_pushnumber( L, contact->GetRestitution() );
+		}
+		else if ( 0 == strcmp( "tangentSpeed", key ) )
+		{
+			// lua_pushnumber( L, contact->GetTangentSpeed() );
+		}
+		else
+		{
+			result = 0;
+		}
+	}
+
 	return result;
 }
 
 int
 PhysicsContact::SetValueForKey( lua_State *L )
 {
-	// b2Contact *contact = GetContact( L, 1 );
-	
-	// if ( contact )
-	// {
-	// 	const char *key = luaL_checkstring( L, 2 );
+	Box2dPreSolveTempContact *contact = GetContact( L, 1 );
 
-	// 	if ( 0 == strcmp( "isEnabled", key ) )
-	// 	{
-	// 		contact->SetEnabled( lua_toboolean( L, 3 ) );
-	// 	}
-	// 	else if ( 0 == strcmp( "friction", key ) )
-	// 	{
-	// 		contact->SetFriction( lua_tonumber( L, 3 ) );
-	// 	}
-	// 	else if ( 0 == strcmp( "bounce", key ) )
-	// 	{
-	// 		contact->SetRestitution( lua_tonumber( L, 3 ) );
-	// 	}
-	// 	else if ( 0 == strcmp( "tangentSpeed", key ) )
-	// 	{
-	// 		contact->SetTangentSpeed( lua_tonumber( L, 3 ) );
-	// 	}
-	// }
+	if ( contact )
+	{
+		const char *key = luaL_checkstring( L, 2 );
+
+		if ( 0 == strcmp( "isEnabled", key ) )
+		{
+			// contact->SetEnabled( lua_toboolean( L, 3 ) );
+			contact->isEnabled = lua_toboolean( L, 3 );
+		}
+		else if ( 0 == strcmp( "friction", key ) )
+		{
+			// contact->SetFriction( lua_tonumber( L, 3 ) );
+		}
+		else if ( 0 == strcmp( "bounce", key ) )
+		{
+			// contact->SetRestitution( lua_tonumber( L, 3 ) );
+		}
+		else if ( 0 == strcmp( "tangentSpeed", key ) )
+		{
+			// contact->SetTangentSpeed( lua_tonumber( L, 3 ) );
+		}
+	}
 
 	return 0;
 }
@@ -160,14 +165,14 @@ PhysicsContact::Initialize( lua_State *L )
 		{ "__gc", Self::Finalizer },
 		{ NULL, NULL }
 	};
-		
+
 	Lua::InitializeMetatable( L, Self::kMetatableName, kVTable );
 }
 
 // ----------------------------------------------------------------------------
-	
+
 } // namespace Rtt
 
 // ----------------------------------------------------------------------------
 
-#endif // Rtt_PHYSICS	
+#endif // Rtt_PHYSICS
