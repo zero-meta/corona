@@ -187,7 +187,7 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 						true,  // joints
 						false, // joint extras
 						false, // aabbs
-						false, // mass
+						true, // mass
 						false, // contacts
 						false, // colors
 						false, // normals
@@ -699,7 +699,7 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 
 void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, Box2dDebugColor color)
 {
-	DrawCircle( true, center, radius, NULL, color, NULL );
+	// DrawCircle( true, center, radius, NULL, color, NULL );
 }
 
 void b2GLESDebugDraw::DrawSolidCircle( b2Transform transform,
