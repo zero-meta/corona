@@ -1289,7 +1289,6 @@ TRACE_CALL;
 		lua_pop( L, 1 );
 	}
 
-	/*
 	// Outline.
 	if( ! particleGroupDef.shape )
 	{
@@ -1394,8 +1393,7 @@ TRACE_CALL;
 				    }
 
 					// This is released in the caller of this function.
-					b2Polygon
-					polyVec.push_back( new b2PolygonShape );
+					polyVec.push_back( new b2LiquidShape );
 				    bool ok = polyVec.back()->Set( &( vertices[ 0 ] ), (int)m );
 					if( ! ok )
 					{
@@ -1412,7 +1410,6 @@ TRACE_CALL;
 		}
 		lua_pop( L, 1 );
 	}
-	*/
 }
 
 void ParticleSystemObject::CreateParticle( lua_State *L )
