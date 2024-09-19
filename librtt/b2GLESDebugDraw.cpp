@@ -32,7 +32,7 @@
 #include "Renderer/Rtt_Geometry_Renderer.h"
 #include "Renderer/Rtt_Renderer.h"
 #include "Rtt_LuaLibPhysics.h"
-// #include "Rtt_ParticleSystemObject.h"
+#include "Rtt_ParticleSystemObject.h"
 #include "Rtt_PhysicsJoint.h"
 #include "Rtt_PhysicsWorld.h"
 
@@ -55,35 +55,31 @@
 namespace Rtt
 {
 
-struct RGBA8
+static float invColorBase = 1.0f / 255.0f;
+static inline Box2dDebugColor MakeRGBA( b2HexColor c )
 {
-	uint8_t r, g, b, a;
-};
-
-static inline RGBA8 MakeRGBA8(b2HexColor c, float alpha)
-{
-	return {uint8_t((c >> 16) & 0xFF), uint8_t((c >> 8) & 0xFF), uint8_t(c & 0xFF), uint8_t(0xFF * alpha)};
+	return { ((c >> 16) & 0xFF) * invColorBase, ((c >> 8) & 0xFF) * invColorBase, uint8_t(c & 0xFF) * invColorBase };
 }
 
 void DrawPolygonFcn(const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon(vertices, vertexCount, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon( vertices, vertexCount, MakeRGBA(color) );
 }
 
 void DrawSolidPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
 						 void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSolidPolygon(transform, vertices, vertexCount, radius, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawSolidPolygon( transform, vertices, vertexCount, radius, MakeRGBA(color) );
 }
 
 void DrawCircleFcn(b2Vec2 center, float radius, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawCircle(center, radius, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawCircle( center, radius, MakeRGBA(color) );
 }
 
 void DrawSolidCircleFcn(b2Transform transform, float radius, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSolidCircle(transform, b2Vec2_zero, radius, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawSolidCircle( transform, transform.p, radius, MakeRGBA(color) );
 }
 
 void DrawCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
@@ -98,7 +94,7 @@ void DrawSolidCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, v
 
 void DrawSegmentFcn(b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSegment(p1, p2, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawSegment( p1, p2, MakeRGBA(color) );
 }
 
 void DrawTransformFcn(b2Transform transform, void* context)
@@ -108,12 +104,36 @@ void DrawTransformFcn(b2Transform transform, void* context)
 
 void DrawPointFcn(b2Vec2 p, float size, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawPoint(p, size, color);
+	static_cast<b2GLESDebugDraw*>(context)->DrawPoint( p, size, MakeRGBA(color) );
 }
 
 void DrawStringFcn(b2Vec2 p, const char* s, void* context)
 {
 	// static_cast<b2GLESDebugDraw*>(context)->DrawString(p, s);
+}
+
+void GetBodyTransformFcn( b2Transform* transform, void* bodyUserData, void* context )
+{
+	DisplayObject *o = static_cast<DisplayObject*>(bodyUserData);
+	b2Transform xf;
+
+	float metersPerPixel = static_cast<b2GLESDebugDraw*>(context)->GetMetersPerPixel();
+	if ( o && LuaLibPhysics::GetGroundBodyUserdata() != o )
+	{
+		Vertex2 v = { 0.0f, 0.0f };
+		if( o->ShouldOffsetWithAnchor() )
+		{
+			Vertex2 offset = o->GetAnchorOffset();
+			v.x -= offset.x;
+			v.y -= offset.y;
+		}
+		o->LocalToContent( v );
+
+		b2Vec2 p = { v.x, v.y };
+		p *= metersPerPixel;
+
+		transform->p = p;
+	}
 }
 
 // ----------------------------------------------------------------------------
@@ -150,28 +170,31 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 		fData.fUserUniform3 = NULL;
 
 		b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
-		fDebugDraw = {DrawPolygonFcn,
-					   DrawSolidPolygonFcn,
-					   DrawCircleFcn,
-					   DrawSolidCircleFcn,
-					   DrawSolidCapsuleFcn,
-					   DrawSegmentFcn,
-					   DrawTransformFcn,
-					   DrawPointFcn,
-					   DrawStringFcn,
-					   bounds,
-					   false, // drawUsingBounds
-					   true,  // shapes
-					   true,  // joints
-					   false, // joint extras
-					   false, // aabbs
-					   false, // mass
-					   false, // contacts
-					   false, // colors
-					   false, // normals
-					   false, // impulse
-					   false, // friction
-					   this};
+		fDebugDraw = {
+						DrawPolygonFcn,
+						DrawSolidPolygonFcn,
+						DrawCircleFcn,
+						DrawSolidCircleFcn,
+						DrawSolidCapsuleFcn,
+						DrawSegmentFcn,
+						DrawTransformFcn,
+						DrawPointFcn,
+						DrawStringFcn,
+						GetBodyTransformFcn,
+						bounds,
+						false, // drawUsingBounds
+						true,  // shapes
+						true,  // joints
+						false, // joint extras
+						false, // aabbs
+						false, // mass
+						false, // contacts
+						false, // colors
+						false, // normals
+						false, // impulse
+						false, // friction
+						this
+					};
 	}
 }
 
@@ -212,6 +235,16 @@ GetTransform( const b2BodyId b, Real metersPerPixel )
 	return xf;
 }
 
+float b2GLESDebugDraw::GetMetersPerPixel()
+{
+	return fMetersPerPixel;
+}
+
+float b2GLESDebugDraw::GetPixelsPerMeter()
+{
+	return fPixelsPerMeter;
+}
+
 void b2GLESDebugDraw::Begin( const PhysicsWorld& physics, Renderer &renderer )
 {
 	fRenderer = & renderer;
@@ -240,6 +273,11 @@ void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &rend
 	Begin( physics, renderer );
 
 	b2World_Draw( worldId, &fDebugDraw );
+
+	for (b2ParticleSystem *p = physics.GetWorld()->GetParticleSystemList(); p; p = p->GetNext())
+	{
+		DrawParticleSystem( *p );
+	}
 
 	// uint32 flags = GetFlags();
 
@@ -327,7 +365,7 @@ void b2GLESDebugDraw::DrawDebugData( const PhysicsWorld& physics, Renderer &rend
 	End();
 }
 
-void b2GLESDebugDraw::DrawShape( b2ShapeId fixture, const b2Transform& xf, b2HexColor color)
+void b2GLESDebugDraw::DrawShape( b2ShapeId fixture, const b2Transform& xf, Box2dDebugColor color)
 {
 	// switch (fixture->GetType())
 	// {
@@ -443,39 +481,39 @@ void b2GLESDebugDraw::DrawJoint(b2JointId joint)
 	// }
 }
 
-// void b2GLESDebugDraw::DrawParticleSystem( const b2ParticleSystem& system )
-// {
-// 	int particleCount = system.GetParticleCount();
-// 	if ( particleCount )
-// 	{
-// 		// This is safe to do because there's at least ONE particle,
-// 		// and all particles have the same userdata.
-// 		const ParticleSystemObject *pso = static_cast< const ParticleSystemObject * >( system.GetUserDataBuffer()[ 0 ] );
-// 		if ( pso )
-// 		{
-// 			// Calculate offset. Convert to Box2D coords (meters)
-// 			Vertex2 offsetInPixels = { 0.0f, 0.0f };
-// 			pso->GetSrcToDstMatrix().Apply( offsetInPixels );
-// 			b2Vec2 offsetInMeters( offsetInPixels.x, offsetInPixels.y );
-// 			offsetInMeters *= fMetersPerPixel;
+void b2GLESDebugDraw::DrawParticleSystem( const b2ParticleSystem& system )
+{
+	int particleCount = system.GetParticleCount();
+	if ( particleCount )
+	{
+		// This is safe to do because there's at least ONE particle,
+		// and all particles have the same userdata.
+		const ParticleSystemObject *pso = static_cast< const ParticleSystemObject * >( system.GetUserDataBuffer()[ 0 ] );
+		if ( pso )
+		{
+			// Calculate offset. Convert to Box2D coords (meters)
+			Vertex2 offsetInPixels = { 0.0f, 0.0f };
+			pso->GetSrcToDstMatrix().Apply( offsetInPixels );
+			b2Vec2 offsetInMeters = { offsetInPixels.x, offsetInPixels.y };
+			offsetInMeters *= fMetersPerPixel;
 
-// 			// Draw all particles.
-// 			float radius = system.GetRadius();
-// 			const b2Vec2* positionBuffer = system.GetPositionBuffer();
-// 			const b2ParticleColor* colorBuffer = NULL;
-// 			// TODO: We can't easily determine if m_colorBuffer.data is NULL
-// 			// w/o accidentally forcing an allocation of m_colorBuffer.data
-// 			/*
-// 			if (system.m_colorBuffer.data)
-// 			{
-// 				colorBuffer = system.GetColorBuffer();
-// 			}
-// 			*/
+			// Draw all particles.
+			float radius = system.GetRadius();
+			const b2Vec2* positionBuffer = system.GetPositionBuffer();
+			const b2ParticleColor* colorBuffer = NULL;
+			// TODO: We can't easily determine if m_colorBuffer.data is NULL
+			// w/o accidentally forcing an allocation of m_colorBuffer.data
+			/*
+			if (system.m_colorBuffer.data)
+			{
+				colorBuffer = system.GetColorBuffer();
+			}
+			*/
 
-// 			DrawParticlesOffset( positionBuffer, radius, colorBuffer, particleCount, &offsetInMeters );
-// 		}
-// 	}
-// }
+			DrawParticlesOffset( positionBuffer, radius, colorBuffer, particleCount, &offsetInMeters );
+		}
+	}
+}
 
 void b2GLESDebugDraw::_SetVerticesUsed( int vertexCount )
 {
@@ -488,11 +526,11 @@ void b2GLESDebugDraw::_SetVerticesUsed( int vertexCount )
 }
 
 void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
+									b2Transform transform,
 									const b2Vec2* vertices,
 									int vertexCount,
-									b2HexColor hexColor )
+									Box2dDebugColor color )
 {
-	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
 	_SetVerticesUsed( vertexCount );
 
 	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
@@ -503,11 +541,12 @@ void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
 			++i )
 	{
 		const b2Vec2 &input_vert = vertices[ i ];
+		b2Vec2 p = b2TransformPoint( transform, input_vert );
 		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
 
 		output_vert.Zero();
-		output_vert.SetPos( ( input_vert.x * fPixelsPerMeter ),
-							( input_vert.y * fPixelsPerMeter ) );
+		output_vert.SetPos( ( p.x * fPixelsPerMeter ),
+							( p.y * fPixelsPerMeter ) );
 	}
 
 	// We're iterating multiple times over the input and output arrays.
@@ -543,17 +582,16 @@ void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
 	fRenderer->Insert( &fData );
 }
 
-void b2GLESDebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor color)
+void b2GLESDebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, Box2dDebugColor color)
 {
-	_DrawPolygon( false, vertices, vertexCount, color );
+	_DrawPolygon( false, b2Transform_identity, vertices, vertexCount, color );
 }
 
-void b2GLESDebugDraw::DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color)
+void b2GLESDebugDraw::DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, Box2dDebugColor color)
 {
-	_DrawPolygon( true, vertices, vertexCount, color );
+	_DrawPolygon( true, transform, vertices, vertexCount, color );
 }
 
-/*
 void b2GLESDebugDraw::DrawParticles( const b2Vec2 *centers,
 										float radius,
 										const b2ParticleColor *colors,
@@ -568,9 +606,11 @@ void b2GLESDebugDraw::DrawParticlesOffset( const b2Vec2 *centers,
 										int count,
 										const b2Vec2 *offset )
 {
-	static b2HexColor kColorDefault = b2HexColor( 1.0f, 1.0f, 1.0f );
+	// static b2HexColor kColorDefault = b2HexColor( 1.0f, 1.0f, 1.0f );
+	static b2HexColor kColorDefault = b2_colorWhite;
 
-	b2HexColor color = kColorDefault;
+	// b2HexColor color = kColorDefault;
+	Box2dDebugColor color = MakeRGBA( kColorDefault );
 
 	for( int i = 0; i < count; i++ )
 	{
@@ -582,23 +622,20 @@ void b2GLESDebugDraw::DrawParticlesOffset( const b2Vec2 *centers,
 
 		if ( colors )
 		{
-			color = b2HexColor( colors[ i ].r, colors[ i ].g, colors[ i ].b );
+			color = { colors[ i ].r * invColorBase, colors[ i ].g * invColorBase, colors[ i ].b * invColorBase };
 		}
 
 		DrawCircle( true, centers[ i ], radius, NULL, color, offset );
 	}
 }
-*/
 
 void b2GLESDebugDraw::DrawCircle( bool fill_body,
 									const b2Vec2& center,
 									float radius,
 									const b2Vec2 *optionalAxis,
-									b2HexColor hexColor,
+									Box2dDebugColor color,
 									const b2Vec2 *optionalOffset )
 {
-	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
-
 	b2Vec2 circleOrigin( center + ( optionalOffset ? *optionalOffset : b2Vec2_zero ) );
 
 	const int vertexCount = 16;
@@ -656,11 +693,11 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 		// Draw the axis line
 		DrawSegment( circleOrigin,
 						( circleOrigin + ( radius * *optionalAxis ) ),
-						hexColor );
+						color );
 	}
 }
 
-void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, b2HexColor color)
+void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, Box2dDebugColor color)
 {
 	DrawCircle( true, center, radius, NULL, color, NULL );
 }
@@ -668,16 +705,14 @@ void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, b2HexColor 
 void b2GLESDebugDraw::DrawSolidCircle( b2Transform transform,
 										b2Vec2 center,
 										float radius,
-										b2HexColor color )
+										Box2dDebugColor color )
 {
 	b2Vec2 axis = b2Rot_GetXAxis(transform.q);
 	DrawCircle( true, center, radius, &axis, color, NULL );
 }
 
-void b2GLESDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, b2HexColor hexColor)
+void b2GLESDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, Box2dDebugColor color)
 {
-	RGBA8 color = MakeRGBA8( hexColor, 1.0f );
-
 	const int vertexCount = 2;
 
 	_SetVerticesUsed( vertexCount );
@@ -724,20 +759,18 @@ void b2GLESDebugDraw::DrawTransform(const b2Transform& xf)
 	const float k_axisScale = 24.0f * fMetersPerPixel;
 
 	// p2 = p1 + k_axisScale * xf.q.GetXAxis();
-	// DrawSegment(p1,p2,b2HexColor(1,0,0));
 	p2 = p1 + k_axisScale * b2Rot_GetXAxis( xf.q );
-	DrawSegment( p1, p2, b2_colorRed );
+	DrawSegment( p1, p2, MakeRGBA( b2_colorRed ) );
 
 	p2 = p1 + k_axisScale * b2Rot_GetYAxis( xf.q );
-	// DrawSegment(p1,p2,b2HexColor(0,1,0));
-	DrawSegment( p1, p2, b2_colorGreen );
+	DrawSegment( p1, p2, MakeRGBA( b2_colorGreen ) );
 }
 
-void b2GLESDebugDraw::DrawPoint(const b2Vec2& p, float size, b2HexColor color)
+void b2GLESDebugDraw::DrawPoint(const b2Vec2& p, float size, Box2dDebugColor color)
 {
 	// We're aware that this isn't the most efficient way to draw a point.
 	// We'll make this more efficient if necessary.
-	DrawCircle( true, p, size, NULL, color, NULL );
+	DrawCircle( true, p, size * fMetersPerPixel, NULL, color, NULL );
 }
 
 void b2GLESDebugDraw::DrawString(int x, int y, const char *string, ...)
@@ -745,10 +778,8 @@ void b2GLESDebugDraw::DrawString(int x, int y, const char *string, ...)
 	/* Unsupported as yet. Could replace with bitmap font renderer at a later date */
 }
 
-void b2GLESDebugDraw::DrawAABB(b2AABB* aabb, b2HexColor hexC)
+void b2GLESDebugDraw::DrawAABB(b2AABB* aabb, Box2dDebugColor c)
 {
-	RGBA8 c = MakeRGBA8( hexC, 1.0f );
-
 	const int vertexCount = 4;
 
 	_SetVerticesUsed( vertexCount );

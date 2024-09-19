@@ -23,16 +23,22 @@
 
 // #include "Box2D/Box2D.h"
 #include "box2d/box2d.h"
+#include "particle_system.h"
 
 #include "Renderer/Rtt_RenderData.h"
 
-struct b2AABB;
+// struct b2AABB;
 
 // ----------------------------------------------------------------------------
 
 namespace Rtt
 {
 // ----------------------------------------------------------------------------
+
+struct Box2dDebugColor
+{
+	float r, g, b;
+};
 
 class Display;
 class PhysicsWorld;
@@ -56,37 +62,38 @@ class b2GLESDebugDraw
 
 	public:
 		void DrawDebugData( const PhysicsWorld& physics, Renderer &renderer );
+		float GetMetersPerPixel();
+		float GetPixelsPerMeter();
 
 	protected:
-		void DrawShape( b2ShapeId fixture, const b2Transform& xf, b2HexColor color);
+		void DrawShape( b2ShapeId fixture, const b2Transform& xf, Box2dDebugColor color);
 		void DrawJoint( b2JointId joint );
-		// void DrawParticleSystem( const b2ParticleSystem& system );
+		void DrawParticleSystem( const b2ParticleSystem& system );
 
 	public:
 		// b2Draw.
 
-		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, b2HexColor color);
+		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, Box2dDebugColor color);
 
-		virtual void DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color);
+		virtual void DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, Box2dDebugColor color);
 
+		virtual void DrawCircle(const b2Vec2& center, float radius, Box2dDebugColor color);
 
-		virtual void DrawCircle(const b2Vec2& center, float radius, b2HexColor color);
+		virtual void DrawParticles(const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count);
 
-		// virtual void DrawParticles(const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count);
+		void DrawParticlesOffset( const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count, const b2Vec2 *offset );
 
-		// void DrawParticlesOffset( const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count, const b2Vec2 *offset );
+		virtual void DrawSolidCircle(b2Transform transform, b2Vec2 center, float radius, Box2dDebugColor color);
 
-		virtual void DrawSolidCircle(b2Transform transform, b2Vec2 center, float radius, b2HexColor color);
-
-		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, b2HexColor color);
+		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, Box2dDebugColor color);
 
 		virtual void DrawTransform(const b2Transform& xf);
 
-		virtual void DrawPoint(const b2Vec2& p, float size, b2HexColor color);
+		virtual void DrawPoint(const b2Vec2& p, float size, Box2dDebugColor color);
 
 		virtual void DrawString(int x, int y, const char* string, ...);
 
-		virtual void DrawAABB(b2AABB* aabb, b2HexColor color);
+		virtual void DrawAABB(b2AABB* aabb, Box2dDebugColor color);
 
 	public:
 
@@ -94,7 +101,7 @@ class b2GLESDebugDraw
 							const b2Vec2& center,
 							float radius,
 							const b2Vec2 *optionalAxis,
-							b2HexColor color,
+							Box2dDebugColor color,
 							const b2Vec2 *optionalOffset );
 
 	private:
@@ -102,9 +109,10 @@ class b2GLESDebugDraw
 		void _SetVerticesUsed( int vertexCount );
 
 		void _DrawPolygon( bool fill_body,
+							b2Transform transform,
 							const b2Vec2* vertices,
 							int vertexCount,
-							b2HexColor color );
+							Box2dDebugColor color );
 
 		//! fRenderer and fScale are only valid between Begin() and End().
 		Renderer *fRenderer;

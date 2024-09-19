@@ -392,7 +392,7 @@ PhysicsWorld::DebugDraw( Renderer &renderer ) const
 		return;
 	}
 
-	// fWorldDebugDraw->DrawDebugData( * this, renderer );
+	fWorldDebugDraw->DrawDebugData( * this, renderer );
 //	fWorldDebugDraw->Begin( *this,
 //							renderer );
 //	{
