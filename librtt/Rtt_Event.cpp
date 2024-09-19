@@ -17,7 +17,7 @@
 #endif
 
 #include "Rtt_PhysicsWorld.h"
-// #include "Rtt_ParticleSystemObject.h"
+#include "Rtt_ParticleSystemObject.h"
 
 #include "Display/Rtt_BitmapPaint.h"
 #include "Display/Rtt_Display.h"
@@ -1171,7 +1171,6 @@ PostCollisionEvent::Push( lua_State *L ) const
 	return 1;
 }
 
-/*
 static void _PushCommonParticleCollisionEvent( lua_State *L,
 												Runtime &runtime,
 												const char *phase,
@@ -1279,8 +1278,8 @@ int BeginParticleCollisionEvent::Push( lua_State *L ) const
 		_PushCommonParticleCollisionEvent( L,
 											fRuntime,
 											"began",
-											static_cast< DisplayObject * >( fParticleBodyContact->body->GetUserData() ),
-											(int)(intptr_t)fParticleBodyContact->fixture->GetUserData(),
+											static_cast< DisplayObject * >( b2Body_GetUserData( fParticleBodyContact->bodyId ) ),
+											(int)(intptr_t)b2Shape_GetUserData( fParticleBodyContact->fixture ),
 											static_cast< ParticleSystemObject * >( fParticleSystem->GetUserDataBuffer()[ fParticleBodyContact->index ] ),
 											fParticleSystem->GetPositionBuffer()[ fParticleBodyContact->index ],
 											&fParticleBodyContact->normal,
@@ -1317,12 +1316,12 @@ void BeginParticleCollisionEvent::Dispatch( lua_State *L,
 	_DispatchCommonParticleCollisionEvent( L,
 											runtime,
 											static_cast< const VirtualEvent * >( this ),
-											static_cast< DisplayObject * >( fParticleBodyContact->body->GetUserData() ),
+											static_cast< DisplayObject * >( b2Body_GetUserData( fParticleBodyContact->bodyId ) ),
 											static_cast< ParticleSystemObject * >( fParticleSystem->GetUserDataBuffer()[ fParticleBodyContact->index ] ) );
 }
 
 EndParticleCollisionEvent::EndParticleCollisionEvent( Runtime &runtime,
-														b2Fixture *fixture,
+														b2ShapeId fixture,
 														b2ParticleSystem *particleSystem,
 														int particleIndex )
 : Super()
@@ -1345,8 +1344,8 @@ int EndParticleCollisionEvent::Push( lua_State *L ) const
 		_PushCommonParticleCollisionEvent( L,
 											fRuntime,
 											"ended",
-											static_cast< DisplayObject* >( fFixture->GetBody()->GetUserData() ),
-											(int)(intptr_t)fFixture->GetUserData(),
+											static_cast< DisplayObject* >( b2Body_GetUserData( b2Shape_GetBody( fFixture ) ) ),
+											(int)(intptr_t)b2Shape_GetUserData( fFixture ),
 											static_cast< ParticleSystemObject * >( fParticleSystem->GetUserDataBuffer()[ fParticleIndex ] ),
 											fParticleSystem->GetPositionBuffer()[ fParticleIndex ],
 											NULL,
@@ -1362,11 +1361,10 @@ void EndParticleCollisionEvent::Dispatch( lua_State *L,
 	_DispatchCommonParticleCollisionEvent( L,
 											runtime,
 											static_cast< const VirtualEvent * >( this ),
-											static_cast< DisplayObject* >( fFixture->GetBody()->GetUserData() ),
+											static_cast< DisplayObject* >( b2Body_GetUserData( b2Shape_GetBody( fFixture ) ) ),
 											static_cast< ParticleSystemObject * >( fParticleSystem->GetUserDataBuffer()[ fParticleIndex ] ) );
 }
 
-*/
 #endif // Rtt_PHYSICS
 
 // ----------------------------------------------------------------------------

@@ -13,6 +13,7 @@
 #ifdef Rtt_PHYSICS	
 
 #include "box2d/box2d.h"
+#include "liquid_callbacks.h"
 #include <mutex>
 
 // ----------------------------------------------------------------------------
@@ -25,8 +26,7 @@ class DisplayObject;
 
 // ----------------------------------------------------------------------------
 
-// class PhysicsContactListener : public b2ContactListener
-class PhysicsContactListener
+class PhysicsContactListener : public b2ContactListener
 {
 	public:
 		PhysicsContactListener( Runtime& runtime );
@@ -42,11 +42,11 @@ class PhysicsContactListener
 
 		// b2ContactListener
 		// Fixture <-> Particle contact.
-		// virtual void BeginContact( b2ParticleSystem *particleSystem,
-		// 							b2ParticleBodyContact *particleBodyContact );
-		// virtual void EndContact( b2Fixture *fixture,
-		// 							b2ParticleSystem *particleSystem,
-		// 							int32 particleIndex );
+		virtual void BeginParticleContact( b2ParticleSystem *particleSystem,
+									b2ParticleBodyContact *particleBodyContact );
+		virtual void EndParticleContact( b2ShapeId fixture,
+									b2ParticleSystem *particleSystem,
+									int32 particleIndex );
 
 	private:
 

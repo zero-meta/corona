@@ -38,12 +38,13 @@
 #include "Core/Rtt_Real.h"
 #include "Renderer/Rtt_RenderTypes.h"
 #include "Rtt_PhysicsContact.h"
+#include "box2d/id.h"
 
 #include <time.h>
 
 struct lua_State;
 
-class b2Fixture;
+// class b2Fixture;
 struct b2ParticleBodyContact;
 class b2ParticleSystem;
 
@@ -692,7 +693,7 @@ class EndParticleCollisionEvent : public VirtualEvent
 		
 	public:
 		EndParticleCollisionEvent( Runtime &runtime,
-									b2Fixture *fixture,
+									b2ShapeId fixture,
 									b2ParticleSystem *particleSystem,
 									int particleIndex );
 
@@ -703,7 +704,7 @@ class EndParticleCollisionEvent : public VirtualEvent
 
 	private:
 		Runtime &fRuntime;
-		b2Fixture *fFixture;
+		b2ShapeId fFixture;
 		b2ParticleSystem *fParticleSystem;
 		int fParticleIndex;
 };

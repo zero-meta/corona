@@ -492,8 +492,9 @@ PhysicsContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* im
 		contactWrapper->Invalidate();
 	}
 }
+*/
 
-void PhysicsContactListener::BeginContact( b2ParticleSystem *particleSystem,
+void PhysicsContactListener::BeginParticleContact( b2ParticleSystem *particleSystem,
 											b2ParticleBodyContact *particleBodyContact )
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
@@ -509,7 +510,7 @@ void PhysicsContactListener::BeginContact( b2ParticleSystem *particleSystem,
 															particleBodyContact ) );
 }
 
-void PhysicsContactListener::EndContact( b2Fixture *fixture,
+void PhysicsContactListener::EndParticleContact( b2ShapeId fixture,
 											b2ParticleSystem *particleSystem,
 											int32 particleIndex )
 {
@@ -526,7 +527,6 @@ void PhysicsContactListener::EndContact( b2Fixture *fixture,
 														particleSystem,
 														particleIndex ) );
 }
-*/
 
 // ----------------------------------------------------------------------------
 

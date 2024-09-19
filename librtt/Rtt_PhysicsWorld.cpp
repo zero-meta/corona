@@ -204,7 +204,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 
 		// More world setup
 		fWorldContactListener = Rtt_NEW( Allocator(), PhysicsContactListener( runtime ) );
-		// fWorld->SetContactListener( fWorldContactListener );
+		fWorld->SetContactListener( fWorldContactListener );
 
 		fWorldDebugDraw = Rtt_NEW( Allocator(), b2GLESDebugDraw( runtime.GetDisplay() ) );
 

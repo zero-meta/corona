@@ -345,6 +345,8 @@ TRACE_CALL;
 	{
 		b2Filter& filter = particleSystemDef.filter;
 
+		filter = b2DefaultFilter();
+
 		lua_getfield( L, -1, "categoryBits" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
@@ -1756,15 +1758,14 @@ namespace // anonymous namespace.
 		}
 	}
 
-	/*
-	class AnyHitAlongRay : public b2RayCastCallback
+	class AnyHitAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		AnyHitAlongRay( b2ParticleSystem *particleSystem,
 						lua_State *L,
 						float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fPixelsPerMeter( pixelsPerMeter )
@@ -1775,7 +1776,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture(	b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture(	b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1812,14 +1813,14 @@ namespace // anonymous namespace.
 		float fPixelsPerMeter;
 	};
 
-	class ClosestHitAlongRay : public b2RayCastCallback
+	class ClosestHitAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		ClosestHitAlongRay( b2ParticleSystem *particleSystem,
 							lua_State *L,
 							float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fInitialTopIndexOfLuaStack( lua_gettop( fL ) )
@@ -1831,7 +1832,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1878,14 +1879,14 @@ namespace // anonymous namespace.
 		float fPixelsPerMeter;
 	};
 
-	class UnsortedHitsAlongRay : public b2RayCastCallback
+	class UnsortedHitsAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		UnsortedHitsAlongRay( b2ParticleSystem *particleSystem,
 								lua_State *L,
 								float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fResultIndex( 0 )
@@ -1897,7 +1898,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1961,14 +1962,14 @@ namespace // anonymous namespace.
 	typedef std::list< hit > ListHit;
 	typedef std::list< hit >::iterator ListHitIter;
 
-	class SortedHitsAlongRay : public b2RayCastCallback
+	class SortedHitsAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		SortedHitsAlongRay( b2ParticleSystem *particleSystem,
 							lua_State *L,
 							float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fListHit()
@@ -1980,7 +1981,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -2043,94 +2044,93 @@ namespace // anonymous namespace.
 		ListHit fListHit;
 		float fPixelsPerMeter;
 	};
-	*/
 } // anonymous namespace.
 
-// int ParticleSystemObject::_CommonRayCast( lua_State *L,
-// 											b2RayCastCallback *callback )
-// {
-// 	b2Vec2 from_in_meters( lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
-// 	b2Vec2 to_in_meters( lua_tonumber( L, 4 ), lua_tonumber( L, 5 ) );
+int ParticleSystemObject::_CommonRayCast( lua_State *L,
+											b2LiquidRayCastCallback *callback )
+{
+	b2Vec2 from_in_meters = { (float)lua_tonumber( L, 2 ), (float)lua_tonumber( L, 3 ) };
+	b2Vec2 to_in_meters = { (float)lua_tonumber( L, 4 ), (float)lua_tonumber( L, 5 ) };
 
-// 	// Pixels to meters.
-// 	from_in_meters *= fWorldScaleInMetersPerPixel;
-// 	to_in_meters *= fWorldScaleInMetersPerPixel;
+	// Pixels to meters.
+	from_in_meters *= fWorldScaleInMetersPerPixel;
+	to_in_meters *= fWorldScaleInMetersPerPixel;
 
-// 	// Important: If any results are found, "callback" will leave
-// 	// a table at the top of the Lua stack. This table at the top
-// 	// of the Lua stack is the result we return from this function.
-// 	//
-// 	// Exception: For SortedHitsAlongRay, the results are accumulated
-// 	// so they can be sorted before they're pushed to the Lua stack.
-// 	int top_index_before_RayCast = lua_gettop( L );
-// 	fParticleSystem->RayCast( callback, from_in_meters, to_in_meters );
+	// Important: If any results are found, "callback" will leave
+	// a table at the top of the Lua stack. This table at the top
+	// of the Lua stack is the result we return from this function.
+	//
+	// Exception: For SortedHitsAlongRay, the results are accumulated
+	// so they can be sorted before they're pushed to the Lua stack.
+	int top_index_before_RayCast = lua_gettop( L );
+	fParticleSystem->RayCast( callback, from_in_meters, to_in_meters );
 
-// 	// Any hits returned by RayCast() are pushed into a table that's
-// 	// on the stack. We want to return true if we're returning a result.
-// 	// Therefore we can compare the top index of the Lua stack before
-// 	// and after RayCast() to know if we're returning a table of hits.
-// 	return ( top_index_before_RayCast != lua_gettop( L ) );
-// }
+	// Any hits returned by RayCast() are pushed into a table that's
+	// on the stack. We want to return true if we're returning a result.
+	// Therefore we can compare the top index of the Lua stack before
+	// and after RayCast() to know if we're returning a table of hits.
+	return ( top_index_before_RayCast != lua_gettop( L ) );
+}
 
 int ParticleSystemObject::RayCast( lua_State *L )
 {
-// TRACE_CALL;
-// 	Rtt_ASSERT( fParticleSystem );
+TRACE_CALL;
+	Rtt_ASSERT( fParticleSystem );
 
-//     if( ( ! lua_isnumber(L, 2) ) ||
-// 		( ! lua_isnumber(L, 3) ) ||
-// 		( ! lua_isnumber(L, 4) ) ||
-// 		( ! lua_isnumber(L, 5) ) )
-//     {
-// 		CoronaLuaError(L, "physics.rayCast() requires at least 4 parameters (number, number, number, number)");
+    if( ( ! lua_isnumber(L, 2) ) ||
+		( ! lua_isnumber(L, 3) ) ||
+		( ! lua_isnumber(L, 4) ) ||
+		( ! lua_isnumber(L, 5) ) )
+    {
+		CoronaLuaError(L, "physics.rayCast() requires at least 4 parameters (number, number, number, number)");
 
-// 		return 0;
-//     }
+		return 0;
+    }
 
-// 	const char *behavior = lua_tostring( L, 6 );
+	const char *behavior = lua_tostring( L, 6 );
 
-//     if( ! Rtt_StringCompare( "any", behavior ) )
-//     {
-//         AnyHitAlongRay callback( fParticleSystem,
-// 									L,
-// 									fWorldScaleInPixelsPerMeter );
+    if( ! Rtt_StringCompare( "any", behavior ) )
+    {
+        AnyHitAlongRay callback( fParticleSystem,
+									L,
+									fWorldScaleInPixelsPerMeter );
 
-//         return _CommonRayCast( L,
-//                                 &callback );
-//     }
-//     else if( ! Rtt_StringCompare( "unsorted", behavior ) )
-//     {
-//         UnsortedHitsAlongRay callback( fParticleSystem,
-// 										L,
-// 										fWorldScaleInPixelsPerMeter );
+        return _CommonRayCast( L,
+                                &callback );
+    }
+    else if( ! Rtt_StringCompare( "unsorted", behavior ) )
+    {
+        UnsortedHitsAlongRay callback( fParticleSystem,
+										L,
+										fWorldScaleInPixelsPerMeter );
 
-//         return _CommonRayCast( L,
-//                                 &callback );
-//     }
-//     else if( ! Rtt_StringCompare( "sorted", behavior ) )
-//     {
-//         SortedHitsAlongRay callback( fParticleSystem,
-// 										L,
-// 										fWorldScaleInPixelsPerMeter );
+        return _CommonRayCast( L,
+                                &callback );
+    }
+    else if( ! Rtt_StringCompare( "sorted", behavior ) )
+    {
+        SortedHitsAlongRay callback( fParticleSystem,
+										L,
+										fWorldScaleInPixelsPerMeter );
 
-//         _CommonRayCast( L,
-//                         &callback );
+        _CommonRayCast( L,
+                        &callback );
 
-//         // This leaves a table at the top of the Lua stack. This table is
-//         // the result we return from this function.
-//         return callback.PushResultsToLua();
-//     }
-//     else // if( ! Rtt_StringCompare( "closest", behavior ) )
-//     {
-//         // This MUST be the "else" case because it's the default option.
+        // This leaves a table at the top of the Lua stack. This table is
+        // the result we return from this function.
+        return callback.PushResultsToLua();
+    }
+    else // if( ! Rtt_StringCompare( "closest", behavior ) )
+    {
+        // This MUST be the "else" case because it's the default option.
 
-//         ClosestHitAlongRay callback( fParticleSystem,
-// 										L,
-// 										fWorldScaleInPixelsPerMeter );
+        ClosestHitAlongRay callback( fParticleSystem,
+										L,
+										fWorldScaleInPixelsPerMeter );
 
-//         return _CommonRayCast( L,
-//                                 &callback );
-//     }
+        return _CommonRayCast( L,
+                                &callback );
+    }
 	return 0;
 }
 
@@ -2162,10 +2162,10 @@ namespace // anonymous namespace.
 		{
 		}
 
-		bool ReportFixture( b2Fixture* fixture )
-		{
-			return false;
-		}
+		// bool ReportFixture( b2ShapeId fixture )
+		// {
+		// 	return false;
+		// }
 
 		// particles overlapping the region.
 		bool ReportParticle( const b2ParticleSystem* particleSystem,

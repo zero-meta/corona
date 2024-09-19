@@ -434,6 +434,8 @@
 		41B9AAE32C5A446A000F59B1 /* wheel_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA512C5A4468000F59B1 /* wheel_joint.c */; };
 		41B9AAE42C5A446A000F59B1 /* world.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA522C5A4468000F59B1 /* world.c */; };
 		41B9AAE52C5A446A000F59B1 /* world.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA532C5A4468000F59B1 /* world.h */; };
+		41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */; };
+		41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */; };
 		4C111FCB1B2A41B200DF8BE8 /* Rtt_KeyName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */; };
 		5019605B186145FC0092E97E /* b2Separator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50196059186145FC0092E97E /* b2Separator.cpp */; };
 		5019605C186145FC0092E97E /* b2Separator.h in Headers */ = {isa = PBXBuildFile; fileRef = 5019605A186145FC0092E97E /* b2Separator.h */; };
@@ -2861,6 +2863,8 @@
 		41B9AA652C5A4468000F59B1 /* deploy_docs.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = deploy_docs.sh; sourceTree = "<group>"; };
 		41B9AA662C5A4468000F59B1 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		41B9AA672C5A4468000F59B1 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
+		41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
 		4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_KeyName.cpp; sourceTree = "<group>"; };
 		4C111FCA1B2A41B200DF8BE8 /* Rtt_KeyName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_KeyName.h; sourceTree = "<group>"; };
 		50196059186145FC0092E97E /* b2Separator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2Separator.cpp; path = "../../external/b2Separator-cpp/b2Separator.cpp"; sourceTree = "<group>"; };
@@ -4530,6 +4534,8 @@
 		4155A6182C6B64CA002F8BBD /* liquidfun */ = {
 			isa = PBXGroup;
 			children = (
+				41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */,
+				41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */,
 				4155A5FB2C6B64CA002F8BBD /* block_allocator.cpp */,
 				4155A5FC2C6B64CA002F8BBD /* block_allocator.h */,
 				4155A5FD2C6B64CA002F8BBD /* free_list.cpp */,
@@ -5745,6 +5751,7 @@
 				41B9AAC12C5A4469000F59B1 /* contact.h in Headers */,
 				41B9AA912C5A4469000F59B1 /* types.h in Headers */,
 				4155A56C2C61D922002F8BBD /* TaskScheduler.h in Headers */,
+				41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */,
 				41B9AA8C2C5A4469000F59B1 /* base.h in Headers */,
 				4155A6322C6B64CA002F8BBD /* particle.h in Headers */,
 				41B9AAB12C5A4469000F59B1 /* allocate.h in Headers */,
@@ -7245,6 +7252,7 @@
 				41B9AAB02C5A4469000F59B1 /* allocate.c in Sources */,
 				41B9AAE22C5A446A000F59B1 /* weld_joint.c in Sources */,
 				4155A63A2C6B64CA002F8BBD /* voronoi_diagram.cpp in Sources */,
+				41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */,
 				4155A62F2C6B64CA002F8BBD /* particle_system.cpp in Sources */,
 				41B9AAE32C5A446A000F59B1 /* wheel_joint.c in Sources */,
 				41B9AAAE2C5A4469000F59B1 /* aabb.c in Sources */,

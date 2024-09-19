@@ -440,6 +440,8 @@
 		41B9ADDD2C5B9B62000F59B1 /* wheel_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD4B2C5B9B5C000F59B1 /* wheel_joint.c */; };
 		41B9ADDE2C5B9B62000F59B1 /* world.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD4C2C5B9B5C000F59B1 /* world.c */; };
 		41B9ADDF2C5B9B62000F59B1 /* world.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD4D2C5B9B5C000F59B1 /* world.h */; };
+		41DC1A632C9ADC18000E52D2 /* liquid_callbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 41DC1A612C9ADC18000E52D2 /* liquid_callbacks.h */; };
+		41DC1A642C9ADC18000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1A622C9ADC18000E52D2 /* liquid_callbacks.cpp */; };
 		5009C120186239480075E34C /* Rtt_PhysicsTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 5009C11F186239480075E34C /* Rtt_PhysicsTypes.h */; };
 		5009C125186239780075E34C /* b2Separator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5009C123186239780075E34C /* b2Separator.cpp */; };
 		5009C126186239780075E34C /* b2Separator.h in Headers */ = {isa = PBXBuildFile; fileRef = 5009C124186239780075E34C /* b2Separator.h */; };
@@ -1352,6 +1354,8 @@
 		41B9AD4C2C5B9B5C000F59B1 /* world.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = world.c; sourceTree = "<group>"; };
 		41B9AD4D2C5B9B5C000F59B1 /* world.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = world.h; sourceTree = "<group>"; };
 		41B9AD5E2C5B9B5C000F59B1 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
+		41DC1A612C9ADC18000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
+		41DC1A622C9ADC18000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
 		5009C11F186239480075E34C /* Rtt_PhysicsTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_PhysicsTypes.h; sourceTree = "<group>"; };
 		5009C123186239780075E34C /* b2Separator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2Separator.cpp; path = "../../external/b2Separator-cpp/b2Separator.cpp"; sourceTree = "<group>"; };
 		5009C124186239780075E34C /* b2Separator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = b2Separator.h; path = "../../external/b2Separator-cpp/b2Separator.h"; sourceTree = "<group>"; };
@@ -2420,6 +2424,8 @@
 		417D56F42C8705C0005C9DAD /* liquidfun */ = {
 			isa = PBXGroup;
 			children = (
+				41DC1A622C9ADC18000E52D2 /* liquid_callbacks.cpp */,
+				41DC1A612C9ADC18000E52D2 /* liquid_callbacks.h */,
 				417D56D72C8705C0005C9DAD /* block_allocator.cpp */,
 				417D56D82C8705C0005C9DAD /* block_allocator.h */,
 				417D56D92C8705C0005C9DAD /* free_list.cpp */,
@@ -3026,6 +3032,7 @@
 				41B9ADC72C5B9B61000F59B1 /* island.h in Headers */,
 				417D57082C8705C1005C9DAD /* particle.h in Headers */,
 				417D57112C8705C1005C9DAD /* voronoi_diagram.h in Headers */,
+				41DC1A632C9ADC18000E52D2 /* liquid_callbacks.h in Headers */,
 				417D57022C8705C1005C9DAD /* particle_assembly.h in Headers */,
 				417D56FE2C8705C1005C9DAD /* liquid_stack_allocator.h in Headers */,
 				41B9AD892C5B9B5E000F59B1 /* id.h in Headers */,
@@ -3579,6 +3586,7 @@
 				41B9ADC12C5B9B61000F59B1 /* dynamic_tree.c in Sources */,
 				41B9ADC42C5B9B61000F59B1 /* id_pool.c in Sources */,
 				417D57102C8705C1005C9DAD /* voronoi_diagram.cpp in Sources */,
+				41DC1A642C9ADC18000E52D2 /* liquid_callbacks.cpp in Sources */,
 				417D57052C8705C1005C9DAD /* particle_system.cpp in Sources */,
 				41B9ADCD2C5B9B61000F59B1 /* mouse_joint.c in Sources */,
 				41B9ADDE2C5B9B62000F59B1 /* world.c in Sources */,

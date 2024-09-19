@@ -771,6 +771,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_shape.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_stack_allocator.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_world.cpp
+		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_callbacks.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/particle.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/particle_assembly.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/particle_group.cpp

@@ -25,6 +25,7 @@
 #include "box2d/box2d.h"
 #include "liquid_world.h"
 #include "liquid_shape.h"
+#include "liquid_callbacks.h"
 
 // ----------------------------------------------------------------------------
 
@@ -109,8 +110,8 @@ private:
 	void _Update( const Display &display );
 	void _Cleanup();
 
-	// int _CommonRayCast( lua_State *L,
-	// 					b2RayCastCallback *callback );
+	int _CommonRayCast( lua_State *L,
+						b2LiquidRayCastCallback *callback );
 
 	// MUpdatable
 	bool fShouldUpdate;
