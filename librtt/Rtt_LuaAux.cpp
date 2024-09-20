@@ -224,6 +224,7 @@ UserdataWrapper::Push() const
 	return result;
 }
 
+#ifdef Rtt_PHYSICS
 void*
 JointUserdataWrapper::GetFinalizedValue()
 {
@@ -284,6 +285,7 @@ JointUserdataWrapper::Push() const
 
 	return result;
 }
+#endif
 
 // ----------------------------------------------------------------------------
 

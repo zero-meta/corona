@@ -1876,7 +1876,7 @@
 			isa = PBXGroup;
 			children = (
 				4155A5D32C61E486002F8BBD /* enkiTS */,
-				41B9AD622C5B9B5C000F59B1 /* box2c */,
+				41B9AD622C5B9B5C000F59B1 /* box2d_v3 */,
 			);
 			name = libbox2d;
 			sourceTree = "<group>";
@@ -2562,7 +2562,7 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		41B9AD622C5B9B5C000F59B1 /* box2c */ = {
+		41B9AD622C5B9B5C000F59B1 /* box2d_v3 */ = {
 			isa = PBXGroup;
 			children = (
 				41B9ACE32C5B9B5C000F59B1 /* extern */,
@@ -2570,7 +2570,7 @@
 				41B9AD4E2C5B9B5C000F59B1 /* src */,
 				41B9AD5E2C5B9B5C000F59B1 /* CMakeLists.txt */,
 			);
-			name = box2c;
+			name = box2d_v3;
 			path = ../../external/box2d_v3;
 			sourceTree = "<group>";
 		};
@@ -4165,6 +4165,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c11;
+				"OTHER_CFLAGS[arch=arm64]" = (
+					"-fexceptions",
+					"-ffp-contract=off",
+				);
+				"OTHER_CFLAGS[sdk=iphonesimulator*]" = (
+					"-fexceptions",
+					"-ffp-contract=off",
+				);
 				PRODUCT_NAME = box2d;
 				SWIFT_VERSION = 3.0;
 			};
@@ -4174,11 +4182,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				GCC_C_LANGUAGE_STANDARD = c11;
-				"OTHER_CFLAGS[sdk=iphonesimulator*]" = (
+				"OTHER_CFLAGS[arch=arm64]" = (
 					"-fexceptions",
 					"-DNS_BLOCK_ASSERTIONS=1",
 					"-ffp-contract=off",
 				);
+				"OTHER_CFLAGS[sdk=iphonesimulator*]" = "-ffp-contract=off";
 				PRODUCT_NAME = box2d;
 				SWIFT_VERSION = 3.0;
 				ZERO_LINK = NO;
@@ -4415,10 +4424,7 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				ONLY_ACTIVE_ARCH = YES;
-				"OTHER_CFLAGS[arch=arm64]" = (
-					"-fexceptions",
-					"-ffp-contract=off",
-				);
+				"OTHER_CFLAGS[arch=arm64]" = "-fexceptions";
 				"OTHER_CFLAGS[sdk=iphonesimulator*]" = "-fexceptions";
 				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				SDKROOT = iphoneos;
@@ -4488,7 +4494,6 @@
 				"OTHER_CFLAGS[arch=arm64]" = (
 					"-fexceptions",
 					"-DNS_BLOCK_ASSERTIONS=1",
-					"-ffp-contract=off",
 				);
 				"OTHER_CFLAGS[sdk=iphonesimulator*]" = (
 					"-fexceptions",

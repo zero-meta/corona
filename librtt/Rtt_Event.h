@@ -38,7 +38,10 @@
 #include "Core/Rtt_Real.h"
 #include "Renderer/Rtt_RenderTypes.h"
 #include "Rtt_PhysicsContact.h"
+
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined( Rtt_PHYSICS)
 #include "box2d/id.h"
+#endif
 
 #include <time.h>
 
@@ -564,7 +567,7 @@ class MapMarkerEvent : public VirtualEvent
 
 // ----------------------------------------------------------------------------
 
-#ifdef Rtt_PHYSICS
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined(Rtt_PHYSICS)
 
 // Immediately broadcast to "Runtime"
 class BaseCollisionEvent : public VirtualEvent

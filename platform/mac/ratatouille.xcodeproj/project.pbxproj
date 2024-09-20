@@ -334,9 +334,6 @@
 		1F34F53D21115FB2006EE117 /* Rtt_LinuxAppPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F53321115FB1006EE117 /* Rtt_LinuxAppPackager.cpp */; };
 		1F34F54021116446006EE117 /* LinuxAppBuild.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F34F53E21116445006EE117 /* LinuxAppBuild.xib */; };
 		1F34F5432111661E006EE117 /* LinuxAppBuildController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F5412111661E006EE117 /* LinuxAppBuildController.mm */; };
-		4155A5652C61D8CF002F8BBD /* CMakeLists.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4155A5412C61D8CF002F8BBD /* CMakeLists.txt */; };
-		4155A5662C61D8CF002F8BBD /* License.txt in Resources */ = {isa = PBXBuildFile; fileRef = 4155A5422C61D8CF002F8BBD /* License.txt */; };
-		4155A5672C61D8CF002F8BBD /* README.md in Resources */ = {isa = PBXBuildFile; fileRef = 4155A5432C61D8CF002F8BBD /* README.md */; };
 		4155A5682C61D8FC002F8BBD /* LockLessMultiReadPipe.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A53A2C61D8CF002F8BBD /* LockLessMultiReadPipe.h */; };
 		4155A5692C61D909002F8BBD /* TaskScheduler_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A53B2C61D8CF002F8BBD /* TaskScheduler_c.cpp */; };
 		4155A56A2C61D917002F8BBD /* TaskScheduler_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A53C2C61D8CF002F8BBD /* TaskScheduler_c.h */; };
@@ -371,7 +368,6 @@
 		4155A6392C6B64CA002F8BBD /* tracked_block.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A6152C6B64CA002F8BBD /* tracked_block.h */; };
 		4155A63A2C6B64CA002F8BBD /* voronoi_diagram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A6162C6B64CA002F8BBD /* voronoi_diagram.cpp */; };
 		4155A63B2C6B64CA002F8BBD /* voronoi_diagram.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A6172C6B64CA002F8BBD /* voronoi_diagram.h */; };
-		41B9AA722C5A4468000F59B1 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9CB2C5A4468000F59B1 /* jsmn.h */; };
 		41B9AA8C2C5A4469000F59B1 /* base.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EA2C5A4468000F59B1 /* base.h */; };
 		41B9AA8D2C5A4469000F59B1 /* box2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EB2C5A4468000F59B1 /* box2d.h */; };
 		41B9AA8E2C5A4469000F59B1 /* collision.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9A9EC2C5A4468000F59B1 /* collision.h */; };
@@ -2759,9 +2755,6 @@
 		4155A53C2C61D8CF002F8BBD /* TaskScheduler_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler_c.h; sourceTree = "<group>"; };
 		4155A53D2C61D8CF002F8BBD /* TaskScheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskScheduler.cpp; sourceTree = "<group>"; };
 		4155A53E2C61D8CF002F8BBD /* TaskScheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler.h; sourceTree = "<group>"; };
-		4155A5412C61D8CF002F8BBD /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		4155A5422C61D8CF002F8BBD /* License.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = License.txt; sourceTree = "<group>"; };
-		4155A5432C61D8CF002F8BBD /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		4155A5FB2C6B64CA002F8BBD /* block_allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = block_allocator.cpp; sourceTree = "<group>"; };
 		4155A5FC2C6B64CA002F8BBD /* block_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = block_allocator.h; sourceTree = "<group>"; };
 		4155A5FD2C6B64CA002F8BBD /* free_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = free_list.cpp; sourceTree = "<group>"; };
@@ -2791,7 +2784,6 @@
 		4155A6152C6B64CA002F8BBD /* tracked_block.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tracked_block.h; sourceTree = "<group>"; };
 		4155A6162C6B64CA002F8BBD /* voronoi_diagram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = voronoi_diagram.cpp; sourceTree = "<group>"; };
 		4155A6172C6B64CA002F8BBD /* voronoi_diagram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voronoi_diagram.h; sourceTree = "<group>"; };
-		41B9A9CB2C5A4468000F59B1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
 		41B9A9EA2C5A4468000F59B1 /* base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base.h; sourceTree = "<group>"; };
 		41B9A9EB2C5A4468000F59B1 /* box2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box2d.h; sourceTree = "<group>"; };
 		41B9A9EC2C5A4468000F59B1 /* collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = collision.h; sourceTree = "<group>"; };
@@ -2856,13 +2848,6 @@
 		41B9AA512C5A4468000F59B1 /* wheel_joint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = wheel_joint.c; sourceTree = "<group>"; };
 		41B9AA522C5A4468000F59B1 /* world.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = world.c; sourceTree = "<group>"; };
 		41B9AA532C5A4468000F59B1 /* world.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = world.h; sourceTree = "<group>"; };
-		41B9AA612C5A4468000F59B1 /* .clang-format */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = ".clang-format"; sourceTree = "<group>"; };
-		41B9AA622C5A4468000F59B1 /* .gitattributes */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitattributes; sourceTree = "<group>"; };
-		41B9AA632C5A4468000F59B1 /* .gitignore */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
-		41B9AA642C5A4468000F59B1 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
-		41B9AA652C5A4468000F59B1 /* deploy_docs.sh */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.sh; path = deploy_docs.sh; sourceTree = "<group>"; };
-		41B9AA662C5A4468000F59B1 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		41B9AA672C5A4468000F59B1 /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
 		41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
 		4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_KeyName.cpp; sourceTree = "<group>"; };
@@ -3788,7 +3773,7 @@
 			isa = PBXGroup;
 			children = (
 				4155A5442C61D8CF002F8BBD /* enkiTS */,
-				41B9AA682C5A4468000F59B1 /* box2c */,
+				41B9AA682C5A4468000F59B1 /* box2d_v3 */,
 				C242172E1CCAE42E00D8E4BE /* libluasocket */,
 				00B737F712B709C20057F594 /* ALmixer */,
 				501960681861461D0092E97E /* b2Separator */,
@@ -4523,9 +4508,6 @@
 			isa = PBXGroup;
 			children = (
 				4155A53F2C61D8CF002F8BBD /* src */,
-				4155A5412C61D8CF002F8BBD /* CMakeLists.txt */,
-				4155A5422C61D8CF002F8BBD /* License.txt */,
-				4155A5432C61D8CF002F8BBD /* README.md */,
 			);
 			name = enkiTS;
 			path = ../../external/enkiTS;
@@ -4569,19 +4551,10 @@
 			path = liquidfun;
 			sourceTree = "<group>";
 		};
-		41B9A9CC2C5A4468000F59B1 /* jsmn */ = {
-			isa = PBXGroup;
-			children = (
-				41B9A9CB2C5A4468000F59B1 /* jsmn.h */,
-			);
-			path = jsmn;
-			sourceTree = "<group>";
-		};
 		41B9A9E92C5A4468000F59B1 /* extern */ = {
 			isa = PBXGroup;
 			children = (
 				4155A6182C6B64CA002F8BBD /* liquidfun */,
-				41B9A9CC2C5A4468000F59B1 /* jsmn */,
 			);
 			path = extern;
 			sourceTree = "<group>";
@@ -4672,21 +4645,14 @@
 			path = src;
 			sourceTree = "<group>";
 		};
-		41B9AA682C5A4468000F59B1 /* box2c */ = {
+		41B9AA682C5A4468000F59B1 /* box2d_v3 */ = {
 			isa = PBXGroup;
 			children = (
 				41B9A9E92C5A4468000F59B1 /* extern */,
 				41B9A9F12C5A4468000F59B1 /* include */,
 				41B9AA542C5A4468000F59B1 /* src */,
-				41B9AA612C5A4468000F59B1 /* .clang-format */,
-				41B9AA622C5A4468000F59B1 /* .gitattributes */,
-				41B9AA632C5A4468000F59B1 /* .gitignore */,
-				41B9AA642C5A4468000F59B1 /* CMakeLists.txt */,
-				41B9AA652C5A4468000F59B1 /* deploy_docs.sh */,
-				41B9AA662C5A4468000F59B1 /* LICENSE */,
-				41B9AA672C5A4468000F59B1 /* README.md */,
 			);
-			name = box2c;
+			name = box2d_v3;
 			path = ../../external/box2d_v3;
 			sourceTree = "<group>";
 		};
@@ -5724,7 +5690,6 @@
 				4155A6242C6B64CA002F8BBD /* intrusive_list.h in Headers */,
 				41B9AA8E2C5A4469000F59B1 /* collision.h in Headers */,
 				41B9AADF2C5A446A000F59B1 /* table.h in Headers */,
-				41B9AA722C5A4468000F59B1 /* jsmn.h in Headers */,
 				41B9AAB92C5A4469000F59B1 /* body.h in Headers */,
 				4155A6202C6B64CA002F8BBD /* block_allocator.h in Headers */,
 				41B9AA8F2C5A4469000F59B1 /* id.h in Headers */,
@@ -6491,7 +6456,6 @@
 				A48B829B16D59B0F00CA01A1 /* CoronaResources.bundle in Resources */,
 				C2ADB45A1B6C1C31008C9BF2 /* OSXAppPackageSheet.xib in Resources */,
 				C23D8DC51954EDA300D6555E /* widget_theme_android_holo_light.png in Resources */,
-				4155A5652C61D8CF002F8BBD /* CMakeLists.txt in Resources */,
 				C2C756D518CE49CF0018900A /* widget_theme_ios.png in Resources */,
 				A4DF586A1BE44A3000B17862 /* codesign-framework.sh in Resources */,
 				004A5F371368DB24003BD9DA /* Corona3rdPartyLicenses.txt in Resources */,
@@ -6516,7 +6480,6 @@
 				00B73D5E12B720CA0057F594 /* CoronaSimulator.icns in Resources */,
 				C2AF1E561DA6F0ED00907A65 /* valid_config_lua.lua in Resources */,
 				00B73D6112B720CA0057F594 /* RememberPreferenceCheckbox.xib in Resources */,
-				4155A5662C61D8CF002F8BBD /* License.txt in Resources */,
 				C23D8DC31954EDA300D6555E /* widget_theme_android_holo_dark@2x.png in Resources */,
 				C25CDF51195B5BC900CE2321 /* widget_theme_ios7.png in Resources */,
 				C23D8DC71954EDA300D6555E /* widget_theme_android_holo_light@4x.png in Resources */,
@@ -6535,7 +6498,6 @@
 				00B73E1912B727240057F594 /* AndroidKeyAliasPassword.xib in Resources */,
 				C25CDF49195B5B7300CE2321 /* widget_theme_ios7.lua in Resources */,
 				00B73E1A12B727240057F594 /* AndroidKeyStorePassword.xib in Resources */,
-				4155A5672C61D8CF002F8BBD /* README.md in Resources */,
 				00B73E1C12B727240057F594 /* BuildProgress.xib in Resources */,
 				F57469D7240291FA00CA5949 /* iostemplate in Resources */,
 				00B73E1F12B727240057F594 /* License.xib in Resources */,

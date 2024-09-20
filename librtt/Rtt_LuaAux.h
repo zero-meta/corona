@@ -17,7 +17,9 @@
 #include "Core/Rtt_Geometry.h"
 #include "Core/Rtt_ResourceHandle.h"
 
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined( Rtt_PHYSICS)
 #include "box2d/box2d.h"
+#endif
 
 namespace Rtt
 {
@@ -110,6 +112,7 @@ class UserdataWrapper
 		void *fData;
 };
 
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined(Rtt_PHYSICS)
 class JointUserdataWrapper
 {
 	public:
@@ -131,6 +134,7 @@ class JointUserdataWrapper
 		ResourceHandle< lua_State > fHandle;
 		b2JointId fData;
 };
+#endif
 
 
 // ----------------------------------------------------------------------------
