@@ -304,7 +304,7 @@ jobs:
           $GIT_LOG
           "
           else
-          GIT_LOG='See https://github.com/coronalabs/corona for details
+          GIT_LOG='See https://github.com/labolado/corona/tree/dev_add_box2d_v3 for details
           '
           fi
           echo 'GIT_LOG<<EOF' >> $GITHUB_ENV
