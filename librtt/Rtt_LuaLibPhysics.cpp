@@ -1658,6 +1658,7 @@ newJoint( lua_State *L )
 			b2Vec2 axis = b2Normalize( { qx, qy } );
 
 			// jointDef.Initialize( body1, body2, point, axis );
+			jointDef.enableSpring = true;
 			jointDef.bodyIdA = body1;
 			jointDef.bodyIdB = body2;
 			jointDef.localAnchorA = b2Body_GetLocalPoint(body1, point);

@@ -1038,6 +1038,10 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				{
 					lua_pushnumber( L, b2WheelJoint_GetSpringDampingRatio(baseJoint) );
 				}
+				else if ( 0 == strcmp( "isSpringEnabled", key ) )
+				{
+					lua_pushboolean( L, b2WheelJoint_IsSpringEnabled(baseJoint) );
+				}
 				else
 				{
 					result = 0;
@@ -1497,6 +1501,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					b2WheelJoint_SetSpringDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "isSpringEnabled", key ) )
+			{
+				if ( lua_isboolean( L, 3 ) )
+				{
+					b2WheelJoint_EnableSpring( baseJoint, lua_toboolean( L, 3 ) );
+					b2Joint_WakeBodies( baseJoint );
 				}
 			}
 		}
