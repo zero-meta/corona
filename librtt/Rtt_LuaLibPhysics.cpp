@@ -1472,6 +1472,7 @@ newJoint( lua_State *L )
 			b2Vec2 point1 = { px, py };
 			b2Vec2 point2 = { qx, qy };
 
+			jointDef.enableSpring = true;
 			jointDef.bodyIdA = body1;
 			jointDef.bodyIdB = body2;
 			jointDef.localAnchorA = b2Body_GetLocalPoint( body1, point1 );

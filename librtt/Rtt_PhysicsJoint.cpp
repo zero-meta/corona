@@ -781,6 +781,10 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				{
 					lua_pushnumber( L, b2DistanceJoint_GetSpringDampingRatio(baseJoint) );
 				}
+				else if ( 0 == strcmp( "isSpringEnabled", key ) )
+				{
+					lua_pushboolean( L, b2DistanceJoint_IsSpringEnabled(baseJoint) );
+				}
 				else
 				{
 					result = 0;
@@ -1245,6 +1249,14 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				{
 					Rtt_Real newValue = luaL_toreal( L, 3 );
 					b2DistanceJoint_SetSpringDampingRatio( baseJoint, newValue );
+				}
+			}
+			else if ( 0 == strcmp( "isSpringEnabled", key ) )
+			{
+				if ( lua_isboolean( L, 3 ) )
+				{
+					b2DistanceJoint_EnableSpring( baseJoint, lua_toboolean( L, 3 ) );
+					b2Joint_WakeBodies( baseJoint );
 				}
 			}
 		}
