@@ -2573,6 +2573,10 @@ InitializeFixtureUsing_Box( lua_State *L,
 												center_in_pixels,
 												b2MakeRot( radians ) );
 
+		lua_getfield( L, lua_arg_index, "roundness" );
+		box.radius = luaL_torealphysics( L, -1, pixels_per_meter_scale );;
+		lua_pop( L, 1 );
+
 		InitializeShapeFromLua( L,
 								shapeDef,
 								lua_arg_index );
@@ -2634,7 +2638,11 @@ InitializeFixtureUsing_Shape( lua_State *L,
 		bool ok = b2ValidateHull(&hull);
 		if( ok )
 		{
-			b2Polygon polygon = b2MakePolygon(&hull, 0.0f);
+			lua_getfield( L, lua_arg_index, "roundness" );
+			float radius = 	luaL_torealphysics( L, -1, 1.0f / meter_per_pixels_scale );;
+			lua_pop( L, 1 );
+
+			b2Polygon polygon = b2MakePolygon(&hull, radius);
 			InitializeShapeFromLua( L,
 										shapeDef,
 										lua_arg_index );
