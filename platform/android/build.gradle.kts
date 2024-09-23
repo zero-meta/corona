@@ -20,7 +20,7 @@ allprojects {
         val nativeDir = if (System.getProperty("os.name").lowercase().contains("windows")) {
             System.getenv("CORONA_ROOT")
         } else {
-            "${System.getenv("HOME")}/Library/Application Support/Corona/Native/"
+            "${System.getenv("HOME")}/Library/Application Support/Corona/NativePE/"
         }
         flatDir {
             dirs("$nativeDir/Corona/android/lib/gradle", "$nativeDir/Corona/android/lib/Corona/libs")
