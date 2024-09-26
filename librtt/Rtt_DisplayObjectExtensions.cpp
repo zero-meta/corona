@@ -418,11 +418,13 @@ static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState 
 		{
 			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
 		}
-		b2ShapeId shapeArray[ count ];
+		b2ShapeId* shapeArray = new b2ShapeId[ count ];
 		b2Body_GetShapes( bodyId, shapeArray, count );
 		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
 			setState( shapeArray[ i ], state );
 		}
+
+		delete[] shapeArray;
 
 		return 0;
 	}
@@ -802,11 +804,12 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 				// Set all fixtures in the body (we call these "body elements") to the desired sensor state
 				bool sensorState = lua_toboolean( L, valueIndex );
 				int count = b2Body_GetShapeCount( fBodyId );
-				b2ShapeId shapeArray[ count ];
+				b2ShapeId* shapeArray = new b2ShapeId[ count ];
 				b2Body_GetShapes( fBodyId, shapeArray, count );
 				for ( int i = 0; i < count; ++i ) {
 					b2Shape_SetSensor( shapeArray[ i ], sensorState );
 				}
+				delete[] shapeArray;
 			}
 			break;
 		case 10:

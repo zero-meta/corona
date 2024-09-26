@@ -13,6 +13,7 @@
 #include "Rtt_WinPlatformServices.h"
 #include "WinGlobalProperties.h"
 #include "WinString.h"
+#include "dpapi.h"
 
 
 namespace Rtt
