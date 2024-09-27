@@ -386,14 +386,10 @@
 		41B9AD8B2C5B9B5E000F59B1 /* types.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACE92C5B9B5C000F59B1 /* types.h */; };
 		41B9ADA82C5B9B60000F59B1 /* aabb.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD142C5B9B5C000F59B1 /* aabb.c */; };
 		41B9ADA92C5B9B60000F59B1 /* aabb.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD152C5B9B5C000F59B1 /* aabb.h */; };
-		41B9ADAA2C5B9B60000F59B1 /* allocate.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD162C5B9B5C000F59B1 /* allocate.c */; };
-		41B9ADAB2C5B9B60000F59B1 /* allocate.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD172C5B9B5C000F59B1 /* allocate.h */; };
 		41B9ADAC2C5B9B60000F59B1 /* array.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD182C5B9B5C000F59B1 /* array.c */; };
 		41B9ADAD2C5B9B60000F59B1 /* array.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD192C5B9B5C000F59B1 /* array.h */; };
 		41B9ADAE2C5B9B60000F59B1 /* bitset.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD1A2C5B9B5C000F59B1 /* bitset.c */; };
 		41B9ADAF2C5B9B60000F59B1 /* bitset.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD1B2C5B9B5C000F59B1 /* bitset.h */; };
-		41B9ADB02C5B9B60000F59B1 /* block_array.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD1C2C5B9B5C000F59B1 /* block_array.c */; };
-		41B9ADB12C5B9B60000F59B1 /* block_array.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD1D2C5B9B5C000F59B1 /* block_array.h */; };
 		41B9ADB22C5B9B60000F59B1 /* body.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD1E2C5B9B5C000F59B1 /* body.c */; };
 		41B9ADB32C5B9B60000F59B1 /* body.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD1F2C5B9B5C000F59B1 /* body.h */; };
 		41B9ADB42C5B9B60000F59B1 /* broad_phase.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AD212C5B9B5C000F59B1 /* broad_phase.c */; };
@@ -1297,14 +1293,10 @@
 		41B9ACE92C5B9B5C000F59B1 /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
 		41B9AD142C5B9B5C000F59B1 /* aabb.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = aabb.c; sourceTree = "<group>"; };
 		41B9AD152C5B9B5C000F59B1 /* aabb.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = aabb.h; sourceTree = "<group>"; };
-		41B9AD162C5B9B5C000F59B1 /* allocate.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = allocate.c; sourceTree = "<group>"; };
-		41B9AD172C5B9B5C000F59B1 /* allocate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = allocate.h; sourceTree = "<group>"; };
 		41B9AD182C5B9B5C000F59B1 /* array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = array.c; sourceTree = "<group>"; };
 		41B9AD192C5B9B5C000F59B1 /* array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = array.h; sourceTree = "<group>"; };
 		41B9AD1A2C5B9B5C000F59B1 /* bitset.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = bitset.c; sourceTree = "<group>"; };
 		41B9AD1B2C5B9B5C000F59B1 /* bitset.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = bitset.h; sourceTree = "<group>"; };
-		41B9AD1C2C5B9B5C000F59B1 /* block_array.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = block_array.c; sourceTree = "<group>"; };
-		41B9AD1D2C5B9B5C000F59B1 /* block_array.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = block_array.h; sourceTree = "<group>"; };
 		41B9AD1E2C5B9B5C000F59B1 /* body.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = body.c; sourceTree = "<group>"; };
 		41B9AD1F2C5B9B5C000F59B1 /* body.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = body.h; sourceTree = "<group>"; };
 		41B9AD202C5B9B5C000F59B1 /* box2d.natvis */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.xml; path = box2d.natvis; sourceTree = "<group>"; };
@@ -2502,14 +2494,10 @@
 			children = (
 				41B9AD142C5B9B5C000F59B1 /* aabb.c */,
 				41B9AD152C5B9B5C000F59B1 /* aabb.h */,
-				41B9AD162C5B9B5C000F59B1 /* allocate.c */,
-				41B9AD172C5B9B5C000F59B1 /* allocate.h */,
 				41B9AD182C5B9B5C000F59B1 /* array.c */,
 				41B9AD192C5B9B5C000F59B1 /* array.h */,
 				41B9AD1A2C5B9B5C000F59B1 /* bitset.c */,
 				41B9AD1B2C5B9B5C000F59B1 /* bitset.h */,
-				41B9AD1C2C5B9B5C000F59B1 /* block_array.c */,
-				41B9AD1D2C5B9B5C000F59B1 /* block_array.h */,
 				41B9AD1E2C5B9B5C000F59B1 /* body.c */,
 				41B9AD1F2C5B9B5C000F59B1 /* body.h */,
 				41B9AD202C5B9B5C000F59B1 /* box2d.natvis */,
@@ -3022,7 +3010,6 @@
 				417D56F62C8705C0005C9DAD /* block_allocator.h in Headers */,
 				41B9AD6C2C5B9B5C000F59B1 /* jsmn.h in Headers */,
 				41B9ADAD2C5B9B60000F59B1 /* array.h in Headers */,
-				41B9ADAB2C5B9B60000F59B1 /* allocate.h in Headers */,
 				41B9ADB52C5B9B60000F59B1 /* broad_phase.h in Headers */,
 				41B9AD862C5B9B5E000F59B1 /* base.h in Headers */,
 				417D57002C8705C1005C9DAD /* liquid_world.h in Headers */,
@@ -3039,7 +3026,6 @@
 				4155A5EA2C61E486002F8BBD /* LockLessMultiReadPipe.h in Headers */,
 				41B9ADD52C5B9B62000F59B1 /* solver.h in Headers */,
 				417D570F2C8705C1005C9DAD /* tracked_block.h in Headers */,
-				41B9ADB12C5B9B60000F59B1 /* block_array.h in Headers */,
 				417D56FA2C8705C0005C9DAD /* intrusive_list.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -3557,7 +3543,6 @@
 				41B9ADBF2C5B9B61000F59B1 /* distance_joint.c in Sources */,
 				41B9ADBA2C5B9B60000F59B1 /* contact.c in Sources */,
 				41B9ADC82C5B9B61000F59B1 /* joint.c in Sources */,
-				41B9ADB02C5B9B60000F59B1 /* block_array.c in Sources */,
 				41B9ADD62C5B9B62000F59B1 /* stack_allocator.c in Sources */,
 				41B9ADAC2C5B9B60000F59B1 /* array.c in Sources */,
 				41B9ADCB2C5B9B61000F59B1 /* math_functions.c in Sources */,
@@ -3573,7 +3558,6 @@
 				417D57012C8705C1005C9DAD /* particle_assembly.cpp in Sources */,
 				417D57032C8705C1005C9DAD /* particle_group.cpp in Sources */,
 				417D57092C8705C1005C9DAD /* settings.cpp in Sources */,
-				41B9ADAA2C5B9B60000F59B1 /* allocate.c in Sources */,
 				4155A5EB2C61E486002F8BBD /* TaskScheduler_c.cpp in Sources */,
 				41B9ADDD2C5B9B62000F59B1 /* wheel_joint.c in Sources */,
 				41B9ADCF2C5B9B61000F59B1 /* revolute_joint.c in Sources */,

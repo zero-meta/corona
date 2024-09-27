@@ -40,10 +40,8 @@
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_functions.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\types.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\aabb.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\allocate.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\array.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\bitset.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\block_array.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\body.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\broad_phase.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\constraint_graph.h" />
@@ -79,10 +77,8 @@
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\tracked_block.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\voronoi_diagram.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\aabb.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\allocate.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\array.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\bitset.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\block_array.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\broad_phase.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\constraint_graph.c" />
