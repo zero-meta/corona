@@ -732,10 +732,8 @@ add_library( corona SHARED
 		# ${CORONA_ROOT}/external/Box2D/Box2D/Particle/b2VoronoiDiagram.cpp
 
 		${CORONA_ROOT}/external/box2d_v3/src/aabb.c
-		${CORONA_ROOT}/external/box2d_v3/src/allocate.c
 		${CORONA_ROOT}/external/box2d_v3/src/array.c
 		${CORONA_ROOT}/external/box2d_v3/src/bitset.c
-		${CORONA_ROOT}/external/box2d_v3/src/block_array.c
 		${CORONA_ROOT}/external/box2d_v3/src/body.c
 		${CORONA_ROOT}/external/box2d_v3/src/broad_phase.c
 		${CORONA_ROOT}/external/box2d_v3/src/constraint_graph.c
