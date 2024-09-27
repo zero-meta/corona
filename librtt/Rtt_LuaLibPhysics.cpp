@@ -1892,6 +1892,15 @@ static void _SegmentsShapeCreator( b2BodyId bodyId,
 	}
 }
 
+static void _CapsuleShapeCreator( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
+									b2Capsule *capsule,
+									int &fixtureIndex )
+{
+	shapeDef->userData = (void *)(intptr_t)fixtureIndex++;
+	b2CreateCapsuleShape( bodyId, shapeDef, capsule );
+}
+
 static bool
 InitializeFixtureUsing_Rectangle( lua_State *L,
 									int lua_arg_index,
@@ -2595,6 +2604,63 @@ InitializeFixtureUsing_Box( lua_State *L,
 }
 
 static bool
+InitializeFixtureUsing_Capsule( lua_State *L,
+							int lua_arg_index,
+							int &fixtureIndex,
+							b2Vec2 &center_in_pixels,
+							DisplayObject *display_object,
+							b2BodyId bodyId,
+							float meter_per_pixels_scale )
+{
+	lua_getfield( L, lua_arg_index, "capsule" );
+	if ( lua_istable( L, -1 ) )
+	{
+		DEBUG_PRINT( "%s\n", __FUNCTION__ );
+
+		Real pixels_per_meter_scale = ( 1.0f / meter_per_pixels_scale );
+
+		lua_getfield( L, -1, "x1" );
+		Real cx1 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "y1" );
+		Real cy1 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "x2" );
+		Real cx2 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "y2" );
+		Real cy2 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "radius" );
+		Real radius = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+
+		b2Capsule capsule = { { cx1, cy1 }, { cx2, cy2 }, radius };
+
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
+
+		_CapsuleShapeCreator( bodyId,
+								&shapeDef,
+								&capsule,
+								fixtureIndex );
+
+		lua_pop( L, 1 );
+		return true;
+	}
+
+	lua_pop( L, 1 );
+	return false;
+}
+
+static bool
 InitializeFixtureUsing_Shape( lua_State *L,
 								int lua_arg_index,
 								int &fixtureIndex,
@@ -2805,6 +2871,13 @@ add_b2Body_to_DisplayObject( lua_State *L,
 											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_Box( L,
+											lua_arg_index,
+											fixtureIndex,
+											center_in_pixels,
+											display_object,
+											bodyId,
+											meter_per_pixels_scale ) ||
+				InitializeFixtureUsing_Capsule( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
