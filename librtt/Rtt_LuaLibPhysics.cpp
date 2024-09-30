@@ -1120,6 +1120,55 @@ QueryRegion( lua_State *L )
 }
 
 static int
+QueryCircle( lua_State *L )
+{
+	if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_isnumber(L, 3))
+	{
+		CoronaLuaError(L, "physics.QueryCircle() requires 4 parameters (number, number, number, number)");
+
+		return 0;
+	}
+
+	if (LuaLibPhysics::IsWorldValid(L, "physics.QueryCircle()"))
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+		// Pixels to meters.
+		float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
+
+		b2Circle circle = {
+			{ (float)lua_tonumber( L, 1 ) * meters_per_pixels, (float)lua_tonumber( L, 2 ) * meters_per_pixels },
+			(float)lua_tonumber( L, 3 ) * meters_per_pixels
+		};
+
+		QueryContext context = {
+			L,
+			lua_gettop( L ),
+			meters_per_pixels,
+			0,
+			nullptr
+		};
+
+		int top_index_before_query = lua_gettop( L );
+
+		b2QueryFilter filter = b2DefaultQueryFilter();
+		if ( lua_isnumber( L, 4 ) ) {
+			filter.categoryBits = lua_tonumber( L, 4 );
+		}
+		if ( lua_isnumber( L, 5 ) ) {
+			filter.maskBits = lua_tonumber( L, 5 );
+		}
+		b2World_OverlapCircle ( physics.GetWorldId(), &circle, b2Transform_identity, filter, query_callback, &context );
+
+		return ( top_index_before_query != lua_gettop( L ) );
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+static int
 QueryBody( lua_State *L )
 {
 	if ( LuaLibPhysics::IsWorldValid( L, "physics.queryBody()" ) )
@@ -3511,6 +3560,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "rayCast", RayCast },
 		{ "reflectRay", ReflectRay },
 		{ "queryRegion", QueryRegion },
+		{ "QueryCircle", QueryCircle },
 		{ "queryBody", QueryBody },
 		{ "setAverageCollisionPositions", SetAverageCollisionPositions },
 		{ "getAverageCollisionPositions", GetAverageCollisionPositions },
