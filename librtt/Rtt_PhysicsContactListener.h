@@ -34,7 +34,7 @@ class PhysicsContactListener : public b2ContactListener
 	public:
 		// b2ContactListener
 		// Fixture <-> Fixture contact.
-		void BeginContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB );
+		void BeginContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold manifold );
 		void EndContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB );
 		bool PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const b2Manifold* manifold );
 		// virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);

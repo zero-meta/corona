@@ -35,7 +35,7 @@ PhysicsContactListener::PhysicsContactListener( Runtime& runtime )
 }
 
 void
-PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
+PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold manifold)
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
 
@@ -69,21 +69,20 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 	// Get the out_position.
 	b2Vec2 position( b2Vec2_zero );
 
-	/*
-	Real normalImpulse = 0.0f;
-	Real tangentImpulse = 0.0f;
+	// Real normalImpulse = 0.0f;
+	// Real tangentImpulse = 0.0f;
 
 	int capacity = b2Shape_GetContactCapacity( shapeIdA );
-	b2ContactData contactData[capacity];
-	b2Manifold manifold = { 0 };
-	int count = b2Shape_GetContactData( shapeIdA, contactData, capacity );
-	for ( int i = 0; i < count; ++i )
-	{
-		if ( B2_ID_EQUALS( contactData[i].shapeIdB, shapeIdB ) ) {
-			manifold = contactData[i].manifold;
-			break;
-		}
-	}
+	// b2ContactData contactData[capacity];
+	// b2Manifold manifold = { 0 };
+	// int count = b2Shape_GetContactData( shapeIdA, contactData, capacity );
+	// for ( int i = 0; i < count; ++i )
+	// {
+	// 	if ( B2_ID_EQUALS( contactData[i].shapeIdB, shapeIdB ) ) {
+	// 		manifold = contactData[i].manifold;
+	// 		break;
+	// 	}
+	// }
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
 	// b2Manifold *manifold = contact->GetManifold();
 	if( manifold.pointCount )
@@ -105,8 +104,8 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 					++i )
 			{
 				position += manifold.points[ i ].point;
-				normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
-				tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 		else
@@ -120,8 +119,8 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 			{
 				// position += manifold->points[ i ].localPoint;
 				position += manifold.points[ i ].anchorA;
-				normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
-				tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 
@@ -131,7 +130,6 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 		// Scale.
 		position *= scale;
 	}
-	*/
 	////
 	////
 	////////////////////////////////////////////////////////////////////////

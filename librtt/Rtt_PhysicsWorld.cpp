@@ -557,7 +557,7 @@ PhysicsWorld::StepEvents() {
 	for ( int i = 0; i < contactEvents.beginCount; ++i )
 	{
 		b2ContactBeginTouchEvent event = contactEvents.beginEvents[i];
-		fWorldContactListener->BeginContact( event.shapeIdA, event.shapeIdB );
+		fWorldContactListener->BeginContact( event.shapeIdA, event.shapeIdB, event.manifold );
 	}
 
 	for ( int i = 0; i < contactEvents.endCount; ++i )
@@ -576,7 +576,7 @@ PhysicsWorld::StepEvents() {
 	for ( int i = 0; i < sensorEvents.beginCount; ++i )
 	{
 		b2SensorBeginTouchEvent event = sensorEvents.beginEvents[i];
-		fWorldContactListener->BeginContact( event.sensorShapeId, event.visitorShapeId );
+		fWorldContactListener->BeginContact( event.sensorShapeId, event.visitorShapeId, { 0 } );
 	}
 
 	for ( int i = 0; i < sensorEvents.endCount; ++i )
