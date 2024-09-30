@@ -951,6 +951,7 @@ namespace // anonymous namespace.
 		int fInitialTopIndexOfLuaStack;
 		float fPixelsPerMeter;
 		int fResultCount;
+		DisplayObject* target;
 	};
 
 	bool query_callback( b2ShapeId shapeId, void* context )
@@ -964,7 +965,7 @@ namespace // anonymous namespace.
 		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData( bodyId );
 
 		// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
-		if ( userData == nullptr ) {
+		if ( userData == nullptr || userData == queryContext->target ) {
 			return true;
 		}
 
@@ -1087,7 +1088,8 @@ QueryRegion( lua_State *L )
 			L,
 			lua_gettop( L ),
 			meters_per_pixels,
-			0
+			0,
+			nullptr
 		};
 
 		// Important: If any results are found, "callback" will leave
@@ -1110,6 +1112,93 @@ QueryRegion( lua_State *L )
 		// Therefore we can compare the top index of the Lua stack before
 		// and after QueryAABB() to know if we're returning a table of hits.
 		return ( top_index_before_QueryAABB != lua_gettop( L ) );
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+static int
+QueryBody( lua_State *L )
+{
+	if ( LuaLibPhysics::IsWorldValid( L, "physics.queryBody()" ) )
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+		DisplayObject *o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+		Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+		if( o && ( o->GetExtensions() != NULL ) )
+		{
+			// Pixels to meters.
+			float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
+
+			QueryContext context = {
+				L,
+				lua_gettop( L ),
+				meters_per_pixels,
+				0,
+				o
+			};
+
+			int top_index_before_query = lua_gettop( L );
+
+			b2QueryFilter filter = b2DefaultQueryFilter();
+			if ( lua_isnumber( L, 2 ) ) {
+				filter.categoryBits = lua_tonumber( L, 2 );
+			}
+			if ( lua_isnumber( L, 3 ) ) {
+				filter.maskBits = lua_tonumber( L, 3 );
+			}
+			b2BodyId bodyId = o->GetExtensions()->GetBody();
+			b2Transform transform = b2Body_GetTransform( bodyId );
+			int count = b2Body_GetShapeCount( bodyId );
+			b2ShapeId *shapeArray = new b2ShapeId[ count ];
+			b2Body_GetShapes( bodyId, shapeArray, count );
+			int castDefaultCount = 0;
+			for ( int i = 0; i < count; ++i ) {
+				b2ShapeType shapeType = b2Shape_GetType( shapeArray[ i ] );
+				switch ( shapeType )
+				{
+					case b2_capsuleShape:
+					{
+						b2Capsule capsule = b2Shape_GetCapsule( shapeArray[ i ] );
+						b2World_OverlapCapsule( physics.GetWorldId(), &capsule, transform, filter, query_callback, &context );
+						break;
+					}
+					case b2_circleShape:
+					{
+						b2Circle circle = b2Shape_GetCircle( shapeArray[ i ] );
+						b2World_OverlapCircle( physics.GetWorldId(), &circle, transform, filter, query_callback, &context );
+						break;
+					}
+					case b2_polygonShape:
+					{
+						b2Polygon polygon = b2Shape_GetPolygon( shapeArray[ i ] );
+						b2World_OverlapPolygon( physics.GetWorldId(), &polygon, transform, filter, query_callback, &context );
+						break;
+					}
+					default:
+						castDefaultCount++;
+				}
+			}
+			delete [] shapeArray;
+
+
+			if ( castDefaultCount == 0 )
+			{
+				return ( top_index_before_query != lua_gettop( L ) );
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			return 0;
+		}
 	}
 	else
 	{
@@ -3422,6 +3511,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "rayCast", RayCast },
 		{ "reflectRay", ReflectRay },
 		{ "queryRegion", QueryRegion },
+		{ "queryBody", QueryBody },
 		{ "setAverageCollisionPositions", SetAverageCollisionPositions },
 		{ "getAverageCollisionPositions", GetAverageCollisionPositions },
 		{ "setScale", setScale },
