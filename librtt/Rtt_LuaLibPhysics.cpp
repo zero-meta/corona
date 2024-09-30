@@ -953,15 +953,15 @@ namespace // anonymous namespace.
 		int fResultCount;
 	};
 
-	bool query_callback(b2ShapeId shapeId, void* context)
+	bool query_callback( b2ShapeId shapeId, void* context )
 	{
-		QueryContext* queryContext = static_cast<QueryContext*>(context);
+		QueryContext* queryContext = static_cast<QueryContext*>( context );
 
-		b2BodyId bodyId = b2Shape_GetBody(shapeId);
-		if ( ! b2Body_IsValid(bodyId) ) {
+		b2BodyId bodyId = b2Shape_GetBody( shapeId );
+		if ( ! b2Body_IsValid( bodyId ) ) {
 			return true;
 		}
-		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData(bodyId);
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData( bodyId );
 
 		// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 		if ( userData == nullptr ) {
@@ -1095,7 +1095,15 @@ QueryRegion( lua_State *L )
 		// of the Lua stack is the result we return from this function.
 		int top_index_before_QueryAABB = lua_gettop( L );
 		// world->QueryAABB( &callback, aabb );
-		b2World_OverlapAABB(physics.GetWorldId(), aabb, b2DefaultQueryFilter(), query_callback, &context);
+
+		b2QueryFilter filter = b2DefaultQueryFilter();
+		if ( lua_isnumber( L, 5 ) ) {
+			filter.categoryBits = lua_tonumber( L, 5 );
+		}
+		if ( lua_isnumber( L, 6 ) ) {
+			filter.maskBits = lua_tonumber( L, 6 );
+		}
+		b2World_OverlapAABB( physics.GetWorldId(), aabb, filter, query_callback, &context );
 
 		// Any hits returned by QueryAABB() are pushed into a table that's
 		// on the stack. We want to return true if we're returning a result.
