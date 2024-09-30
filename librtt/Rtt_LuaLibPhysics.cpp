@@ -3539,6 +3539,32 @@ getNumSteps( lua_State *L )
 	return 1;
 }
 
+static int
+Explode( lua_State *L )
+{
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.explode()" );
+
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		b2ExplosionDef def = b2DefaultExplosionDef();
+		def.position = { luaL_torealphysics( L, 1, scale ), luaL_torealphysics( L, 2, scale ) };
+		def.radius = luaL_torealphysics( L, 3, scale );
+		def.falloff = luaL_torealphysics( L, 4, scale );
+		def.impulsePerLength = lua_tonumber( L , 5 );
+		if ( lua_isnumber( L, 6 ) )
+		{
+			def.maskBits = lua_tonumber( L , 6 );
+		}
+
+		b2World_Explode( physics.GetWorldId(), &def );
+	}
+
+	return 0;
+}
+
 int
 LuaLibPhysics::Open( lua_State *L )
 {
@@ -3582,6 +3608,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "getTimeScale", getTimeScale },
 		{ "setNumSteps", setNumSteps },
 		{ "getNumSteps", getNumSteps },
+		{ "explode", Explode },
 
 		{ NULL, NULL }
 	};
