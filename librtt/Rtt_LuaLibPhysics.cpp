@@ -3560,7 +3560,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "rayCast", RayCast },
 		{ "reflectRay", ReflectRay },
 		{ "queryRegion", QueryRegion },
-		{ "QueryCircle", QueryCircle },
+		{ "queryCircle", QueryCircle },
 		{ "queryBody", QueryBody },
 		{ "setAverageCollisionPositions", SetAverageCollisionPositions },
 		{ "getAverageCollisionPositions", GetAverageCollisionPositions },
