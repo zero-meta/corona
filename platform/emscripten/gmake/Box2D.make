@@ -20,7 +20,7 @@ ifndef RESCOMP
 endif
 
 ifeq ($(config),Debug)
-  OBJDIR     = obj/Debug/Box2D
+  OBJDIR     = obj/Debug/box2d_v3
   # TARGETDIR  = ../../../Build/gmake/bin/Debug
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D.a
@@ -44,7 +44,7 @@ ifeq ($(config),Debug)
 endif
 
 ifeq ($(config),Release)
-  OBJDIR     = obj/Release/Box2D
+  OBJDIR     = obj/Release/box2d_v3
   # TARGETDIR  = ../../../Build/gmake/bin/Release
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D.a
