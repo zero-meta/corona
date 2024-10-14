@@ -25,7 +25,7 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
-  INCLUDES  += -I../../../external/Box2D
+  INCLUDES  += -I../../../external/box2d_v3
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
@@ -49,7 +49,7 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D.a
   DEFINES   += -DNDEBUG
-  INCLUDES  += -I../../../external/Box2D
+  INCLUDES  += -I../../../external/box2d_v3
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
@@ -181,219 +181,219 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -MMD -MP $(DEFINES) $(INCLUDES) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/b2BroadPhase.o: ../../../external/Box2D/Box2D/Collision/b2BroadPhase.cpp
+$(OBJDIR)/b2BroadPhase.o: ../../../external/box2d_v3/Box2D/Collision/b2BroadPhase.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollideCircle.o: ../../../external/Box2D/Box2D/Collision/b2CollideCircle.cpp
+$(OBJDIR)/b2CollideCircle.o: ../../../external/box2d_v3/Box2D/Collision/b2CollideCircle.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollideEdge.o: ../../../external/Box2D/Box2D/Collision/b2CollideEdge.cpp
+$(OBJDIR)/b2CollideEdge.o: ../../../external/box2d_v3/Box2D/Collision/b2CollideEdge.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollidePolygon.o: ../../../external/Box2D/Box2D/Collision/b2CollidePolygon.cpp
+$(OBJDIR)/b2CollidePolygon.o: ../../../external/box2d_v3/Box2D/Collision/b2CollidePolygon.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Collision.o: ../../../external/Box2D/Box2D/Collision/b2Collision.cpp
+$(OBJDIR)/b2Collision.o: ../../../external/box2d_v3/Box2D/Collision/b2Collision.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Distance.o: ../../../external/Box2D/Box2D/Collision/b2Distance.cpp
+$(OBJDIR)/b2Distance.o: ../../../external/box2d_v3/Box2D/Collision/b2Distance.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2DynamicTree.o: ../../../external/Box2D/Box2D/Collision/b2DynamicTree.cpp
+$(OBJDIR)/b2DynamicTree.o: ../../../external/box2d_v3/Box2D/Collision/b2DynamicTree.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2TimeOfImpact.o: ../../../external/Box2D/Box2D/Collision/b2TimeOfImpact.cpp
+$(OBJDIR)/b2TimeOfImpact.o: ../../../external/box2d_v3/Box2D/Collision/b2TimeOfImpact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainShape.o: ../../../external/Box2D/Box2D/Collision/Shapes/b2ChainShape.cpp
+$(OBJDIR)/b2ChainShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2ChainShape.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CircleShape.o: ../../../external/Box2D/Box2D/Collision/Shapes/b2CircleShape.cpp
+$(OBJDIR)/b2CircleShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2CircleShape.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeShape.o: ../../../external/Box2D/Box2D/Collision/Shapes/b2EdgeShape.cpp
+$(OBJDIR)/b2EdgeShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2EdgeShape.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonShape.o: ../../../external/Box2D/Box2D/Collision/Shapes/b2PolygonShape.cpp
+$(OBJDIR)/b2PolygonShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2PolygonShape.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2BlockAllocator.o: ../../../external/Box2D/Box2D/Common/b2BlockAllocator.cpp
+$(OBJDIR)/b2BlockAllocator.o: ../../../external/box2d_v3/Box2D/Common/b2BlockAllocator.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Draw.o: ../../../external/Box2D/Box2D/Common/b2Draw.cpp
+$(OBJDIR)/b2Draw.o: ../../../external/box2d_v3/Box2D/Common/b2Draw.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2FreeList.o: ../../../external/Box2D/Box2D/Common/b2FreeList.cpp
+$(OBJDIR)/b2FreeList.o: ../../../external/box2d_v3/Box2D/Common/b2FreeList.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Math.o: ../../../external/Box2D/Box2D/Common/b2Math.cpp
+$(OBJDIR)/b2Math.o: ../../../external/box2d_v3/Box2D/Common/b2Math.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Settings.o: ../../../external/Box2D/Box2D/Common/b2Settings.cpp
+$(OBJDIR)/b2Settings.o: ../../../external/box2d_v3/Box2D/Common/b2Settings.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2StackAllocator.o: ../../../external/Box2D/Box2D/Common/b2StackAllocator.cpp
+$(OBJDIR)/b2StackAllocator.o: ../../../external/box2d_v3/Box2D/Common/b2StackAllocator.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2TrackedBlock.o: ../../../external/Box2D/Box2D/Common/b2TrackedBlock.cpp
+$(OBJDIR)/b2TrackedBlock.o: ../../../external/box2d_v3/Box2D/Common/b2TrackedBlock.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Timer.o: ../../../external/Box2D/Box2D/Common/b2Timer.cpp
+$(OBJDIR)/b2Timer.o: ../../../external/box2d_v3/Box2D/Common/b2Timer.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Body.o: ../../../external/Box2D/Box2D/Dynamics/b2Body.cpp
+$(OBJDIR)/b2Body.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Body.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ContactManager.o: ../../../external/Box2D/Box2D/Dynamics/b2ContactManager.cpp
+$(OBJDIR)/b2ContactManager.o: ../../../external/box2d_v3/Box2D/Dynamics/b2ContactManager.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Fixture.o: ../../../external/Box2D/Box2D/Dynamics/b2Fixture.cpp
+$(OBJDIR)/b2Fixture.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Fixture.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Island.o: ../../../external/Box2D/Box2D/Dynamics/b2Island.cpp
+$(OBJDIR)/b2Island.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Island.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2World.o: ../../../external/Box2D/Box2D/Dynamics/b2World.cpp
+$(OBJDIR)/b2World.o: ../../../external/box2d_v3/Box2D/Dynamics/b2World.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2WorldCallbacks.o: ../../../external/Box2D/Box2D/Dynamics/b2WorldCallbacks.cpp
+$(OBJDIR)/b2WorldCallbacks.o: ../../../external/box2d_v3/Box2D/Dynamics/b2WorldCallbacks.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainAndCircleContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp
+$(OBJDIR)/b2ChainAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainAndPolygonContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp
+$(OBJDIR)/b2ChainAndPolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CircleContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2CircleContact.cpp
+$(OBJDIR)/b2CircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2CircleContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Contact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2Contact.cpp
+$(OBJDIR)/b2Contact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2Contact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ContactSolver.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2ContactSolver.cpp
+$(OBJDIR)/b2ContactSolver.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ContactSolver.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeAndCircleContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp
+$(OBJDIR)/b2EdgeAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeAndPolygonContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp
+$(OBJDIR)/b2EdgeAndPolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonAndCircleContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp
+$(OBJDIR)/b2PolygonAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonContact.o: ../../../external/Box2D/Box2D/Dynamics/Contacts/b2PolygonContact.cpp
+$(OBJDIR)/b2PolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2PolygonContact.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2DistanceJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2DistanceJoint.cpp
+$(OBJDIR)/b2DistanceJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2DistanceJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2FrictionJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2FrictionJoint.cpp
+$(OBJDIR)/b2FrictionJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2FrictionJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2GearJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2GearJoint.cpp
+$(OBJDIR)/b2GearJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2GearJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Joint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2Joint.cpp
+$(OBJDIR)/b2Joint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2Joint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2MotorJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2MotorJoint.cpp
+$(OBJDIR)/b2MotorJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2MotorJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2MouseJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2MouseJoint.cpp
+$(OBJDIR)/b2MouseJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2MouseJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PrismaticJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp
+$(OBJDIR)/b2PrismaticJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PulleyJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2PulleyJoint.cpp
+$(OBJDIR)/b2PulleyJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2PulleyJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2RevoluteJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp
+$(OBJDIR)/b2RevoluteJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2RopeJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2RopeJoint.cpp
+$(OBJDIR)/b2RopeJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2RopeJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2WeldJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2WeldJoint.cpp
+$(OBJDIR)/b2WeldJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2WeldJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2FakeJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2FakeJoint.cpp
+$(OBJDIR)/b2FakeJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2FakeJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2WheelJoint.o: ../../../external/Box2D/Box2D/Dynamics/Joints/b2WheelJoint.cpp
+$(OBJDIR)/b2WheelJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2WheelJoint.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Particle.o: ../../../external/Box2D/Box2D/Particle/b2Particle.cpp
+$(OBJDIR)/b2Particle.o: ../../../external/box2d_v3/Box2D/Particle/b2Particle.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ParticleAssembly.o: ../../../external/Box2D/Box2D/Particle/b2ParticleAssembly.cpp
+$(OBJDIR)/b2ParticleAssembly.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleAssembly.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ParticleGroup.o: ../../../external/Box2D/Box2D/Particle/b2ParticleGroup.cpp
+$(OBJDIR)/b2ParticleGroup.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleGroup.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ParticleSystem.o: ../../../external/Box2D/Box2D/Particle/b2ParticleSystem.cpp
+$(OBJDIR)/b2ParticleSystem.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleSystem.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2VoronoiDiagram.o: ../../../external/Box2D/Box2D/Particle/b2VoronoiDiagram.cpp
+$(OBJDIR)/b2VoronoiDiagram.o: ../../../external/box2d_v3/Box2D/Particle/b2VoronoiDiagram.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Rope.o: ../../../external/Box2D/Box2D/Rope/b2Rope.cpp
+$(OBJDIR)/b2Rope.o: ../../../external/box2d_v3/Box2D/Rope/b2Rope.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
