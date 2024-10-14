@@ -74,7 +74,6 @@ OBJECTS := \
   $(OBJDIR)/id.o \
   $(OBJDIR)/math_functions.o \
   $(OBJDIR)/types.o \
-	
   $(OBJDIR)/aabb.o \
   $(OBJDIR)/array.o \
   $(OBJDIR)/bitset.o \
