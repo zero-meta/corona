@@ -68,59 +68,46 @@ ifeq ($(config),Release)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/b2BroadPhase.o \
-	$(OBJDIR)/b2CollideCircle.o \
-	$(OBJDIR)/b2CollideEdge.o \
-	$(OBJDIR)/b2CollidePolygon.o \
-	$(OBJDIR)/b2Collision.o \
-	$(OBJDIR)/b2Distance.o \
-	$(OBJDIR)/b2DynamicTree.o \
-	$(OBJDIR)/b2TimeOfImpact.o \
-	$(OBJDIR)/b2ChainShape.o \
-	$(OBJDIR)/b2CircleShape.o \
-	$(OBJDIR)/b2EdgeShape.o \
-	$(OBJDIR)/b2PolygonShape.o \
-	$(OBJDIR)/b2BlockAllocator.o \
-	$(OBJDIR)/b2Draw.o \
-	$(OBJDIR)/b2FreeList.o \
-	$(OBJDIR)/b2Math.o \
-	$(OBJDIR)/b2Settings.o \
-	$(OBJDIR)/b2StackAllocator.o \
-	$(OBJDIR)/b2Timer.o \
-	$(OBJDIR)/b2TrackedBlock.o \
-	$(OBJDIR)/b2Body.o \
-	$(OBJDIR)/b2ContactManager.o \
-	$(OBJDIR)/b2Fixture.o \
-	$(OBJDIR)/b2Island.o \
-	$(OBJDIR)/b2World.o \
-	$(OBJDIR)/b2WorldCallbacks.o \
-	$(OBJDIR)/b2ChainAndCircleContact.o \
-	$(OBJDIR)/b2ChainAndPolygonContact.o \
-	$(OBJDIR)/b2CircleContact.o \
-	$(OBJDIR)/b2Contact.o \
-	$(OBJDIR)/b2ContactSolver.o \
-	$(OBJDIR)/b2EdgeAndCircleContact.o \
-	$(OBJDIR)/b2EdgeAndPolygonContact.o \
-	$(OBJDIR)/b2PolygonAndCircleContact.o \
-	$(OBJDIR)/b2PolygonContact.o \
-	$(OBJDIR)/b2DistanceJoint.o \
-	$(OBJDIR)/b2FrictionJoint.o \
-	$(OBJDIR)/b2GearJoint.o \
-	$(OBJDIR)/b2Joint.o \
-	$(OBJDIR)/b2MotorJoint.o \
-	$(OBJDIR)/b2MouseJoint.o \
-	$(OBJDIR)/b2PrismaticJoint.o \
-	$(OBJDIR)/b2PulleyJoint.o \
-	$(OBJDIR)/b2RevoluteJoint.o \
-	$(OBJDIR)/b2RopeJoint.o \
-	$(OBJDIR)/b2WeldJoint.o \
-	$(OBJDIR)/b2WheelJoint.o \
-	$(OBJDIR)/b2Particle.o \
-	$(OBJDIR)/b2ParticleAssembly.o \
-	$(OBJDIR)/b2ParticleGroup.o \
-	$(OBJDIR)/b2ParticleSystem.o \
-	$(OBJDIR)/b2VoronoiDiagram.o \
-	$(OBJDIR)/b2Rope.o \
+  $(OBJDIR)/base.o \
+  $(OBJDIR)/box2d.o \
+  $(OBJDIR)/collision.o \
+  $(OBJDIR)/id.o \
+  $(OBJDIR)/math_functions.o \
+  $(OBJDIR)/types.o \
+	
+  $(OBJDIR)/aabb.o \
+  $(OBJDIR)/array.o \
+  $(OBJDIR)/bitset.o \
+  $(OBJDIR)/body.o \
+  $(OBJDIR)/broad_phase.o \
+  $(OBJDIR)/constraint_graph.o \
+  $(OBJDIR)/contact.o \
+  $(OBJDIR)/contact_solver.o \
+  $(OBJDIR)/core.o \
+  $(OBJDIR)/distance.o \
+  $(OBJDIR)/distance_joint.o \
+  $(OBJDIR)/dynamic_tree.o \
+  $(OBJDIR)/geometry.o \
+  $(OBJDIR)/hull.o \
+  $(OBJDIR)/id_pool.o \
+  $(OBJDIR)/island.o \
+  $(OBJDIR)/joint.o \
+  $(OBJDIR)/manifold.o \
+  $(OBJDIR)/math_functions.o \
+  $(OBJDIR)/motor_joint.o \
+  $(OBJDIR)/mouse_joint.o \
+  $(OBJDIR)/prismatic_joint.o \
+  $(OBJDIR)/revolute_joint.o \
+  $(OBJDIR)/shape.o \
+  $(OBJDIR)/solver.o \
+  $(OBJDIR)/solver_set.o \
+  $(OBJDIR)/stack_allocator.o \
+  $(OBJDIR)/table.o \
+  $(OBJDIR)/timer.o \
+  $(OBJDIR)/types.o \
+  $(OBJDIR)/weld_joint.o \
+  $(OBJDIR)/wheel_joint.o \
+  $(OBJDIR)/world.o \
 
 RESOURCES := \
 
@@ -180,217 +167,162 @@ $(GCH): $(PCH)
 	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -MMD -MP $(DEFINES) $(INCLUDES) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 
-$(OBJDIR)/b2BroadPhase.o: ../../../external/box2d_v3/Box2D/Collision/b2BroadPhase.cpp
+$(OBJDIR)/base.o: ../../../external/box2d_v3/include/base.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollideCircle.o: ../../../external/box2d_v3/Box2D/Collision/b2CollideCircle.cpp
+$(OBJDIR)/box2d.o: ../../../external/box2d_v3/include/box2d.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollideEdge.o: ../../../external/box2d_v3/Box2D/Collision/b2CollideEdge.cpp
+$(OBJDIR)/collision.o: ../../../external/box2d_v3/include/collision.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CollidePolygon.o: ../../../external/box2d_v3/Box2D/Collision/b2CollidePolygon.cpp
+$(OBJDIR)/id.o: ../../../external/box2d_v3/include/id.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Collision.o: ../../../external/box2d_v3/Box2D/Collision/b2Collision.cpp
+$(OBJDIR)/math_functions.o: ../../../external/box2d_v3/include/math_functions.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Distance.o: ../../../external/box2d_v3/Box2D/Collision/b2Distance.cpp
+$(OBJDIR)/types.o: ../../../external/box2d_v3/include/types.h
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2DynamicTree.o: ../../../external/box2d_v3/Box2D/Collision/b2DynamicTree.cpp
+$(OBJDIR)/aabb.o: ../../../external/box2d_v3/src/aabb.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2TimeOfImpact.o: ../../../external/box2d_v3/Box2D/Collision/b2TimeOfImpact.cpp
+$(OBJDIR)/array.o: ../../../external/box2d_v3/src/array.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2ChainShape.cpp
+$(OBJDIR)/bitset.o: ../../../external/box2d_v3/src/bitset.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CircleShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2CircleShape.cpp
+$(OBJDIR)/body.o: ../../../external/box2d_v3/src/body.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2EdgeShape.cpp
+$(OBJDIR)/broad_phase.o: ../../../external/box2d_v3/src/broad_phase.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonShape.o: ../../../external/box2d_v3/Box2D/Collision/Shapes/b2PolygonShape.cpp
+$(OBJDIR)/constraint_graph.o: ../../../external/box2d_v3/src/constraint_graph.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2BlockAllocator.o: ../../../external/box2d_v3/Box2D/Common/b2BlockAllocator.cpp
+$(OBJDIR)/contact.o: ../../../external/box2d_v3/src/contact.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Draw.o: ../../../external/box2d_v3/Box2D/Common/b2Draw.cpp
+$(OBJDIR)/contact_solver.o: ../../../external/box2d_v3/src/contact_solver.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2FreeList.o: ../../../external/box2d_v3/Box2D/Common/b2FreeList.cpp
+$(OBJDIR)/core.o: ../../../external/box2d_v3/src/core.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Math.o: ../../../external/box2d_v3/Box2D/Common/b2Math.cpp
+$(OBJDIR)/distance.o: ../../../external/box2d_v3/src/distance.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Settings.o: ../../../external/box2d_v3/Box2D/Common/b2Settings.cpp
+$(OBJDIR)/distance_joint.o: ../../../external/box2d_v3/src/distance_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2StackAllocator.o: ../../../external/box2d_v3/Box2D/Common/b2StackAllocator.cpp
+$(OBJDIR)/dynamic_tree.o: ../../../external/box2d_v3/src/dynamic_tree.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2TrackedBlock.o: ../../../external/box2d_v3/Box2D/Common/b2TrackedBlock.cpp
+$(OBJDIR)/geometry.o: ../../../external/box2d_v3/src/geometry.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Timer.o: ../../../external/box2d_v3/Box2D/Common/b2Timer.cpp
+$(OBJDIR)/hull.o: ../../../external/box2d_v3/src/hull.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Body.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Body.cpp
+$(OBJDIR)/id_pool.o: ../../../external/box2d_v3/src/id_pool.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ContactManager.o: ../../../external/box2d_v3/Box2D/Dynamics/b2ContactManager.cpp
+$(OBJDIR)/island.o: ../../../external/box2d_v3/src/island.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Fixture.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Fixture.cpp
+$(OBJDIR)/joint.o: ../../../external/box2d_v3/src/joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Island.o: ../../../external/box2d_v3/Box2D/Dynamics/b2Island.cpp
+$(OBJDIR)/manifold.o: ../../../external/box2d_v3/src/manifold.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2World.o: ../../../external/box2d_v3/Box2D/Dynamics/b2World.cpp
+$(OBJDIR)/math_functions.o: ../../../external/box2d_v3/src/math_functions.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2WorldCallbacks.o: ../../../external/box2d_v3/Box2D/Dynamics/b2WorldCallbacks.cpp
+$(OBJDIR)/motor_joint.o: ../../../external/box2d_v3/src/motor_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ChainAndCircleContact.cpp
+$(OBJDIR)/mouse_joint.o: ../../../external/box2d_v3/src/mouse_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ChainAndPolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ChainAndPolygonContact.cpp
+$(OBJDIR)/prismatic_joint.o: ../../../external/box2d_v3/src/prismatic_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2CircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2CircleContact.cpp
+$(OBJDIR)/revolute_joint.o: ../../../external/box2d_v3/src/revolute_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Contact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2Contact.cpp
+$(OBJDIR)/shape.o: ../../../external/box2d_v3/src/shape.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2ContactSolver.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2ContactSolver.cpp
+$(OBJDIR)/solver.o: ../../../external/box2d_v3/src/solver.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2EdgeAndCircleContact.cpp
+$(OBJDIR)/solver_set.o: ../../../external/box2d_v3/src/solver_set.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2EdgeAndPolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2EdgeAndPolygonContact.cpp
+$(OBJDIR)/stack_allocator.o: ../../../external/box2d_v3/src/stack_allocator.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonAndCircleContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2PolygonAndCircleContact.cpp
+$(OBJDIR)/table.o: ../../../external/box2d_v3/src/table.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2PolygonContact.o: ../../../external/box2d_v3/Box2D/Dynamics/Contacts/b2PolygonContact.cpp
+$(OBJDIR)/timer.o: ../../../external/box2d_v3/src/timer.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2DistanceJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2DistanceJoint.cpp
+$(OBJDIR)/types.o: ../../../external/box2d_v3/src/types.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2FrictionJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2FrictionJoint.cpp
+$(OBJDIR)/weld_joint.o: ../../../external/box2d_v3/src/weld_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2GearJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2GearJoint.cpp
+$(OBJDIR)/wheel_joint.o: ../../../external/box2d_v3/src/wheel_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2Joint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2Joint.cpp
+$(OBJDIR)/world.o: ../../../external/box2d_v3/src/world.c
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
-$(OBJDIR)/b2MotorJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2MotorJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2MouseJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2MouseJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2PrismaticJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2PrismaticJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2PulleyJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2PulleyJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2RevoluteJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2RevoluteJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2RopeJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2RopeJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2WeldJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2WeldJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2WheelJoint.o: ../../../external/box2d_v3/Box2D/Dynamics/Joints/b2WheelJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2Particle.o: ../../../external/box2d_v3/Box2D/Particle/b2Particle.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2ParticleAssembly.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleAssembly.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2ParticleGroup.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleGroup.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2ParticleSystem.o: ../../../external/box2d_v3/Box2D/Particle/b2ParticleSystem.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2VoronoiDiagram.o: ../../../external/box2d_v3/Box2D/Particle/b2VoronoiDiagram.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2Rope.o: ../../../external/box2d_v3/Box2D/Rope/b2Rope.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 -include $(OBJECTS:%.o=%.d)
 ifneq (,$(PCH))
