@@ -157,7 +157,7 @@ prelink:
 ifneq (,$(PCH))
 $(GCH): $(PCH)
 	@echo $(notdir $<)
-	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -MMD -MP $(DEFINES) $(INCLUDES) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
+	$(SILENT) $(CC) -x c-header $(ALL_CXXFLAGS) -MMD -MP $(DEFINES) $(INCLUDES) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 endif
 $(OBJDIR)/aabb.o: ../../../external/box2d_v3/src/aabb.c
 	@echo $(notdir $<)
