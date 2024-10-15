@@ -16,7 +16,7 @@ ifeq ($(config),debug)
   TARGET = $(TARGETDIR)/libBox2D.a
   OBJDIR = obj/Debug/box2d
   DEFINES += -DDEBUG
-  INCLUDES += -I../../../external/box2d_v3/include
+  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
@@ -43,7 +43,7 @@ ifeq ($(config),release)
   TARGET = $(TARGETDIR)/libBox2D.a
   OBJDIR = obj/Release/box2d
   DEFINES += -DNDEBUG
-  INCLUDES += -I../../../external/box2d_v3/include
+  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
