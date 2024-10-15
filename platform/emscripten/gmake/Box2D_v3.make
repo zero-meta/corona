@@ -13,7 +13,7 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
-  TARGET = $(TARGETDIR)/libBox2D.lib
+  TARGET = $(TARGETDIR)/libBox2D.a
   OBJDIR = obj/Debug/box2d
   DEFINES += -DDEBUG
   INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
@@ -40,7 +40,7 @@ endif
 ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = obj/Release
-  TARGET = $(TARGETDIR)/libBox2D.lib
+  TARGET = $(TARGETDIR)/libBox2D.a
   OBJDIR = obj/Release/box2d
   DEFINES += -DNDEBUG
   INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
