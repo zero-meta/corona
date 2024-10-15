@@ -18,7 +18,7 @@
 #include "Core/Rtt_ResourceHandle.h"
 
 #if !defined(CORONABUILDER_NO_PHYSICS) && defined( Rtt_PHYSICS)
-#include "Box2d/Box2d.h"
+#include "Box2D/Box2D.h"
 #endif
 
 namespace Rtt
