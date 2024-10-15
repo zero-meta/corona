@@ -49,7 +49,7 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/librtt.a
   DEFINES   += -DNDEBUG -DRtt_EMSCRIPTEN_ENV
-  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/Box2D -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
+  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/box2d_v3 -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
