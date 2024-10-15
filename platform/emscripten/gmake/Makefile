@@ -65,6 +65,7 @@ corona: lua2cpp Box2D Renderer lfs lpeg lua ratatouille rtt z png jpeg
 	@${MAKE} --no-print-directory -C . -f corona.make
 
 clean:
+	@${MAKE} --no-print-directory -C . -f Box2D_v3.make
 	@${MAKE} --no-print-directory -C . -f Box2D.make clean
 	@${MAKE} --no-print-directory -C . -f Renderer.make clean
 	@${MAKE} --no-print-directory -C . -f rtt.make clean
@@ -88,6 +89,7 @@ help:
 	@echo "TARGETS:"
 	@echo "   all (default)"
 	@echo "   clean"
+	@echo "   Box2D_v3"
 	@echo "   Box2D"
 	@echo "   Renderer"
 	@echo "   rtt"
