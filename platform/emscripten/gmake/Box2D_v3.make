@@ -13,7 +13,7 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
-  #TARGET = $(TARGETDIR)/Box2D.exe
+  TARGET = $(TARGETDIR)/Box2D_v3.lib
   OBJDIR = obj/Debug/Box2D_v3
   DEFINES += -DDEBUG
   INCLUDES += -I../../../external/box2d_v3
@@ -25,7 +25,7 @@ ifeq ($(config),debug)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS)
-  LINKCMD = $(CC) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -40,7 +40,7 @@ endif
 ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = obj/Release
-  #TARGET = $(TARGETDIR)/Box2D.exe
+  TARGET = $(TARGETDIR)/Box2D_v3.lib
   OBJDIR = obj/Release/Box2D_v3
   DEFINES += -DNDEBUG
   INCLUDES += -I../../../external/box2d_v3
@@ -52,7 +52,7 @@ ifeq ($(config),release)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS) -s
-  LINKCMD = $(CC) -o "$@" $(OBJECTS) $(RESOURCES) $(ALL_LDFLAGS) $(LIBS)
+  LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
