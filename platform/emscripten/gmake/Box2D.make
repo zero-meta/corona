@@ -14,7 +14,7 @@ ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
   #TARGET = $(TARGETDIR)/Box2D.exe
-  OBJDIR = obj/Debug/Box2D
+  OBJDIR = obj/Debug/Box2D_v3
   DEFINES += -DDEBUG
   INCLUDES += -I../../../external/box2d_v3
   FORCE_INCLUDE +=
@@ -41,7 +41,7 @@ ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = obj/Release
   #TARGET = $(TARGETDIR)/Box2D.exe
-  OBJDIR = obj/Release/Box2D
+  OBJDIR = obj/Release/Box2D_v3
   DEFINES += -DNDEBUG
   INCLUDES += -I../../../external/box2d_v3
   FORCE_INCLUDE +=
@@ -109,7 +109,7 @@ ifeq (.exe,$(findstring .exe,$(ComSpec)))
 endif
 
 $(TARGET): $(GCH) ${CUSTOMFILES} $(OBJECTS) $(LDDEPS) $(RESOURCES) | $(TARGETDIR)
-	@echo Linking Box2D
+	@echo Linking Box2D_v3
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
 
@@ -132,7 +132,7 @@ else
 endif
 
 clean:
-	@echo Cleaning Box2D
+	@echo Cleaning Box2D_v3
 ifeq (posix,$(SHELLTYPE))
 	$(SILENT) rm -f  $(TARGET)
 	$(SILENT) rm -rf $(OBJDIR)
