@@ -12,6 +12,10 @@ PROJECTS := lua2cpp z png jpeg Box2D Renderer rtt lfs lpeg lua ratatouille coron
 
 all: $(PROJECTS)
 
+Box2D_v3: 
+	@echo "==== Building Box2D_v3 ($(config)) ===="
+	@${MAKE} --no-print-directory -C . -f Box2D_v3.make
+
 Box2D: 
 	@echo "==== Building Box2D ($(config)) ===="
 	@${MAKE} --no-print-directory -C . -f Box2D.make
