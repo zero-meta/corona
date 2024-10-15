@@ -25,7 +25,7 @@ ifeq ($(config),debug)
   LIBS +=
   LDDEPS +=
   ALL_LDFLAGS += $(LDFLAGS)
-  LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
+  LINKCMD = $(AR) -rcs "$@" $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
