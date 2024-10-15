@@ -13,7 +13,7 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
-  TARGET = $(TARGETDIR)/Box2D_v3.lib
+  TARGET = $(TARGETDIR)/Box2D_v3.a
   OBJDIR = obj/Debug/Box2D_v3
   DEFINES += -DDEBUG
   INCLUDES += -I../../../external/box2d_v3
