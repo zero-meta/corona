@@ -33,8 +33,8 @@ ifeq ($(config),Debug)
   ALL_LDFLAGS   += $(LDFLAGS)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
-  #LINKCMD    = $(CC) $(OBJECTS) -o $(TARGET)
+  #LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(CC) $(OBJECTS) -o $(TARGET)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -57,8 +57,8 @@ ifeq ($(config),Release)
   ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
-  #LINKCMD    = $(CC) $(OBJECTS) -o $(TARGET)
+  #LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(CC) $(OBJECTS) -o $(TARGET)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
