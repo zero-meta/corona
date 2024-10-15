@@ -6,19 +6,19 @@ ifndef config
 endif
 export config
 
-PROJECTS := lua2cpp z png jpeg Box2D_v3 Box2D Renderer rtt lfs lpeg lua ratatouille corona
+PROJECTS := lua2cpp z png jpeg Box2D Renderer rtt lfs lpeg lua ratatouille corona
 
 .PHONY: all clean help $(PROJECTS)
 
 all: $(PROJECTS)
 
-Box2D_v3: 
-	@echo "==== Building Box2D_v3 ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f Box2D_v3.make
+#Box2D_v3: 
+#	@echo "==== Building Box2D_v3 ($(config)) ===="
+#	@${MAKE} --no-print-directory -C . -f Box2D_v3.make
 
 Box2D: 
 	@echo "==== Building Box2D ($(config)) ===="
-	@${MAKE} --no-print-directory -C . -f Box2D.make
+	@${MAKE} --no-print-directory -C . -f Box2D_v3.make
 
 Renderer: 
 	@echo "==== Building Renderer ($(config)) ===="
@@ -66,7 +66,7 @@ corona: lua2cpp Box2D Renderer lfs lpeg lua ratatouille rtt z png jpeg
 
 clean:
 	@${MAKE} --no-print-directory -C . -f Box2D_v3.make clean
-	@${MAKE} --no-print-directory -C . -f Box2D.make clean
+	#@${MAKE} --no-print-directory -C . -f Box2D.make clean
 	@${MAKE} --no-print-directory -C . -f Renderer.make clean
 	@${MAKE} --no-print-directory -C . -f rtt.make clean
 	@${MAKE} --no-print-directory -C . -f lfs.make clean
@@ -89,7 +89,7 @@ help:
 	@echo "TARGETS:"
 	@echo "   all (default)"
 	@echo "   clean"
-	@echo "   Box2D_v3"
+	#@echo "   Box2D_v3"
 	@echo "   Box2D"
 	@echo "   Renderer"
 	@echo "   rtt"
