@@ -6,7 +6,7 @@ ifndef config
 endif
 export config
 
-PROJECTS := lua2cpp z png jpeg Box2D Renderer rtt lfs lpeg lua ratatouille corona
+PROJECTS := lua2cpp z png jpeg Box2D_v3 Box2D Renderer rtt lfs lpeg lua ratatouille corona
 
 .PHONY: all clean help $(PROJECTS)
 
