@@ -123,6 +123,7 @@ OBJECTS := \
 	$(OBJDIR)/Rtt_PhysicsContact.o \
 	$(OBJDIR)/Rtt_PhysicsContactListener.o \
 	$(OBJDIR)/Rtt_PhysicsJoint.o \
+	$(OBJDIR)/Rtt_PhysicsTypes.o \
 	$(OBJDIR)/Rtt_PhysicsWorld.o \
 	$(OBJDIR)/Rtt_PlatformAudioPlayer.o \
 	$(OBJDIR)/Rtt_PlatformAudioRecorder.o \
@@ -674,6 +675,10 @@ $(OBJDIR)/Rtt_PhysicsContactListener.o: ../../../librtt/Rtt_PhysicsContactListen
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/Rtt_PhysicsJoint.o: ../../../librtt/Rtt_PhysicsJoint.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
+$(OBJDIR)/Rtt_PhysicsTypes.o: ../../../librtt/Rtt_PhysicsTypes.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
