@@ -84,7 +84,6 @@ OBJECTS := \
 	$(OBJDIR)/CoronaAssert.o \
 	$(OBJDIR)/CoronaLog.o \
 	$(OBJDIR)/CoronaVersion.o \
-	$(OBJDIR)/b2GLESDebugDraw.o \
 	$(OBJDIR)/Rtt_Archive.o \
 	$(OBJDIR)/Rtt_CachedPath.o \
 	$(OBJDIR)/Rtt_DeviceOrientation.o \
@@ -521,10 +520,6 @@ $(OBJDIR)/CoronaLog.o: ../../../librtt/Corona/CoronaLog.c
 $(OBJDIR)/CoronaVersion.o: ../../../librtt/Corona/CoronaVersion.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/b2GLESDebugDraw.o: ../../../librtt/b2GLESDebugDraw.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/Rtt_Archive.o: ../../../librtt/Rtt_Archive.cpp
 	@echo $(notdir $<)
