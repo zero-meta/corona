@@ -13,7 +13,7 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
-  TARGET = $(TARGETDIR)/liquidfun.lib
+  TARGET = $(TARGETDIR)/liquidfun.a
   OBJDIR = obj/Debug/liquidfun
   DEFINES += -DDEBUG
   INCLUDES += -I../../../external/box2d_v3/src
@@ -40,7 +40,7 @@ endif
 ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = obj/Release
-  TARGET = $(TARGETDIR)/liquidfun.lib
+  TARGET = $(TARGETDIR)/liquidfun.a
   OBJDIR = obj/Release/liquidfun
   DEFINES += -DNDEBUG
   INCLUDES += -I../../../external/box2d_v3/src
