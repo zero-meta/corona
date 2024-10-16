@@ -34,7 +34,7 @@ ifeq ($(config),Debug)
   ALL_LDFLAGS   += $(LDFLAGS)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(AR) -rcs $(TARGET) obj/Debug/libBox2D $(OBJECTS)
   #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
@@ -58,7 +58,7 @@ ifeq ($(config),Release)
   ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(AR) -rcs $(TARGET) obj/Release/libBox2D $(OBJECTS)
   #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
@@ -140,7 +140,7 @@ ifneq (,$(PCH))
 $(OBJECTS): $(GCH) $(PCH) | $(OBJDIR)
 $(GCH): $(PCH) | $(OBJDIR)
 	@echo $(notdir $<)
-	$(SILENT) $(CC) -x c-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
+	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 else
 $(OBJECTS): | $(OBJDIR)
 endif
