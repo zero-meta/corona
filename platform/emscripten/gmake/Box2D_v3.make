@@ -13,10 +13,10 @@ endif
 ifeq ($(config),debug)
   RESCOMP = windres
   TARGETDIR = obj/Debug
-  TARGET = $(TARGETDIR)/libBox2D.a
+  TARGET = $(TARGETDIR)/libBox2D.lib
   OBJDIR = obj/Debug/box2d
   DEFINES += -DDEBUG
-  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
+  INCLUDES += -I../../../external/box2d_v3/src -I../../../external/box2d_v3/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -g
@@ -40,10 +40,10 @@ endif
 ifeq ($(config),release)
   RESCOMP = windres
   TARGETDIR = obj/Release
-  TARGET = $(TARGETDIR)/libBox2D.a
+  TARGET = $(TARGETDIR)/libBox2D.lib
   OBJDIR = obj/Release/box2d
   DEFINES += -DNDEBUG
-  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
+  INCLUDES += -I../../../external/box2d_v3/src -I../../../external/box2d_v3/include
   FORCE_INCLUDE +=
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
@@ -65,47 +65,6 @@ all: prebuild prelink $(TARGET)
 endif
 
 OBJECTS := \
-	$(OBJDIR)/joint_grid.o \
-	$(OBJDIR)/large_pyramid.o \
-	$(OBJDIR)/main.o \
-	$(OBJDIR)/many_pyramids.o \
-	$(OBJDIR)/smash.o \
-	$(OBJDIR)/tumbler.o \
-	$(OBJDIR)/glad.o \
-	$(OBJDIR)/block_allocator.o \
-	$(OBJDIR)/free_list.o \
-	$(OBJDIR)/liquid_callbacks.o \
-	$(OBJDIR)/liquid_shape.o \
-	$(OBJDIR)/liquid_stack_allocator.o \
-	$(OBJDIR)/liquid_world.o \
-	$(OBJDIR)/particle.o \
-	$(OBJDIR)/particle_assembly.o \
-	$(OBJDIR)/particle_group.o \
-	$(OBJDIR)/particle_system.o \
-	$(OBJDIR)/settings.o \
-	$(OBJDIR)/tracked_block.o \
-	$(OBJDIR)/voronoi_diagram.o \
-	$(OBJDIR)/car.o \
-	$(OBJDIR)/donut.o \
-	$(OBJDIR)/doohickey.o \
-	$(OBJDIR)/draw.o \
-	$(OBJDIR)/human.o \
-	$(OBJDIR)/main1.o \
-	$(OBJDIR)/sample.o \
-	$(OBJDIR)/sample_benchmark.o \
-	$(OBJDIR)/sample_bodies.o \
-	$(OBJDIR)/sample_collision.o \
-	$(OBJDIR)/sample_continuous.o \
-	$(OBJDIR)/sample_determinism.o \
-	$(OBJDIR)/sample_events.o \
-	$(OBJDIR)/sample_geometry.o \
-	$(OBJDIR)/sample_joints.o \
-	$(OBJDIR)/sample_robustness.o \
-	$(OBJDIR)/sample_shapes.o \
-	$(OBJDIR)/sample_stacking.o \
-	$(OBJDIR)/sample_world.o \
-	$(OBJDIR)/settings1.o \
-	$(OBJDIR)/shader.o \
 	$(OBJDIR)/aabb.o \
 	$(OBJDIR)/array.o \
 	$(OBJDIR)/bitset.o \
@@ -139,15 +98,6 @@ OBJECTS := \
 	$(OBJDIR)/weld_joint.o \
 	$(OBJDIR)/wheel_joint.o \
 	$(OBJDIR)/world.o \
-	$(OBJDIR)/main2.o \
-	$(OBJDIR)/test_bitset.o \
-	$(OBJDIR)/test_collision.o \
-	$(OBJDIR)/test_determinism.o \
-	$(OBJDIR)/test_distance.o \
-	$(OBJDIR)/test_math.o \
-	$(OBJDIR)/test_shape.o \
-	$(OBJDIR)/test_table.o \
-	$(OBJDIR)/test_world.o \
 
 RESOURCES := \
 
@@ -201,134 +151,11 @@ ifneq (,$(PCH))
 $(OBJECTS): $(GCH) $(PCH) | $(OBJDIR)
 $(GCH): $(PCH) | $(OBJDIR)
 	@echo $(notdir $<)
-	$(SILENT) $(CC) -x c-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
+	$(SILENT) $(CC) -x c-header $(ALL_CFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 else
 $(OBJECTS): | $(OBJDIR)
 endif
 
-$(OBJDIR)/joint_grid.o: ../../../external/box2d_v3/benchmark/joint_grid.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/large_pyramid.o: ../../../external/box2d_v3/benchmark/large_pyramid.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/main.o: ../../../external/box2d_v3/benchmark/main.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/many_pyramids.o: ../../../external/box2d_v3/benchmark/many_pyramids.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/smash.o: ../../../external/box2d_v3/benchmark/smash.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/tumbler.o: ../../../external/box2d_v3/benchmark/tumbler.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/glad.o: ../../../external/box2d_v3/extern/glad/src/glad.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/block_allocator.o: ../../../external/box2d_v3/extern/liquidfun/block_allocator.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/free_list.o: ../../../external/box2d_v3/extern/liquidfun/free_list.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_callbacks.o: ../../../external/box2d_v3/extern/liquidfun/liquid_callbacks.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_shape.o: ../../../external/box2d_v3/extern/liquidfun/liquid_shape.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_stack_allocator.o: ../../../external/box2d_v3/extern/liquidfun/liquid_stack_allocator.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_world.o: ../../../external/box2d_v3/extern/liquidfun/liquid_world.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle.o: ../../../external/box2d_v3/extern/liquidfun/particle.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_assembly.o: ../../../external/box2d_v3/extern/liquidfun/particle_assembly.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_group.o: ../../../external/box2d_v3/extern/liquidfun/particle_group.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_system.o: ../../../external/box2d_v3/extern/liquidfun/particle_system.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/settings.o: ../../../external/box2d_v3/extern/liquidfun/settings.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/tracked_block.o: ../../../external/box2d_v3/extern/liquidfun/tracked_block.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/voronoi_diagram.o: ../../../external/box2d_v3/extern/liquidfun/voronoi_diagram.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/car.o: ../../../external/box2d_v3/samples/car.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/donut.o: ../../../external/box2d_v3/samples/donut.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/doohickey.o: ../../../external/box2d_v3/samples/doohickey.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/draw.o: ../../../external/box2d_v3/samples/draw.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/human.o: ../../../external/box2d_v3/samples/human.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/main1.o: ../../../external/box2d_v3/samples/main.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample.o: ../../../external/box2d_v3/samples/sample.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_benchmark.o: ../../../external/box2d_v3/samples/sample_benchmark.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_bodies.o: ../../../external/box2d_v3/samples/sample_bodies.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_collision.o: ../../../external/box2d_v3/samples/sample_collision.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_continuous.o: ../../../external/box2d_v3/samples/sample_continuous.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_determinism.o: ../../../external/box2d_v3/samples/sample_determinism.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_events.o: ../../../external/box2d_v3/samples/sample_events.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_geometry.o: ../../../external/box2d_v3/samples/sample_geometry.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_joints.o: ../../../external/box2d_v3/samples/sample_joints.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_robustness.o: ../../../external/box2d_v3/samples/sample_robustness.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_shapes.o: ../../../external/box2d_v3/samples/sample_shapes.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_stacking.o: ../../../external/box2d_v3/samples/sample_stacking.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/sample_world.o: ../../../external/box2d_v3/samples/sample_world.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/settings1.o: ../../../external/box2d_v3/samples/settings.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/shader.o: ../../../external/box2d_v3/samples/shader.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/aabb.o: ../../../external/box2d_v3/src/aabb.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -426,33 +253,6 @@ $(OBJDIR)/wheel_joint.o: ../../../external/box2d_v3/src/wheel_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/world.o: ../../../external/box2d_v3/src/world.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/main2.o: ../../../external/box2d_v3/test/main.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_bitset.o: ../../../external/box2d_v3/test/test_bitset.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_collision.o: ../../../external/box2d_v3/test/test_collision.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_determinism.o: ../../../external/box2d_v3/test/test_determinism.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_distance.o: ../../../external/box2d_v3/test/test_distance.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_math.o: ../../../external/box2d_v3/test/test_math.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_shape.o: ../../../external/box2d_v3/test/test_shape.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_table.o: ../../../external/box2d_v3/test/test_table.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/test_world.o: ../../../external/box2d_v3/test/test_world.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
