@@ -34,8 +34,8 @@ ifeq ($(config),Debug)
   ALL_LDFLAGS   += $(LDFLAGS)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Debug/libBox2D.a 
-  #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
+  #LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Debug/libBox2D.a 
+  LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -58,8 +58,8 @@ ifeq ($(config),Release)
   ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Release/libBox2D.a 
-  #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
+  #LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Release/libBox2D.a 
+  LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
