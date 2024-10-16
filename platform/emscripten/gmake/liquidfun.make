@@ -34,7 +34,7 @@ ifeq ($(config),Debug)
   ALL_LDFLAGS   += $(LDFLAGS)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) obj/Debug/libBox2D $(OBJECTS)
+  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Debug/libBox2D.a 
   #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
