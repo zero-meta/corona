@@ -22,7 +22,7 @@ endif
 
 ifeq ($(config),Debug)
   TARGETDIR = obj/Debug
-  TARGET = $(TARGETDIR)/enkiTS.lib
+  TARGET = $(TARGETDIR)/enkiTS.a
   OBJDIR = obj/Debug/enkiTS
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
   INCLUDES += -I../../../external/enkiTS/src
@@ -45,7 +45,7 @@ endif
 
 ifeq ($(config),Release)
   TARGETDIR = obj/Release
-  TARGET = $(TARGETDIR)/enkiTS.lib
+  TARGET = $(TARGETDIR)/enkiTS.a
   OBJDIR = obj/Release/enkiTS
   DEFINES   += -DNDEBUG
   INCLUDES += -I../../../external/enkiTS/src
