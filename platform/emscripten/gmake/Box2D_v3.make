@@ -153,6 +153,8 @@ OBJECTS := \
 	$(OBJDIR)/test_world.o \
 RESOURCES := \
 
+CUSTOMFILES := \
+
 SHELLTYPE := msdos
 ifeq (,$(ComSpec)$(COMSPEC))
   SHELLTYPE := posix
