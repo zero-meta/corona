@@ -25,7 +25,7 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
-  INCLUDES  += -I../../../external/Box2D -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
@@ -49,7 +49,7 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DNDEBUG
-  INCLUDES  += -I../../../external/Box2D -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
