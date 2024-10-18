@@ -168,7 +168,7 @@ ifneq (,$(PCH))
 $(OBJECTS): $(GCH) $(PCH) | $(OBJDIR)
 $(GCH): $(PCH) | $(OBJDIR)
 	@echo $(notdir $<)
-	$(SILENT) $(CXX) -x c++-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
+	$(SILENT) $(CC) -x c-header $(ALL_CXXFLAGS) -o "$@" -MF "$(@:%.gch=%.d)" -c "$<"
 else
 $(OBJECTS): | $(OBJDIR)
 endif
