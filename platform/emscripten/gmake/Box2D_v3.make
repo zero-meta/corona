@@ -66,6 +66,19 @@ ifeq ($(config),Release)
 endif
 
 OBJECTS := \
+	$(OBJDIR)/block_allocator.o \
+	$(OBJDIR)/free_list.o \
+	$(OBJDIR)/liquid_callbacks.o \
+	$(OBJDIR)/liquid_shape.o \
+	$(OBJDIR)/liquid_stack_allocator.o \
+	$(OBJDIR)/liquid_world.o \
+	$(OBJDIR)/particle.o \
+	$(OBJDIR)/particle_assembly.o \
+	$(OBJDIR)/particle_group.o \
+	$(OBJDIR)/particle_system.o \
+	$(OBJDIR)/settings.o \
+	$(OBJDIR)/tracked_block.o \
+	$(OBJDIR)/voronoi_diagram.o \
 	$(OBJDIR)/aabb.o \
 	$(OBJDIR)/array.o \
 	$(OBJDIR)/bitset.o \
@@ -99,19 +112,7 @@ OBJECTS := \
 	$(OBJDIR)/weld_joint.o \
 	$(OBJDIR)/wheel_joint.o \
 	$(OBJDIR)/world.o \
-	$(OBJDIR)/block_allocator.o \
-	$(OBJDIR)/free_list.o \
-	$(OBJDIR)/liquid_callbacks.o \
-	$(OBJDIR)/liquid_shape.o \
-	$(OBJDIR)/liquid_stack_allocator.o \
-	$(OBJDIR)/liquid_world.o \
-	$(OBJDIR)/particle.o \
-	$(OBJDIR)/particle_assembly.o \
-	$(OBJDIR)/particle_group.o \
-	$(OBJDIR)/particle_system.o \
-	$(OBJDIR)/settings.o \
-	$(OBJDIR)/tracked_block.o \
-	$(OBJDIR)/voronoi_diagram.o \
+
 RESOURCES := \
 
 SHELLTYPE := msdos
@@ -173,6 +174,45 @@ else
 $(OBJECTS): | $(OBJDIR)
 endif
 
+$(OBJDIR)/block_allocator.o: ../../../external/box2d_v3/extern/liquidfun/block_allocator.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/free_list.o: ../../../external/box2d_v3/extern/liquidfun/free_list.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/liquid_callbacks.o: ../../../external/box2d_v3/extern/liquidfun/liquid_callbacks.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/liquid_shape.o: ../../../external/box2d_v3/extern/liquidfun/liquid_shape.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/liquid_stack_allocator.o: ../../../external/box2d_v3/extern/liquidfun/liquid_stack_allocator.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/liquid_world.o: ../../../external/box2d_v3/extern/liquidfun/liquid_world.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/particle.o: ../../../external/box2d_v3/extern/liquidfun/particle.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/particle_assembly.o: ../../../external/box2d_v3/extern/liquidfun/particle_assembly.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/particle_group.o: ../../../external/box2d_v3/extern/liquidfun/particle_group.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/particle_system.o: ../../../external/box2d_v3/extern/liquidfun/particle_system.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/settings.o: ../../../external/box2d_v3/extern/liquidfun/settings.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/tracked_block.o: ../../../external/box2d_v3/extern/liquidfun/tracked_block.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/voronoi_diagram.o: ../../../external/box2d_v3/extern/liquidfun/voronoi_diagram.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/aabb.o: ../../../external/box2d_v3/src/aabb.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -272,45 +312,6 @@ $(OBJDIR)/wheel_joint.o: ../../../external/box2d_v3/src/wheel_joint.c
 $(OBJDIR)/world.o: ../../../external/box2d_v3/src/world.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/block_allocator.o: ../../../external/box2d_v3/extern/liquidfun/block_allocator.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/free_list.o: ../../../external/box2d_v3/extern/liquidfun/free_list.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_callbacks.o: ../../../external/box2d_v3/extern/liquidfun/liquid_callbacks.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_shape.o: ../../../external/box2d_v3/extern/liquidfun/liquid_shape.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_stack_allocator.o: ../../../external/box2d_v3/extern/liquidfun/liquid_stack_allocator.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/liquid_world.o: ../../../external/box2d_v3/extern/liquidfun/liquid_world.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle.o: ../../../external/box2d_v3/extern/liquidfun/particle.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_assembly.o: ../../../external/box2d_v3/extern/liquidfun/particle_assembly.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_group.o: ../../../external/box2d_v3/extern/liquidfun/particle_group.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/particle_system.o: ../../../external/box2d_v3/extern/liquidfun/particle_system.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/settings.o: ../../../external/box2d_v3/extern/liquidfun/settings.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/tracked_block.o: ../../../external/box2d_v3/extern/liquidfun/tracked_block.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/voronoi_diagram.o: ../../../external/box2d_v3/extern/liquidfun/voronoi_diagram.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
 -include $(OBJECTS:%.o=%.d)
 ifneq (,$(PCH))
