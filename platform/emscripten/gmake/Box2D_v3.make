@@ -25,7 +25,7 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
-  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../include
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O0 -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O0 -g
