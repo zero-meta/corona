@@ -48,7 +48,7 @@ ifeq ($(config),Release)
   # TARGETDIR  = ../../../Build/gmake/bin/Release
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D.a
-  DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
+  DEFINES   += -DNDEBUG
   INCLUDES  += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/extern/glad/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
@@ -166,10 +166,12 @@ endif
 all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 	@:
 
-$(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)
+$(TARGET): $(GCH) ${CUSTOMFILES} $(OBJECTS) $(LDDEPS) $(RESOURCES) | $(TARGETDIR)
 	@echo Linking Box2D
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
+
+$(CUSTOMFILES): | $(OBJDIR)
 
 $(TARGETDIR):
 	@echo Creating $(TARGETDIR)
