@@ -25,7 +25,7 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/librtt.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK -DRtt_EMSCRIPTEN_ENV
-  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/enkiTS/src -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src -I../../../external/box2d_v3/extern/liquidfun -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
+  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/enkiTS/src -I../../../external/Box2D -I../../../external/box2d_v3/include -I../../../external/box2d_v3/extern/include -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
@@ -49,7 +49,7 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/librtt.a
   DEFINES   += -DNDEBUG -DRtt_EMSCRIPTEN_ENV
-  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/enkiTS/src -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src -I../../../external/box2d_v3/extern/liquidfun -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
+  INCLUDES  += -I../ -I../../../librtt -I../../../librtt/Corona -I../../../external/b2Separator-cpp -I../../../external/enkiTS/src -I../../../external/Box2D -I../../../external/box2d_v3/include -I../../../external/box2d_v3/extern/include -I../../../external/fft -I../../../external/lua-5.1.3/src -I../../../external/luasocket/src -I../../../external/smoothpolygon -I../system/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
@@ -84,6 +84,7 @@ OBJECTS := \
 	$(OBJDIR)/CoronaAssert.o \
 	$(OBJDIR)/CoronaLog.o \
 	$(OBJDIR)/CoronaVersion.o \
+	$(OBJDIR)/b2GLESDebugDraw.o \
 	$(OBJDIR)/Rtt_Archive.o \
 	$(OBJDIR)/Rtt_CachedPath.o \
 	$(OBJDIR)/Rtt_DeviceOrientation.o \
@@ -122,7 +123,6 @@ OBJECTS := \
 	$(OBJDIR)/Rtt_PhysicsContact.o \
 	$(OBJDIR)/Rtt_PhysicsContactListener.o \
 	$(OBJDIR)/Rtt_PhysicsJoint.o \
-	$(OBJDIR)/Rtt_PhysicsTypes.o \
 	$(OBJDIR)/Rtt_PhysicsWorld.o \
 	$(OBJDIR)/Rtt_PlatformAudioPlayer.o \
 	$(OBJDIR)/Rtt_PlatformAudioRecorder.o \
@@ -521,6 +521,10 @@ $(OBJDIR)/CoronaVersion.o: ../../../librtt/Corona/CoronaVersion.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
+$(OBJDIR)/b2GLESDebugDraw.o: ../../../librtt/b2GLESDebugDraw.cpp
+	@echo $(notdir $<)
+	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
+
 $(OBJDIR)/Rtt_Archive.o: ../../../librtt/Rtt_Archive.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
@@ -670,10 +674,6 @@ $(OBJDIR)/Rtt_PhysicsContactListener.o: ../../../librtt/Rtt_PhysicsContactListen
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
 $(OBJDIR)/Rtt_PhysicsJoint.o: ../../../librtt/Rtt_PhysicsJoint.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
-
-$(OBJDIR)/Rtt_PhysicsTypes.o: ../../../librtt/Rtt_PhysicsTypes.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF $(@:%.o=%.d) -c "$<"
 
