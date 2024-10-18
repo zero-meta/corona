@@ -25,14 +25,14 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
-  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../include
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O0 -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O0 -g
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Debug/libBox2D.a
   #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
@@ -48,14 +48,14 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DNDEBUG
-  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../include
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_RESFLAGS += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   LDDEPS    +=
   LIBS      += $(LDDEPS)
-  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS) obj/Release/libBox2D.a
   #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
