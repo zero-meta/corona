@@ -19,23 +19,22 @@ ifndef RESCOMP
   endif
 endif
 
-ifeq ($(config),debug)
-  RESCOMP = windres
-  TARGETDIR = obj/debug
-  TARGET = $(TARGETDIR)/libBox2D.lib
-  OBJDIR = obj/debug/Box2D
-  DEFINES +=
-  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/extern/glad/include
-  FORCE_INCLUDE +=
+ifeq ($(config),Debug)
+  OBJDIR     = obj/Debug/Box2D
+  # TARGETDIR  = ../../../Build/gmake/bin/Debug
+  TARGETDIR  = obj/Debug
+  TARGET     = $(TARGETDIR)/libBox2D.a
+  DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
+  INCLUDES  += -I../../../external/Box2D
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS)
-  LDDEPS +=
+  LDDEPS    +=
   LIBS      += $(LDDEPS)
-  ALL_LDFLAGS += $(LDFLAGS)
   LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -44,23 +43,22 @@ ifeq ($(config),debug)
   endef
 endif
 
-ifeq ($(config),release)
-  RESCOMP = windres
-  TARGETDIR = obj/release
-  TARGET = $(TARGETDIR)/libBox2D.lib
-  OBJDIR = obj/release/Box2D
-  DEFINES += -DNDEBUG
-  INCLUDES += -I../../../external/box2d_v3/include -I../../../external/box2d_v3/extern/glad/include
-  FORCE_INCLUDE +=
+ifeq ($(config),Release)
+  OBJDIR     = obj/Release/Box2D
+  # TARGETDIR  = ../../../Build/gmake/bin/Release
+  TARGETDIR  = obj/Release
+  TARGET     = $(TARGETDIR)/libBox2D.a
+  DEFINES   += -DNDEBUG
+  INCLUDES  += -I../../../external/Box2D
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
-  ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x  
-  LDDEPS +=
+  ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
+  LDDEPS    +=
   LIBS      += $(LDDEPS)
-  ALL_LDFLAGS += $(LDFLAGS) -s
   LINKCMD    = $(AR) -rcs $(TARGET) $(OBJECTS)
+  #LINKCMD    = $(CC) -o $(TARGET) $(OBJECTS)
   define PREBUILDCMDS
   endef
   define PRELINKCMDS
@@ -119,8 +117,6 @@ OBJECTS := \
 
 RESOURCES := \
 
-CUSTOMFILES := \
-
 SHELLTYPE := msdos
 ifeq (,$(ComSpec)$(COMSPEC))
   SHELLTYPE := posix
@@ -138,8 +134,6 @@ $(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)
 	@echo Linking Box2D
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
-
-$(CUSTOMFILES): | $(OBJDIR)
 
 $(TARGETDIR):
 	@echo Creating $(TARGETDIR)
