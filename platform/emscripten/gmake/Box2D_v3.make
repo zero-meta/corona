@@ -41,9 +41,6 @@ ifeq ($(config),debug)
   endef
   define POSTBUILDCMDS
   endef
-all: prebuild prelink $(TARGET)
-	@:
-
 endif
 
 ifeq ($(config),release)
@@ -68,9 +65,6 @@ ifeq ($(config),release)
   endef
   define POSTBUILDCMDS
   endef
-all: prebuild prelink $(TARGET)
-	@:
-
 endif
 
 OBJECTS := \
