@@ -25,7 +25,7 @@ ifeq ($(config),Debug)
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
-  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O0 -g
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O0 -g
@@ -48,7 +48,7 @@ ifeq ($(config),Release)
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libBox2D_v3.a
   DEFINES   += -DNDEBUG
-  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/src
+  INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/
   ALL_CPPFLAGS += $(CPPFLAGS) -MD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS += $(CFLAGS) $(ALL_CPPFLAGS) -O2
   ALL_CXXFLAGS += $(CXXFLAGS) $(ALL_CPPFLAGS) -O2
