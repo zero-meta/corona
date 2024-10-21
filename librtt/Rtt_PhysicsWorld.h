@@ -110,6 +110,9 @@ class PhysicsWorld
 		int GetNumSteps() const { return fNumSteps; }
 		void SetNumSteps( S32 newValue ) { fNumSteps = newValue; }
 
+		int GetSubSteps() const { return fSubStepCount; }
+		void SetSubSteps( S32 newValue ) { fSubStepCount = newValue; }
+
 	private:
 		void StepEvents();
 

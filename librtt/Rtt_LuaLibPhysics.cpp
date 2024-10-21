@@ -3537,6 +3537,34 @@ getNumSteps( lua_State *L )
 	return 1;
 }
 
+// physics.setSubSteps( subSteps )
+// Sets subSteps of physics sumulator per time step. Default is 4
+static int
+SetSubSteps( lua_State *L )
+{
+	if ( lua_isnumber( L, 1 ) )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		physics.SetSubSteps( (S32) lua_tointeger( L, 1 ) );
+	}
+	else
+	{
+		CoronaLuaError(L, "physics.setTimeScale() requires 1 parameter (number)");
+	}
+
+	return 0;
+}
+
+// physics.getSubSteps( )
+// Returns subSteps of physics sumulator per time step.
+static int
+GetSubSteps( lua_State *L )
+{
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushinteger(L, physics.GetSubSteps());
+	return 1;
+}
+
 static int
 Explode( lua_State *L )
 {
@@ -3562,6 +3590,26 @@ Explode( lua_State *L )
 
 	return 0;
 }
+
+static int
+SetContactTuning( lua_State *L )
+{
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.setContactTuning()" );
+
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		float hertz = lua_tonumber( L , 1 ); // The contact stiffness (cycles per second)
+		float dampingRatio = lua_tonumber( L , 2 ); // The contact bounciness with 1 being critical damping (non-dimensional)
+		float pushVelocity = lua_tonumber( L , 3 ); // The maximum contact constraint push out velocity (meters per second)
+		b2World_SetContactTuning( physics.GetWorldId(), hertz, dampingRatio, pushVelocity );
+	}
+
+	return 0;
+}
+
 
 int
 LuaLibPhysics::Open( lua_State *L )
@@ -3607,6 +3655,9 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "setNumSteps", setNumSteps },
 		{ "getNumSteps", getNumSteps },
 		{ "explode", Explode },
+		{ "setContactTuning", SetContactTuning },
+		{ "setSubSteps", SetSubSteps },
+		{ "getSubSteps", GetSubSteps },
 
 		{ NULL, NULL }
 	};
