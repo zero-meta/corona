@@ -932,15 +932,14 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetJointTranslation(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetTranslation(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetMotorSpeed(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "isLimitEnabled", key ) )

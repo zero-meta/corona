@@ -1651,6 +1651,9 @@ newJoint( lua_State *L )
 			jointDef.bodyIdB = body2;
 			jointDef.localAnchorA = b2Body_GetLocalPoint(body1, point1);
 			jointDef.localAnchorB = b2Body_GetLocalPoint(body2, point1);
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.referenceAngle = b2RelativeAngle( rotB, rotA );
 			if ( lua_isboolean( L, 6 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 6 );
@@ -1772,17 +1775,11 @@ newJoint( lua_State *L )
 			b2BodyId body1 = e1->GetBody();
 			b2BodyId body2 = e2->GetBody();
 
-			b2FakeJointDef jointDef = b2DefaultFakeJointDef();
-
-			// jointDef.Initialize( body1, body2 );
+			b2NullJointDef jointDef = b2DefaultNullJointDef();
 			jointDef.bodyIdA = body1;
 			jointDef.bodyIdB = body2;
-			if ( lua_isboolean( L, 4 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 6 );
-			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateFakeJoint( physics.GetWorldId(), &jointDef ) );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateNullJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kWheelJointType, jointType ) == 0 )
