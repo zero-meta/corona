@@ -1447,6 +1447,7 @@ static const char kPistonJointType[] = "piston";
 static const char kFrictionJointType[] = "friction";
 static const char kWeldJointType[] = "weld"; // note: has no type-specific methods
 static const char kFakeJointType[] = "fake";
+static const char kNullJointType[] = "null";
 static const char kWheelJointType[] = "wheel"; // combines a piston and a pivot joint, like a wheel on a shock absorber
 static const char kPulleyJointType[] = "pulley";
 static const char kTouchJointType[] = "touch";
@@ -1770,7 +1771,7 @@ newJoint( lua_State *L )
 			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateWeldJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
-		else if ( strcmp( kFakeJointType, jointType ) == 0 )
+		else if ( strcmp( kNullJointType, jointType ) == 0 || strcmp( kFakeJointType, jointType ) == 0 )
 		{
 			b2BodyId body1 = e1->GetBody();
 			b2BodyId body2 = e2->GetBody();
