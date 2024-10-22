@@ -84,12 +84,12 @@ void DrawSolidCircleFcn(b2Transform transform, float radius, b2HexColor color, v
 
 void DrawCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
 {
-	// static_cast<b2GLESDebugDraw*>(context)->DrawCapsule(p1, p2, radius, color);
+	//static_cast<b2GLESDebugDraw*>(context)->DrawCapsule(p1, p2, radius, color);
 }
 
 void DrawSolidCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
 {
-	// static_cast<b2GLESDebugDraw*>(context)->DrawSolidCapsule(p1, p2, radius, color);
+	//static_cast<b2GLESDebugDraw*>(context)->DrawSolidCapsule(p1, p2, radius, color);
 }
 
 void DrawSegmentFcn(b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context)
