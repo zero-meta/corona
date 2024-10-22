@@ -1447,6 +1447,7 @@ static const char kPistonJointType[] = "piston";
 static const char kFrictionJointType[] = "friction";
 static const char kWeldJointType[] = "weld"; // note: has no type-specific methods
 static const char kFakeJointType[] = "fake";
+static const char kNullJointType[] = "null";
 static const char kWheelJointType[] = "wheel"; // combines a piston and a pivot joint, like a wheel on a shock absorber
 static const char kPulleyJointType[] = "pulley";
 static const char kTouchJointType[] = "touch";
@@ -1651,6 +1652,9 @@ newJoint( lua_State *L )
 			jointDef.bodyIdB = body2;
 			jointDef.localAnchorA = b2Body_GetLocalPoint(body1, point1);
 			jointDef.localAnchorB = b2Body_GetLocalPoint(body2, point1);
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.referenceAngle = b2RelativeAngle( rotB, rotA );
 			if ( lua_isboolean( L, 6 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 6 );
@@ -1767,22 +1771,16 @@ newJoint( lua_State *L )
 			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateWeldJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
-		else if ( strcmp( kFakeJointType, jointType ) == 0 )
+		else if ( strcmp( kNullJointType, jointType ) == 0 || strcmp( kFakeJointType, jointType ) == 0 )
 		{
 			b2BodyId body1 = e1->GetBody();
 			b2BodyId body2 = e2->GetBody();
 
-			b2FakeJointDef jointDef = b2DefaultFakeJointDef();
-
-			// jointDef.Initialize( body1, body2 );
+			b2NullJointDef jointDef = b2DefaultNullJointDef();
 			jointDef.bodyIdA = body1;
 			jointDef.bodyIdB = body2;
-			if ( lua_isboolean( L, 4 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 6 );
-			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateFakeJoint( physics.GetWorldId(), &jointDef ) );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateNullJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kWheelJointType, jointType ) == 0 )
@@ -3539,6 +3537,34 @@ getNumSteps( lua_State *L )
 	return 1;
 }
 
+// physics.setSubSteps( subSteps )
+// Sets subSteps of physics sumulator per time step. Default is 4
+static int
+SetSubSteps( lua_State *L )
+{
+	if ( lua_isnumber( L, 1 ) )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		physics.SetSubSteps( (S32) lua_tointeger( L, 1 ) );
+	}
+	else
+	{
+		CoronaLuaError(L, "physics.setTimeScale() requires 1 parameter (number)");
+	}
+
+	return 0;
+}
+
+// physics.getSubSteps( )
+// Returns subSteps of physics sumulator per time step.
+static int
+GetSubSteps( lua_State *L )
+{
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushinteger(L, physics.GetSubSteps());
+	return 1;
+}
+
 static int
 Explode( lua_State *L )
 {
@@ -3564,6 +3590,26 @@ Explode( lua_State *L )
 
 	return 0;
 }
+
+static int
+SetContactTuning( lua_State *L )
+{
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.setContactTuning()" );
+
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		float hertz = lua_tonumber( L , 1 ); // The contact stiffness (cycles per second)
+		float dampingRatio = lua_tonumber( L , 2 ); // The contact bounciness with 1 being critical damping (non-dimensional)
+		float pushVelocity = lua_tonumber( L , 3 ); // The maximum contact constraint push out velocity (meters per second)
+		b2World_SetContactTuning( physics.GetWorldId(), hertz, dampingRatio, pushVelocity );
+	}
+
+	return 0;
+}
+
 
 int
 LuaLibPhysics::Open( lua_State *L )
@@ -3609,6 +3655,9 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "setNumSteps", setNumSteps },
 		{ "getNumSteps", getNumSteps },
 		{ "explode", Explode },
+		{ "setContactTuning", SetContactTuning },
+		{ "setSubSteps", SetSubSteps },
+		{ "getSubSteps", GetSubSteps },
 
 		{ NULL, NULL }
 	};

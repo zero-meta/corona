@@ -932,15 +932,14 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetJointTranslation(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetTranslation(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetMotorSpeed(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "isLimitEnabled", key ) )
@@ -1157,12 +1156,18 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
 					lua_pushnumber( L, b2WeldJoint_GetLinearHertz(baseJoint) );
-					// lua_pushnumber( L, b2WeldJoint_GetAngularHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
 					lua_pushnumber( L, b2WeldJoint_GetLinearDampingRatio(baseJoint) );
-					// lua_pushnumber( L, b2WeldJoint_GetAngularDampingRatio(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angularFrequency", key ) )
+				{
+					lua_pushnumber( L, b2WeldJoint_GetAngularHertz(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angulardampingRatio", key ) )
+				{
+					lua_pushnumber( L, b2WeldJoint_GetAngularDampingRatio(baseJoint) );
 				}
 				else
 				{
@@ -1611,7 +1616,6 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				{
 					// joint->SetFrequency( lua_tonumber( L, 3 ) );
 					b2WeldJoint_SetLinearHertz( baseJoint, lua_tonumber( L, 3 ) );
-					// b2WeldJoint_SetAngularHertz(baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
@@ -1620,7 +1624,20 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				{
 					// joint->SetDampingRatio( lua_tonumber( L, 3 ) );
 					b2WeldJoint_SetLinearDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
-					// b2WeldJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularFrequency", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2WeldJoint_SetAngularHertz(baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularDampingRatio", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2WeldJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 		}
