@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -145,7 +145,7 @@ UserdataWrapper::GetFinalizedValue()
 {
 	static int sValue = 0;
 	return & sValue;
-} 
+}
 
 static
 int PushUserdataWrapperTable( lua_State *L )
@@ -223,6 +223,69 @@ UserdataWrapper::Push() const
 
 	return result;
 }
+
+#ifdef Rtt_PHYSICS
+void*
+JointUserdataWrapper::GetFinalizedValue()
+{
+	static int sValue = 0;
+	return & sValue;
+}
+
+JointUserdataWrapper::JointUserdataWrapper( const ResourceHandle< lua_State >& handle, b2JointId ud, const char *mtName )
+:	fHandle( handle ),
+	fData( ud )
+{
+	lua_State *L = handle.Dereference(); Rtt_ASSERT( L );
+
+	// Store userdata in a weak table so we can look it up later to Push()
+	PushUserdataWrapperTable( L );
+
+	// Push key
+	lua_pushlightuserdata( L, this );
+
+	// Push value to let Lua own "this" by putting inside a userdata.
+	Lua::PushUserdata( L, this, mtName );
+
+	lua_settable( L, -3 );
+
+	lua_pop( L, 1 ); // pop JointUserdataWrapper table
+}
+
+JointUserdataWrapper::~JointUserdataWrapper()
+{
+	lua_State *L = fHandle.Dereference();
+	if ( L )
+	{
+		PushUserdataWrapperTable( L );
+		lua_pushlightuserdata( L, this );
+		lua_pushnil( L );
+		lua_settable( L, -3 );
+
+		lua_pop( L, 1 ); // pop userdataWrapper table
+	}
+}
+
+int
+JointUserdataWrapper::Push() const
+{
+	int result = 0; // Number of args pushed on stack
+
+	lua_State *L = fHandle.Dereference();
+	if ( L )
+	{
+		PushUserdataWrapperTable( L );
+		lua_pushlightuserdata( L, const_cast< Self * >( this ) );
+		lua_gettable( L, -2 );
+
+		result = 1; // doesn't matter if it's nil or non-nil
+
+		lua_remove( L, -2 ); // remove userdataWrapper table
+	}
+
+	return result;
+}
+#endif
 
 // ----------------------------------------------------------------------------
 

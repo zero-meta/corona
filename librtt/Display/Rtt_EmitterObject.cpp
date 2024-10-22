@@ -29,7 +29,7 @@
 #include "Rtt_LuaProxyVTable.h"
 #include "Rtt_LuaAux.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 #include "Rtt_LuaContainer.h"
 #include <algorithm>
 
@@ -164,7 +164,7 @@ void EmitterObjectParticle::Init( EmitterObject *eo, const Matrix &spawnTimeTran
 	float newAngleInRadians = Rtt_RealDegreesToRadians(eo->fRotationInDegrees + eo->fRotationInDegreesVariance * GET_RANDOM_MINUS_1_TO_1());
 
 	// Create a new GLKVector2 using the newAngleInRadians
-	b2Vec2 vector( cosf(newAngleInRadians), sinf(newAngleInRadians) );
+	b2Vec2 vector = { cosf(newAngleInRadians), sinf(newAngleInRadians) };
 
 	// Calculate the vectorSpeed using the speed and speedVariance which has been passed in
 	float vectorSpeed = std::max( 0.0f, ( eo->fSpeed + eo->fSpeedVariance * GET_RANDOM_MINUS_1_TO_1() ) );
@@ -265,8 +265,7 @@ void EmitterObjectParticle::Update( EmitterObject *eo, float time_delta )
 
         if( fPosition.x || fPosition.y )
 		{
-            radial = fPosition;
-            radial.Normalize();
+            radial = b2Normalize( fPosition );
 		}
 
         tangential = radial;
@@ -594,7 +593,7 @@ EmitterObject::EmitterObject()
 , MUpdatable()
 , fShouldUpdate( false )
 , fAbsolutePositionParent( NULL )
-, fGravity( 0.0f, 0.0f )
+, fGravity( {0.0f, 0.0f} )
 , fStartColor( kVector4Zero )
 , fStartColorVariance( kVector4Zero )
 , fFinishColor( kVector4Zero )
@@ -620,7 +619,7 @@ EmitterObject::EmitterObject()
 , fRadialAccelerationVariance( 0.0f )
 , fTangentialAcceleration( 0.0f )
 , fTangentialAccelerationVariance( 0.0f )
-, fSourcePositionVariance( 0.0f, 0.0f )
+, fSourcePositionVariance( {0.0f, 0.0f} )
 , fRotationInDegrees( 0.0f )
 , fRotationInDegreesVariance( 0.0f )
 , fParticleLifespanInSeconds( 0.0f )

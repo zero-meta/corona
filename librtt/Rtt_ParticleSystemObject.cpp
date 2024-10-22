@@ -32,7 +32,8 @@
 #include "Rtt_LuaProxyVTable.h"
 #include "b2Separator.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
+#include "particle_group.h"
 #include "Rtt_LuaContainer.h"
 #include <algorithm>
 #include <list>
@@ -79,7 +80,7 @@ ParticleSystemObject::ParticleSystemObject()
 , fShouldUpdate( false )
 , fWorldScaleInPixelsPerMeter( 1.0f )
 , fWorldScaleInMetersPerPixel( 1.0f )
-, fRenderRadiusInPixels( 1.0f, 1.0f )
+, fRenderRadiusInPixels( {1.0f, 1.0f} )
 , fWorld( NULL )
 , fPhysics( NULL )
 , fParticleSystem( NULL )
@@ -336,6 +337,39 @@ TRACE_CALL;
 	else
 	{
 		// Nothing to do.
+	}
+	lua_pop( L, 1 );
+
+	lua_getfield( L, -1, "filter" );
+	if( lua_istable( L, -1 ) )
+	{
+		b2Filter& filter = particleSystemDef.filter;
+
+		filter = b2DefaultFilter();
+
+		lua_getfield( L, -1, "categoryBits" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			uint16 categoryBits = (uint16)lua_tonumber( L, -1 );
+			filter.categoryBits = categoryBits;
+		}
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "maskBits" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			uint16 maskBits = (uint16)lua_tonumber( L, -1 );
+			filter.maskBits = maskBits;
+		}
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "groupIndex" );
+		if ( ! lua_isnil( L, -1 ) )
+		{
+			int16 groupIndex = (int16)lua_tonumber( L, -1 );
+			filter.groupIndex = groupIndex;
+		}
+		lua_pop( L, 1 );
 	}
 	lua_pop( L, 1 );
 }
@@ -895,7 +929,7 @@ TRACE_CALL;
 
 	// Position.
 	{
-		particleDef.position.SetZero();
+		particleDef.position = b2Vec2_zero;
 
 		lua_getfield( L, -1, "x" );
 		if( lua_isnumber( L, -1 ) )
@@ -917,7 +951,7 @@ TRACE_CALL;
 
 	// Velocity.
 	{
-		particleDef.velocity.SetZero();
+		particleDef.velocity = b2Vec2_zero;
 
 		lua_getfield( L, -1, "velocityX" );
 		if( lua_isnumber( L, -1 ) )
@@ -968,8 +1002,7 @@ TRACE_CALL;
 
 void ParticleSystemObject::_InitializeFromLua_ParticleGroupDef( lua_State *L,
 																b2ParticleGroupDef &particleGroupDef,
-																b2PolygonShape &polygonDef,
-																b2CircleShape &circleDef,
+																b2LiquidShape &polygonDef,
 																b2PolygonShapePtrVector &polyVec )
 {
 TRACE_CALL;
@@ -1044,7 +1077,7 @@ TRACE_CALL;
 
 	// Position.
 	{
-		particleGroupDef.position.SetZero();
+		particleGroupDef.position = b2Vec2_zero;
 
 		lua_getfield( L, -1, "x" );
 		if( lua_isnumber( L, -1 ) )
@@ -1073,7 +1106,7 @@ TRACE_CALL;
 
 	// Linear velocity.
 	{
-		particleGroupDef.linearVelocity.SetZero();
+		particleGroupDef.linearVelocity = b2Vec2_zero;
 
 		lua_getfield( L, -1, "linearVelocityX" );
 		if( lua_isnumber( L, -1 ) )
@@ -1187,24 +1220,26 @@ TRACE_CALL;
 	// Circle shape.
 	if( ! particleGroupDef.shape )
 	{
+		float radius;
 		lua_getfield( L, -1, "radius" );
 		if( lua_isnumber( L, -1 ) )
 		{
 			// This is a circular shape.
 
-			circleDef.m_radius = lua_tonumber( L, -1 );
-			particleGroupDef.shape = &circleDef;
+			// circleDef.m_radius = lua_tonumber( L, -1 );
+			radius = lua_tonumber( L, -1 );
+			particleGroupDef.shape = &polygonDef;
 		}
 		lua_pop( L, 1 );
 
 		if( particleGroupDef.shape )
 		{
 			// Pixels to meters.
-			circleDef.m_radius *= fWorldScaleInMetersPerPixel;
+			radius *= fWorldScaleInMetersPerPixel;
 
 			// Default to 1/16th of a meter.
-			circleDef.m_radius = std::max( circleDef.m_radius,
-											Rtt_REAL_16TH );
+			radius = std::max( radius, Rtt_REAL_16TH );
+			polygonDef.SetAsCircle( b2Vec2_zero, radius );
 		}
 	}
 
@@ -1278,8 +1313,8 @@ TRACE_CALL;
 						// Lua is one-based, so the second element must be at index 2.
 						lua_rawgeti( L, table_index, ( ( i * 2 ) + 2 ) );
 
-						shape_outline_in_texels.push_back( b2Vec2( luaL_toreal( L, -2 ),
-																	luaL_toreal( L, -1 ) ) );
+						shape_outline_in_texels.push_back( b2Vec2{ luaL_toreal( L, -2 ),
+																	luaL_toreal( L, -1 ) } );
 
 						lua_pop( L, 2 );
 					}
@@ -1358,7 +1393,7 @@ TRACE_CALL;
 				    }
 
 					// This is released in the caller of this function.
-					polyVec.push_back( new b2PolygonShape );
+					polyVec.push_back( new b2LiquidShape );
 				    bool ok = polyVec.back()->Set( &( vertices[ 0 ] ), (int)m );
 					if( ! ok )
 					{
@@ -1393,8 +1428,9 @@ void ParticleSystemObject::CreateGroup( lua_State *L )
 TRACE_CALL;
 	Rtt_ASSERT( fParticleSystem );
 
-	b2PolygonShape polygonDef;
-	b2CircleShape circleDef;
+	// b2PolygonShape polygonDef;
+	// b2CircleShape circleDef;
+	b2LiquidShape liquidShape;
 
 	// This is ONLY used for outlines.
 	b2PolygonShapePtrVector polyVec;
@@ -1403,10 +1439,10 @@ TRACE_CALL;
 
 	_InitializeFromLua_ParticleGroupDef( L,
 											particleGroupDef,
-											polygonDef,
-											circleDef,
+											liquidShape,
 											polyVec );
 
+	/*
 	if( polyVec.size() )
 	{
 		// This is an outline.
@@ -1414,6 +1450,7 @@ TRACE_CALL;
 		particleGroupDef.shapes = (b2Shape **)&polyVec[ 0 ];
 		particleGroupDef.shapeCount = (int)polyVec.size();
 	}
+	*/
 
 	fParticleSystem->CreateParticleGroup( particleGroupDef );
 
@@ -1434,8 +1471,8 @@ void ParticleSystemObject::ApplyForce( lua_State *L )
 TRACE_CALL;
 	Rtt_ASSERT( fParticleSystem );
 
-	b2Vec2 force_in_newtons( lua_tonumber( L, 2 ),
-								lua_tonumber( L, 3 ) );
+	b2Vec2 force_in_newtons { (float)lua_tonumber( L, 2 ),
+								(float)lua_tonumber( L, 3 ) };
 
 	int32 max_box2d_particleCount = fParticleSystem->GetParticleCount();
 
@@ -1453,8 +1490,8 @@ void ParticleSystemObject::ApplyLinearImpulse( lua_State *L )
 TRACE_CALL;
 	Rtt_ASSERT( fParticleSystem );
 
-	b2Vec2 impulse_in_newton_seconds( lua_tonumber( L, 2 ),
-										lua_tonumber( L, 3 ) );
+	b2Vec2 impulse_in_newton_seconds { (float)lua_tonumber( L, 2 ),
+										(float)lua_tonumber( L, 3 ) };
 
 	int32 max_box2d_particleCount = fParticleSystem->GetParticleCount();
 
@@ -1472,9 +1509,10 @@ int ParticleSystemObject::DestroyParticlesInShape( lua_State *L )
 TRACE_CALL;
 	Rtt_ASSERT( fParticleSystem );
 
-	b2PolygonShape polygonDef;
-	b2CircleShape circleDef;
-	b2Shape *shape = NULL;
+	// b2PolygonShape polygonDef;
+	// b2CircleShape circleDef;
+	b2LiquidShape polygonDef;
+	b2LiquidShape *shape = NULL;
 
 	// Position.
 	b2Vec2 position( b2Vec2_zero );
@@ -1542,24 +1580,25 @@ TRACE_CALL;
 	// Circle shape.
 	if( ! shape )
 	{
+		float radius;
 		lua_getfield( L, -1, "radius" );
 		if( lua_isnumber( L, -1 ) )
 		{
 			// This is a circular shape.
 
-			circleDef.m_radius = lua_tonumber( L, -1 );
-			shape = &circleDef;
+			radius = lua_tonumber( L, -1 );
+			shape = &polygonDef;
 		}
 		lua_pop( L, 1 );
 
 		if( shape )
 		{
 			// Pixels to meters.
-			circleDef.m_radius *= fWorldScaleInMetersPerPixel;
+			radius *= fWorldScaleInMetersPerPixel;
 
 			// Default to 1/16th of a meter.
-			circleDef.m_radius = std::max( circleDef.m_radius,
-											Rtt_REAL_16TH );
+			radius = std::max( radius, Rtt_REAL_16TH );
+			polygonDef.SetAsCircle( b2Vec2_zero, radius );
 		}
 	}
 
@@ -1617,7 +1656,9 @@ TRACE_CALL;
 
 	if( shape )
 	{
-		xf.Set( position, radians );
+		// xf.Set( position, radians );
+		xf.p = position;
+		xf.q = b2MakeRot( radians );
 
 		count = fParticleSystem->DestroyParticlesInShape( *shape, xf );
 	}
@@ -1714,14 +1755,14 @@ namespace // anonymous namespace.
 		}
 	}
 
-	class AnyHitAlongRay : public b2RayCastCallback
+	class AnyHitAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		AnyHitAlongRay( b2ParticleSystem *particleSystem,
 						lua_State *L,
 						float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fPixelsPerMeter( pixelsPerMeter )
@@ -1732,7 +1773,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture(	b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture(	b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1769,14 +1810,14 @@ namespace // anonymous namespace.
 		float fPixelsPerMeter;
 	};
 
-	class ClosestHitAlongRay : public b2RayCastCallback
+	class ClosestHitAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		ClosestHitAlongRay( b2ParticleSystem *particleSystem,
 							lua_State *L,
 							float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fInitialTopIndexOfLuaStack( lua_gettop( fL ) )
@@ -1788,7 +1829,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1835,14 +1876,14 @@ namespace // anonymous namespace.
 		float fPixelsPerMeter;
 	};
 
-	class UnsortedHitsAlongRay : public b2RayCastCallback
+	class UnsortedHitsAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		UnsortedHitsAlongRay( b2ParticleSystem *particleSystem,
 								lua_State *L,
 								float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fResultIndex( 0 )
@@ -1854,7 +1895,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -1918,14 +1959,14 @@ namespace // anonymous namespace.
 	typedef std::list< hit > ListHit;
 	typedef std::list< hit >::iterator ListHitIter;
 
-	class SortedHitsAlongRay : public b2RayCastCallback
+	class SortedHitsAlongRay : public b2LiquidRayCastCallback
 	{
 	public:
 
 		SortedHitsAlongRay( b2ParticleSystem *particleSystem,
 							lua_State *L,
 							float pixelsPerMeter )
-		: b2RayCastCallback()
+		: b2LiquidRayCastCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fListHit()
@@ -1937,7 +1978,7 @@ namespace // anonymous namespace.
 		{
 		}
 
-		float32 ReportFixture( b2Fixture* fixture, const b2Vec2& point,
+		float32 ReportFixture( b2ShapeId fixture, const b2Vec2& point,
 								const b2Vec2& normal, float32 fraction )
 		{
 			return 0;
@@ -2003,10 +2044,10 @@ namespace // anonymous namespace.
 } // anonymous namespace.
 
 int ParticleSystemObject::_CommonRayCast( lua_State *L,
-											b2RayCastCallback *callback )
+											b2LiquidRayCastCallback *callback )
 {
-	b2Vec2 from_in_meters( lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
-	b2Vec2 to_in_meters( lua_tonumber( L, 4 ), lua_tonumber( L, 5 ) );
+	b2Vec2 from_in_meters = { (float)lua_tonumber( L, 2 ), (float)lua_tonumber( L, 3 ) };
+	b2Vec2 to_in_meters = { (float)lua_tonumber( L, 4 ), (float)lua_tonumber( L, 5 ) };
 
 	// Pixels to meters.
 	from_in_meters *= fWorldScaleInMetersPerPixel;
@@ -2087,11 +2128,12 @@ TRACE_CALL;
         return _CommonRayCast( L,
                                 &callback );
     }
+	return 0;
 }
 
 namespace // anonymous namespace.
 {
-	class HitsInRegion : public b2QueryCallback
+	class HitsInRegion : public b2LiquidQueryCallback
 	{
 	public:
 
@@ -2101,7 +2143,7 @@ namespace // anonymous namespace.
 						b2Vec2 *optionalPositionDeltaInMeters,
 						b2Vec2 *optionalVelocityInMetersPerSecond,
 						b2Vec2 *optionalVelocityDeltaInMetersPerSecond )
-		: b2QueryCallback()
+		: b2LiquidQueryCallback()
 		, fParticleSystem( particleSystem )
 		, fL( L )
 		, fInitialTopIndexOfLuaStack( lua_gettop( fL ) )
@@ -2117,10 +2159,10 @@ namespace // anonymous namespace.
 		{
 		}
 
-		bool ReportFixture( b2Fixture* fixture )
-		{
-			return false;
-		}
+		// bool ReportFixture( b2ShapeId fixture )
+		// {
+		// 	return false;
+		// }
 
 		// particles overlapping the region.
 		bool ReportParticle( const b2ParticleSystem* particleSystem,
@@ -2231,8 +2273,8 @@ TRACE_CALL;
     }
 
 	b2AABB aabb;
-	aabb.lowerBound.Set( lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
-	aabb.upperBound.Set( lua_tonumber( L, 4 ), lua_tonumber( L, 5 ) );
+	aabb.lowerBound = { (float)lua_tonumber( L, 2 ), (float)lua_tonumber( L, 3 ) };
+	aabb.upperBound = { (float)lua_tonumber( L, 4 ), (float)lua_tonumber( L, 5 ) };
 
 	// Pixels to meters.
 	aabb.lowerBound *= fWorldScaleInMetersPerPixel;
@@ -2249,7 +2291,7 @@ TRACE_CALL;
 	{
 		// Position delta.
 		{
-			positionDeltaInMeters.SetZero();
+			positionDeltaInMeters = b2Vec2_zero;
 
 			lua_getfield( L, -1, "deltaX" );
 			if( lua_isnumber( L, -1 ) )
@@ -2275,7 +2317,7 @@ TRACE_CALL;
 
 		// Velocity.
 		{
-			velocityInMetersPerSecond.SetZero();
+			velocityInMetersPerSecond = b2Vec2_zero;
 
 			lua_getfield( L, -1, "velocityX" );
 			if( lua_isnumber( L, -1 ) )
@@ -2301,7 +2343,7 @@ TRACE_CALL;
 
 		// Velocity Delta.
 		{
-			velocityDeltaInMetersPerSecond.SetZero();
+			velocityDeltaInMetersPerSecond = b2Vec2_zero;
 
 			lua_getfield( L, -1, "deltaVelocityX" );
 			if( lua_isnumber( L, -1 ) )
@@ -2338,7 +2380,7 @@ TRACE_CALL;
     // a table at the top of the Lua stack. This table at the top
     // of the Lua stack is the result we return from this function.
     int top_index_before_QueryAABB = lua_gettop( L );
-    fWorld->QueryAABB( &callback, aabb );
+    fParticleSystem->QueryAABB( &callback, aabb );
 
     // Any hits returned by QueryAABB() are pushed into a table that's
     // on the stack. We want to return true if we're returning a result.

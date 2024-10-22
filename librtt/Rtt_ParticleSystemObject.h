@@ -22,7 +22,10 @@
 #include "Core/Rtt_SharedPtr.h"
 #include "Rtt_PhysicsTypes.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
+#include "liquid_world.h"
+#include "liquid_shape.h"
+#include "liquid_callbacks.h"
 
 // ----------------------------------------------------------------------------
 
@@ -94,8 +97,7 @@ private:
 											b2ParticleDef &particleDef );
 	void _InitializeFromLua_ParticleGroupDef( lua_State *L,
 												b2ParticleGroupDef &particleGroupDef,
-												b2PolygonShape &polygonDef,
-												b2CircleShape &circleDef,
+												b2LiquidShape &liquidShape,
 												b2PolygonShapePtrVector &polyVec );
 
 	void _CopyAllParticlesFromParticleSystemToVertexData();
@@ -109,7 +111,7 @@ private:
 	void _Cleanup();
 
 	int _CommonRayCast( lua_State *L,
-						b2RayCastCallback *callback );
+						b2LiquidRayCastCallback *callback );
 
 	// MUpdatable
 	bool fShouldUpdate;
@@ -119,7 +121,7 @@ private:
 	float fWorldScaleInPixelsPerMeter;
 	float fWorldScaleInMetersPerPixel;
 	b2Vec2 fRenderRadiusInPixels;
-	b2World *fWorld;
+	b2LiquidWorld *fWorld;
 	const PhysicsWorld *fPhysics;
 
 	b2ParticleSystem *fParticleSystem;

@@ -16,7 +16,7 @@
 
 // ----------------------------------------------------------------------------
 
-class b2Contact;
+// class b2Contact;
 
 struct lua_State;
 
@@ -24,8 +24,30 @@ namespace Rtt
 {
 
 class UserdataWrapper;
-	
+
 // ----------------------------------------------------------------------------
+
+class Box2dPreSolveTempContact
+{
+public:
+	Box2dPreSolveTempContact()
+	{
+		isEnabled = true;
+		separation = 0.0f;
+		normalX = 0.0f;
+		normalY = 0.0f;
+		wrapper = nullptr;
+	};
+	~Box2dPreSolveTempContact()
+	{
+		wrapper = nullptr;
+	};
+	bool isEnabled;
+	float separation;
+	float normalX;
+	float normalY;
+	UserdataWrapper* wrapper;
+};
 
 class PhysicsContact
 {
@@ -36,10 +58,10 @@ class PhysicsContact
 		static const char kMetatableName[];
 
 	public:
-		static UserdataWrapper *CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, b2Contact *contact );
+		static UserdataWrapper *CreateWrapper( const ResourceHandle< lua_State >& luaStateHandle, Box2dPreSolveTempContact *contact );
 
 	public:
-		static b2Contact* GetContact( lua_State *L, int index );
+		static Box2dPreSolveTempContact* GetContact( lua_State *L, int index );
 
 	public:
 		static void Initialize( lua_State *L );

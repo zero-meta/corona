@@ -10,15 +10,15 @@
 #ifndef _Rtt_PhysicsJoint_H__
 #define _Rtt_PhysicsJoint_H__
 
-#ifdef Rtt_PHYSICS	
+#ifdef Rtt_PHYSICS
 
-//#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 #include "Rtt_LuaProxyVTable.h"
 
 // ----------------------------------------------------------------------------
 
-class b2Joint;
-struct b2Vec2;
+// class b2Joint;
+// struct b2Vec2;
 
 struct lua_State;
 
@@ -38,7 +38,7 @@ class PhysicsJoint
 		static const char kMetatableName[];
 
 	public:
-		static b2Joint* GetJoint( lua_State *L, int index );
+		static b2JointId GetJoint( lua_State *L, int index );
 
 	public:
 		static void Initialize( lua_State *L );
@@ -46,16 +46,19 @@ class PhysicsJoint
 	public:
 		static int getAnchorA( lua_State *L );
 		static int getAnchorB( lua_State *L );
-		static bool HasLocalAnchor( b2Joint& joint );
-		static b2Vec2 GetLocalAnchorA( b2Joint& joint );
-		static b2Vec2 GetLocalAnchorB( b2Joint& joint );
-		static int getLocalAnchor( lua_State *L );
+		static bool HasLocalAnchor( b2JointId joint );
+		static b2Vec2 GetLocalAnchorA( b2JointId joint );
+		static b2Vec2 GetLocalAnchorB( b2JointId joint );
+		static int getLocalAnchorA( lua_State *L );
+		static int getLocalAnchorB( lua_State *L );
 		static int getLocalAxis( lua_State *L );
 		static int getReactionForce( lua_State *L );
 		static int setRotationLimits( lua_State *L );
 		static int getRotationLimits( lua_State *L );
 		static int setLimits( lua_State *L );
 		static int getLimits( lua_State *L );
+		static int setLinearOffset( lua_State *L );
+		static int getLinearOffset( lua_State *L );
 		static int getGroundAnchorA( lua_State *L );
 		static int getGroundAnchorB( lua_State *L );
 		static int removeSelf( lua_State *L );

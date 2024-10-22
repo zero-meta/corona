@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -9,7 +9,7 @@
 
 #include "Core/Rtt_Build.h"
 
-#ifdef Rtt_PHYSICS	
+#ifdef Rtt_PHYSICS
 
 #include "Rtt_PhysicsContactListener.h"
 
@@ -20,7 +20,7 @@
 #include "Rtt_PhysicsContact.h"
 #include "Rtt_PhysicsWorld.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -35,7 +35,7 @@ PhysicsContactListener::PhysicsContactListener( Runtime& runtime )
 }
 
 void
-PhysicsContactListener::BeginContact(b2Contact* contact)
+PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold manifold)
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
 
@@ -46,18 +46,18 @@ PhysicsContactListener::BeginContact(b2Contact* contact)
 	}
 
 	const char phase[] = "began";
-	
-	b2Fixture *fixtureA = contact->GetFixtureA();
-	b2Fixture *fixtureB = contact->GetFixtureB();
-	
-	size_t fixtureIndex1 = (size_t)fixtureA->GetUserData();
-	size_t fixtureIndex2 = (size_t)fixtureB->GetUserData();
-	
-	b2Body *bodyA = fixtureA->GetBody();
-	b2Body *bodyB = fixtureB->GetBody();
-	
-	DisplayObject *object1 = static_cast< DisplayObject* >( bodyA->GetUserData() );
-	DisplayObject *object2 = static_cast< DisplayObject* >( bodyB->GetUserData() );
+
+	// b2Fixture *fixtureA = contact->GetFixtureA();
+	// b2Fixture *fixtureB = contact->GetFixtureB();
+
+	size_t fixtureIndex1 = (size_t)b2Shape_GetUserData( shapeIdA );
+	size_t fixtureIndex2 = (size_t)b2Shape_GetUserData( shapeIdB );
+
+	b2BodyId bodyA = b2Shape_GetBody( shapeIdA );
+	b2BodyId bodyB = b2Shape_GetBody( shapeIdB );
+
+	DisplayObject *object1 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyA) );
+	DisplayObject *object2 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyB) );
 
 	////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
@@ -69,27 +69,43 @@ PhysicsContactListener::BeginContact(b2Contact* contact)
 	// Get the out_position.
 	b2Vec2 position( b2Vec2_zero );
 
+	// Real normalImpulse = 0.0f;
+	// Real tangentImpulse = 0.0f;
+
+	int capacity = b2Shape_GetContactCapacity( shapeIdA );
+	// b2ContactData contactData[capacity];
+	// b2Manifold manifold = { 0 };
+	// int count = b2Shape_GetContactData( shapeIdA, contactData, capacity );
+	// for ( int i = 0; i < count; ++i )
+	// {
+	// 	if ( B2_ID_EQUALS( contactData[i].shapeIdB, shapeIdB ) ) {
+	// 		manifold = contactData[i].manifold;
+	// 		break;
+	// 	}
+	// }
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
-	b2Manifold *manifold = contact->GetManifold();
-	if( manifold->pointCount )
+	// b2Manifold *manifold = contact->GetManifold();
+	if( manifold.pointCount )
 	{
 		Real scale = physics.GetPixelsPerMeter();
 
 		// "1": If we don't average all positions, then we only return the first one.
-		int32 point_count = ( physics.GetAverageCollisionPositions() ? manifold->pointCount : 1 );
+		int32 point_count = ( physics.GetAverageCollisionPositions() ? manifold.pointCount : 1 );
 
 		if( physics.GetReportCollisionsInContentCoordinates() )
 		{
 			// Get the contact points in content-space.
-			b2WorldManifold worldManifold;
-			contact->GetWorldManifold( &worldManifold );
+			// b2WorldManifold worldManifold;
+			// contact->GetWorldManifold( &worldManifold );
 
 			// Sum.
 			for ( int32 i = 0;
 					i < point_count;
 					++i )
 			{
-				position += worldManifold.points[ i ];
+				position += manifold.points[ i ].point;
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 		else
@@ -101,7 +117,10 @@ PhysicsContactListener::BeginContact(b2Contact* contact)
 					i < point_count;
 					++i )
 			{
-				position += manifold->points[ i ].localPoint;
+				// position += manifold->points[ i ].localPoint;
+				position += manifold.points[ i ].anchorA;
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 
@@ -119,19 +138,20 @@ PhysicsContactListener::BeginContact(b2Contact* contact)
 	if ( object1 && ! object1->IsOrphan()
 		 && object2 && ! object2->IsOrphan() )
 	{
-		UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), contact );
+		// UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), contact );
 		{
 			CollisionEvent e( * object1, * object2, position.x, position.y, (int) fixtureIndex1, (int) fixtureIndex2, phase );
-			e.SetContact( contactWrapper );
+			// e.SetContact( contactWrapper );
+			e.SetContact( NULL );
 
 			fRuntime.DispatchEvent( e );
 		}
-		contactWrapper->Invalidate();
+		// contactWrapper->Invalidate();
 	}
 }
 
 void
-PhysicsContactListener::EndContact(b2Contact* contact)
+PhysicsContactListener::EndContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
 
@@ -140,20 +160,20 @@ PhysicsContactListener::EndContact(b2Contact* contact)
 		// Nothing to do.
 		return;
 	}
-	
+
 	const char phase[] = "ended";
 
-	b2Fixture *fixtureA = contact->GetFixtureA();
-	b2Fixture *fixtureB = contact->GetFixtureB();
-	
-	size_t fixtureIndex1 = (size_t)fixtureA->GetUserData();
-	size_t fixtureIndex2 = (size_t)fixtureB->GetUserData();
-	
-	b2Body *bodyA = fixtureA->GetBody();
-	b2Body *bodyB = fixtureB->GetBody();
-	
-	DisplayObject *object1 = static_cast< DisplayObject* >( bodyA->GetUserData() );
-	DisplayObject *object2 = static_cast< DisplayObject* >( bodyB->GetUserData() );
+	// b2Fixture *fixtureA = contact->GetFixtureA();
+	// b2Fixture *fixtureB = contact->GetFixtureB();
+
+	size_t fixtureIndex1 = (size_t)b2Shape_GetUserData( shapeIdA );
+	size_t fixtureIndex2 = (size_t)b2Shape_GetUserData( shapeIdB );
+
+	b2BodyId bodyA = b2Shape_GetBody( shapeIdA );
+	b2BodyId bodyB = b2Shape_GetBody( shapeIdB );
+
+	DisplayObject *object1 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyA) );
+	DisplayObject *object2 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyB) );
 
 	////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
@@ -165,6 +185,7 @@ PhysicsContactListener::EndContact(b2Contact* contact)
 	// Get the out_position.
 	b2Vec2 position( b2Vec2_zero );
 
+	/*
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
 	b2Manifold *manifold = contact->GetManifold();
 	if( manifold->pointCount )
@@ -207,6 +228,7 @@ PhysicsContactListener::EndContact(b2Contact* contact)
 		// Scale.
 		position *= scale;
 	}
+	*/
 	////
 	////
 	////////////////////////////////////////////////////////////////////////
@@ -215,39 +237,67 @@ PhysicsContactListener::EndContact(b2Contact* contact)
 	if ( object1 && ! object1->IsOrphan()
 		 && object2 && ! object2->IsOrphan() )
 	{
-		UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), contact );
+		// UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), contact );
 		{
 			CollisionEvent e( * object1, * object2, position.x, position.y, (int) fixtureIndex1, (int) fixtureIndex2, phase );
-			e.SetContact( contactWrapper );
+			// e.SetContact( contactWrapper );
+			e.SetContact( NULL );
 
 			fRuntime.DispatchEvent( e );
 		}
-		contactWrapper->Invalidate();
+		// contactWrapper->Invalidate();
 	}
 }
 
-void
-PhysicsContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifold)
+void PhysicsContactListener::BeginContactHit( b2ContactHitEvent *hitEvent )
+{
+	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
+
+	if ( ! physics.IsProperty( PhysicsWorld::kHitCollisionListenerExists ) )
+	{
+		// Nothing to do.
+		return;
+	}
+
+	size_t fixtureIndex1 = (size_t)b2Shape_GetUserData( hitEvent->shapeIdA );
+	size_t fixtureIndex2 = (size_t)b2Shape_GetUserData( hitEvent->shapeIdB );
+
+	b2BodyId bodyA = b2Shape_GetBody( hitEvent->shapeIdA );
+	b2BodyId bodyB = b2Shape_GetBody( hitEvent->shapeIdB );
+
+	DisplayObject *object1 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyA) );
+	DisplayObject *object2 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyB) );
+
+	if ( object1 && ! object1->IsOrphan()
+		 && object2 && ! object2->IsOrphan() )
+	{
+		HitCollisionEvent e( * object1, * object2, hitEvent->point.x, hitEvent->point.y, (int) fixtureIndex1, (int) fixtureIndex2,
+			hitEvent->approachSpeed, hitEvent->normal.x, hitEvent->normal.y );
+		e.SetContact( NULL );
+
+		fRuntime.DispatchEvent( e );
+	}
+}
+
+bool
+PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const b2Manifold* manifold )
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
 
 	if ( ! physics.IsProperty( PhysicsWorld::kPreCollisionListenerExists ) )
 	{
 		// Nothing to do.
-		return;
+		return true;
 	}
 
-	b2Fixture *fixtureA = contact->GetFixtureA();
-	b2Fixture *fixtureB = contact->GetFixtureB();
-	
-	size_t fixtureIndex1 = (size_t)fixtureA->GetUserData();
-	size_t fixtureIndex2 = (size_t)fixtureB->GetUserData();
-	
-	b2Body *bodyA = fixtureA->GetBody();
-	b2Body *bodyB = fixtureB->GetBody();
-	
-	DisplayObject *object1 = static_cast< DisplayObject* >( bodyA->GetUserData() );
-	DisplayObject *object2 = static_cast< DisplayObject* >( bodyB->GetUserData() );
+	size_t fixtureIndex1 = (size_t)b2Shape_GetUserData( shapeIdA );
+	size_t fixtureIndex2 = (size_t)b2Shape_GetUserData( shapeIdB );
+
+	b2BodyId bodyA = b2Shape_GetBody( shapeIdA );
+	b2BodyId bodyB = b2Shape_GetBody( shapeIdB );
+
+	DisplayObject *object1 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyA) );
+	DisplayObject *object2 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyB) );
 
 	////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
@@ -260,7 +310,7 @@ PhysicsContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifo
 	b2Vec2 position( b2Vec2_zero );
 
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
-	b2Manifold *manifold = contact->GetManifold();
+	// b2Manifold *manifold = contact->GetManifold();
 	if( manifold->pointCount )
 	{
 		Real scale = physics.GetPixelsPerMeter();
@@ -271,15 +321,15 @@ PhysicsContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifo
 		if( physics.GetReportCollisionsInContentCoordinates() )
 		{
 			// Get the contact points in content-space.
-			b2WorldManifold worldManifold;
-			contact->GetWorldManifold( &worldManifold );
+			// b2WorldManifold worldManifold;
+			// contact->GetWorldManifold( &worldManifold );
 
 			// Sum.
 			for ( int32 i = 0;
 					i < point_count;
 					++i )
 			{
-				position += worldManifold.points[ i ];
+				position += manifold->points[ i ].point;
 			}
 		}
 		else
@@ -291,7 +341,7 @@ PhysicsContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifo
 					i < point_count;
 					++i )
 			{
-				position += manifold->points[ i ].localPoint;
+				position += b2Body_GetLocalPoint( bodyA, manifold->points[ i ].point );
 			}
 		}
 
@@ -309,17 +359,34 @@ PhysicsContactListener::PreSolve(b2Contact* contact, const b2Manifold* oldManifo
 	if ( object1 && ! object1->IsOrphan()
 		 && object2 && ! object2->IsOrphan() )
 	{
-		UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), contact );
-		{
-			PreCollisionEvent e( * object1, * object2, position.x, position.y, (int) fixtureIndex1, (int) fixtureIndex2);
-			e.SetContact( contactWrapper );
 
-			fRuntime.DispatchEvent( e );
+		float separation = 0.0f;
+		for ( int i = 0; i < manifold->pointCount; ++i )
+		{
+			float s = manifold->points[i].separation;
+			separation = separation < s ? separation : s;
 		}
-		contactWrapper->Invalidate();
+		// contact->separation = separation;
+
+		bool isEnabled = true;
+		{
+			Box2dPreSolveTempContact contact;
+			contact.separation = separation;
+			contact.normalX = manifold->normal.x;
+			contact.normalY = manifold->normal.y;
+
+			PreCollisionEvent e( * object1, * object2, position.x, position.y, fixtureIndex1, fixtureIndex2, fRuntime, &contact );
+			{
+				std::lock_guard<std::mutex> lock(fDispatchEventMutex);
+				isEnabled = e.DispatchWithResult( fRuntime.VMContext().L(), fRuntime );
+			}
+		}
+		return isEnabled;
 	}
+	return true;
 }
 
+/*
 void
 PhysicsContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* impulse)
 {
@@ -333,10 +400,10 @@ PhysicsContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* im
 
 	b2Fixture *fixtureA = contact->GetFixtureA();
 	b2Fixture *fixtureB = contact->GetFixtureB();
-	
+
 	size_t fixtureIndex1 = (size_t)fixtureA->GetUserData();
 	size_t fixtureIndex2 = (size_t)fixtureB->GetUserData();
-	
+
 	b2Body *bodyA = fixtureA->GetBody();
 	b2Body *bodyB = fixtureB->GetBody();
 
@@ -403,7 +470,7 @@ PhysicsContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* im
 	////////////////////////////////////////////////////////////////////////
 
 		// For the contact forces, we take the maximum within each set
-		int32 count = contact->GetManifold()->pointCount;	
+		int32 count = contact->GetManifold()->pointCount;
 		for (int32 i = 0; i < count; ++i) {
 			maxNormalImpulse = b2Max( maxNormalImpulse, impulse->normalImpulses[i] );
 			maxTangentImpulse = b2Max( maxTangentImpulse, impulse->tangentImpulses[i] );
@@ -423,8 +490,9 @@ PhysicsContactListener::PostSolve(b2Contact* contact, const b2ContactImpulse* im
 		contactWrapper->Invalidate();
 	}
 }
+*/
 
-void PhysicsContactListener::BeginContact( b2ParticleSystem *particleSystem,
+void PhysicsContactListener::BeginParticleContact( b2ParticleSystem *particleSystem,
 											b2ParticleBodyContact *particleBodyContact )
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
@@ -440,7 +508,7 @@ void PhysicsContactListener::BeginContact( b2ParticleSystem *particleSystem,
 															particleBodyContact ) );
 }
 
-void PhysicsContactListener::EndContact( b2Fixture *fixture,
+void PhysicsContactListener::EndParticleContact( b2ShapeId fixture,
 											b2ParticleSystem *particleSystem,
 											int32 particleIndex )
 {
@@ -451,7 +519,7 @@ void PhysicsContactListener::EndContact( b2Fixture *fixture,
 		// Nothing to do.
 		return;
 	}
-	
+
 	fRuntime.DispatchEvent( EndParticleCollisionEvent( fRuntime,
 														fixture,
 														particleSystem,
@@ -464,4 +532,4 @@ void PhysicsContactListener::EndContact( b2Fixture *fixture,
 
 // ----------------------------------------------------------------------------
 
-#endif // Rtt_PHYSICS	
+#endif // Rtt_PHYSICS

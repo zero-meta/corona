@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -16,6 +16,10 @@
 
 #include "Core/Rtt_Geometry.h"
 #include "Core/Rtt_ResourceHandle.h"
+
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined( Rtt_PHYSICS)
+#include "box2d/box2d.h"
+#endif
 
 namespace Rtt
 {
@@ -56,13 +60,13 @@ void setProperty( lua_State *L, const char key[], size_t keyLen, Coordinate valu
 #endif
 
 // These functions map an enum constant to an address. They assume the enum
-// starts at 0 and consecutively increase.  Further, the number of char's in 
+// starts at 0 and consecutively increase.  Further, the number of char's in
 // the buffer must be the number of constants in the enum.
 void* UserdataForEnum( const char buffer[], U32 index );
 bool EnumExistsForUserdata( const char buffer[], void *p, S32 numIndices );
 S32 EnumForUserdata( const char buffer[], void* p, S32 numIndices, S32 defaultIndex );
 
-// Constructs a path grabbing the filename from the stack at "index" and using a 
+// Constructs a path grabbing the filename from the stack at "index" and using a
 // base directory at "index + 1". If no base directory is specified, then MPlatform::kResourceDir
 // is used by default. It returns the index on the stack of the next argument
 // after all path related arguments. Also, the results of the stack are placed in outPath.
@@ -71,12 +75,12 @@ int luaL_initpath( lua_State *L, const MPlatform& platform, int index, String& o
 // ----------------------------------------------------------------------------
 
 // UserdataWrapper is a convenience class for managing situations where you need Lua to own
-// the wrapper but not own the C pointer stored inside the wrapper b/c the pointer has a 
-// distinct lifetime outside the Lua GC system.  
-// 
-// It also ensure that for a given C pointer, the *same* Lua userdata instance is 
+// the wrapper but not own the C pointer stored inside the wrapper b/c the pointer has a
+// distinct lifetime outside the Lua GC system.
+//
+// It also ensure that for a given C pointer, the *same* Lua userdata instance is
 // pushed to Lua.
-// 
+//
 // Ownership assumptions and usage consequences:
 // * Some other entity will own the actual userdata pointer (e.g. b2World owns b2Joint's).
 // * UserdataWrapper will have a *weak* pointer to the C pointer (userdata). Therefore:
@@ -107,6 +111,31 @@ class UserdataWrapper
 		ResourceHandle< lua_State > fHandle;
 		void *fData;
 };
+
+#if !defined(CORONABUILDER_NO_PHYSICS) && defined(Rtt_PHYSICS)
+class JointUserdataWrapper
+{
+	public:
+		typedef JointUserdataWrapper Self;
+
+	public:
+		static void* GetFinalizedValue();
+
+	public:
+		JointUserdataWrapper( const ResourceHandle< lua_State >& handle, b2JointId ud, const char *mtName );
+		~JointUserdataWrapper();
+
+	public:
+		int Push() const;
+		void Invalidate() { fData = b2_nullJointId; }
+		b2JointId Dereference() const { return fData; }
+
+	private:
+		ResourceHandle< lua_State > fHandle;
+		b2JointId fData;
+};
+#endif
+
 
 // ----------------------------------------------------------------------------
 

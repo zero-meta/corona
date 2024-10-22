@@ -30,8 +30,8 @@ extern "C" int Rtt_LogException( const char *format, ... );
 
 // ----------------------------------------------------------------------------
 
-bool b2Separator::SeparateAndCreateFixtures( b2Body *body,
-												b2FixtureDef *fixtureDef,
+bool b2Separator::SeparateAndCreateFixtures( b2BodyId bodyId,
+												b2ShapeDef *shapeDef,
 												int &fixtureIndex,
 												FixtureCreator_t fixture_creator,
 												b2Vec2Vector &vertices_vec,
@@ -47,8 +47,8 @@ bool b2Separator::SeparateAndCreateFixtures( b2Body *body,
 					scale.x,
 					scale.y );
 
-	b2PolygonShape polyShape;
-	fixtureDef->shape = &polyShape;
+	// b2PolygonShape polyShape;
+	// shapeDef->shape = &polyShape;
 
 	// Tesselate the outline.
 	{
@@ -97,24 +97,24 @@ bool b2Separator::SeparateAndCreateFixtures( b2Body *body,
 				DEBUG_PRINT( "*** Fixture %03d : Vertex %03d : x, y: %f, %f\n", i, j, v.x, v.y );
 	        }
 
-	        bool ok = polyShape.Set( &( vertices[ 0 ] ), (int)m );
-			if( ! ok )
-			{
-				// Set() failed. Skip this polygon.
-				DEBUG_PRINT( "skipped shape index: %d\n", i );
-				continue;
-			}
+	        // bool ok = polyShape.Set( &( vertices[ 0 ] ), (int)m );
+			// if( ! ok )
+			// {
+			// 	// Set() failed. Skip this polygon.
+			// 	DEBUG_PRINT( "skipped shape index: %d\n", i );
+			// 	continue;
+			// }
 
 			// Create the fixtures.
-			fixture_creator( body,
-								fixtureDef,
+			fixture_creator( bodyId,
+								shapeDef,
 								fixtureIndex );
 
 			vertices_added = true;
 	    }
 	}
 
-	fixtureDef->shape = NULL;
+	// shapeDef->shape = NULL;
 
 	return vertices_added;
 }
@@ -182,7 +182,7 @@ void b2Separator::calcShapes(b2Vec2Vector &pVerticesVec, b2Vec2VectorVector &res
     int j1, j2;
     b2Vec2 v1, v2;
     int k=0, h=0;
-    b2Vec2 hitV(0,0);
+    b2Vec2 hitV = {0,0};
     bool isConvex;
     b2Vec2VectorVector figsVec;
     b2Vec2VectorQueue queue;
@@ -385,7 +385,9 @@ bool b2Separator::hitRay( float x1, float y1, float x2, float y2, float x3, floa
 
 	if( hit && optionalOutputVec )
 	{
-		optionalOutputVec->Set( px, py );
+		// optionalOutputVec->Set( px, py );
+        optionalOutputVec->x = px;
+        optionalOutputVec->y = py;
 	}
 
 	return hit;
@@ -414,7 +416,9 @@ bool b2Separator::hitSegment( float x1, float y1, float x2, float y2, float x3, 
 
 	if( hit && optionalOutputVec )
 	{
-		optionalOutputVec->Set( px, py );
+		// optionalOutputVec->Set( px, py );
+        optionalOutputVec->x = px;
+        optionalOutputVec->y = py;
 	}
 
 	return hit;

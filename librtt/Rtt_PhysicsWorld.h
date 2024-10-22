@@ -12,10 +12,14 @@
 
 // ----------------------------------------------------------------------------
 
-class b2Body;
-class b2DebugDraw;
-class b2World;
-class b2DestructionListener;
+#include "box2d/box2d.h"
+#include "TaskScheduler.h"
+#include "liquid_world.h"
+
+// class b2Body;
+// class b2DebugDraw;
+// class b2World;
+// class b2DestructionListener;
 
 namespace Rtt
 {
@@ -24,6 +28,22 @@ class b2GLESDebugDraw;
 class PhysicsContactListener;
 class Runtime;
 class Renderer;
+
+class PhysicsTask : public enki::ITaskSet
+{
+  public:
+	PhysicsTask() = default;
+
+	void ExecuteRange( enki::TaskSetPartition range, uint32_t threadIndex ) override
+	{
+		m_task( range.start, range.end, threadIndex, m_taskContext );
+	}
+
+	b2TaskCallback* m_task = nullptr;
+	void* m_taskContext = nullptr;
+};
+
+static constexpr int32_t maxTasks = 64;
 
 // ----------------------------------------------------------------------------
 
@@ -38,6 +58,7 @@ class PhysicsWorld
 			kPreCollisionListenerExists			= 0x04,
 			kPostCollisionListenerExists		= 0x08,
 			kParticleCollisionListenerExists	= 0x10,
+			kHitCollisionListenerExists	= 0x20,
 		};
 
 		typedef U32 Properties;
@@ -55,9 +76,14 @@ class PhysicsWorld
 	public:
 		void StartWorld( Runtime& runtime, bool noSleep );
 		void PauseWorld();
+		void ResumeWorld();
 		void StopWorld();
-		b2World* GetWorld() const { return fWorld; }
-		b2Body* GetGroundBody() const { return fGroundBody; }
+		void onSuspended();
+		void onResumed();
+		b2LiquidWorld* GetWorld() const { return fWorld; }
+		b2WorldId GetWorldId() const { return fWorld->GetWorldId(); }
+		// b2Body* GetGroundBody() const { return fGroundBody; }
+		b2BodyId GetGroundBodyId() const { return fGroundBodyId; }
 
 	public:
 		Rtt_Allocator *Allocator() const { return & fAllocator; }
@@ -84,6 +110,11 @@ class PhysicsWorld
 		int GetNumSteps() const { return fNumSteps; }
 		void SetNumSteps( S32 newValue ) { fNumSteps = newValue; }
 
+		int GetSubSteps() const { return fSubStepCount; }
+		void SetSubSteps( S32 newValue ) { fSubStepCount = newValue; }
+
+	private:
+		void StepEvents();
 
 	public:
 		void SetReportCollisionsInContentCoordinates( bool enabled );
@@ -104,13 +135,16 @@ class PhysicsWorld
 	private:
 		Rtt_Allocator& fAllocator;
 		b2GLESDebugDraw *fWorldDebugDraw;
-		b2DestructionListener *fWorldDestructionListener;
+		// b2DestructionListener *fWorldDestructionListener;
 		PhysicsContactListener *fWorldContactListener;
 
 		U32 fProperties;
-		b2World *fWorld;
+		// b2WorldId fWorldId;
+		b2LiquidWorld *fWorld;
 		Real fPixelsPerMeter;
-		b2Body *fGroundBody;
+		// b2Body *fGroundBody;
+		b2BodyId fGroundBodyId;
+		S32 fSubStepCount;
 		S32 fVelocityIterations;
 		S32 fPositionIterations;
 		float fFrameInterval;
@@ -141,6 +175,12 @@ class PhysicsWorld
 		//! false: The point of contact reported is the first one reported by Box2D. The order is arbitrary.
 		//! true: The point of contact reported is the average of all contact points.
 		bool fAverageCollisionPositions;
+
+	public:
+		int fWorkerCount;
+		enki::TaskScheduler fScheduler;
+		PhysicsTask fTasks[maxTasks];
+		int32_t fTaskCount;
 };
 
 // ----------------------------------------------------------------------------

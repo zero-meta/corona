@@ -245,6 +245,26 @@ LuaDisplayObjectProxyVTable::Constant()
 }
 
 int
+LuaDisplayObjectProxyVTable::hitTest( lua_State *L )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+	if ( o )
+	{
+		Real x = luaL_checkreal( L, 2 );
+		Real y = luaL_checkreal( L, 3 );
+
+		bool testResult = o->HitTest( x, y );
+		lua_pushboolean(L, testResult);
+	}
+	else
+	{
+		lua_pushboolean(L, false);
+	}
+
+	return 1;
+}
+
+int
 LuaDisplayObjectProxyVTable::translate( lua_State *L )
 {
 	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
@@ -751,9 +771,10 @@ LuaDisplayObjectProxyVTable::ValueForKey( lua_State *L, const MLuaProxyable& obj
 		"maskRotation",         // 32
 		"isHitTestMasked",		// 33
 		"_setHasListener",		// 34
+		"hitTest",				// 35
 	};
     const int numKeys = sizeof( keys ) / sizeof( const char * );
-	static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 35, 33, 15, __FILE__, __LINE__ );
+	static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 36, 12, 6, __FILE__, __LINE__ );
 	StringHash *hash = &sHash;
 
 	int index = hash->Lookup( key );
@@ -817,6 +838,11 @@ LuaDisplayObjectProxyVTable::ValueForKey( lua_State *L, const MLuaProxyable& obj
 	case 34:
 		{
 			Lua::PushCachedFunction( L, setHasListener );
+		}
+		break;
+	case 35:
+		{
+			Lua::PushCachedFunction( L, hitTest );
 		}
 		break;
 	default:
@@ -1627,7 +1653,7 @@ LuaLineObjectProxyVTable::SetValueForKey( lua_State *L, MLuaProxyable& object, c
 	LineObject& o = static_cast< LineObject& >( object );
 	Rtt_WARN_SIM_PROXY_TYPE( L, 1, LineObject );
 
-	static const char * keys[] = 
+	static const char * keys[] =
 	{
 		"setColor",			// 0
 		"setStrokeColor",	// 1
@@ -1899,7 +1925,7 @@ int
 LuaShapeObjectProxyVTable::ValueForKey( lua_State *L, const MLuaProxyable& object, const char key[], bool overrideRestriction /* = false */ ) const
 {
 	if ( ! key ) { return 0; }
-	
+
 	int result = 1;
 
 	static const char * keys[] =
@@ -3132,7 +3158,7 @@ enum
 	kParticleSystemObject_RayCast,
 };
 
-static const char * ParticleSystemObject_keys[] = 
+static const char * ParticleSystemObject_keys[] =
 {
 	// Read-write properties.
 	"particleDensity",
@@ -3162,7 +3188,7 @@ static const char * ParticleSystemObject_keys[] =
 static StringHash*
 GetParticleSystemObjectHash( lua_State *L )
 {
-	static StringHash sHash( *LuaContext::GetAllocator( L ), ParticleSystemObject_keys, sizeof( ParticleSystemObject_keys ) / sizeof(const char *), 19, 28, 2, __FILE__, __LINE__ );
+	static StringHash sHash( *LuaContext::GetAllocator( L ), ParticleSystemObject_keys, sizeof( ParticleSystemObject_keys ) / sizeof(const char *), 18, 29, 2, __FILE__, __LINE__ );
 	return &sHash;
 }
 
@@ -3170,7 +3196,7 @@ int
 LuaParticleSystemObjectProxyVTable::ValueForKey( lua_State *L, const MLuaProxyable& object, const char key[], bool overrideRestriction /* = false */ ) const
 {
 	if ( ! key ) { return 0; }
-	
+
 	int result = 1;
 	StringHash *hash = GetParticleSystemObjectHash( L );
 	int index = hash->Lookup( key );

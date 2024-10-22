@@ -21,17 +21,24 @@
 #ifndef RENDER_H
 #define RENDER_H
 
-#include "Box2D/Box2D.h"
+// #include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
+#include "particle_system.h"
 
 #include "Renderer/Rtt_RenderData.h"
 
-struct b2AABB;
+// struct b2AABB;
 
 // ----------------------------------------------------------------------------
 
 namespace Rtt
 {
 // ----------------------------------------------------------------------------
+
+struct Box2dDebugColor
+{
+	float r, g, b;
+};
 
 class Display;
 class PhysicsWorld;
@@ -42,7 +49,8 @@ class Shader;
 
 // This class implements debug drawing callbacks that are invoked
 // inside b2World::Step.
-class b2GLESDebugDraw : public b2Draw
+// class b2GLESDebugDraw : public b2Draw
+class b2GLESDebugDraw
 {
 	public:
 		b2GLESDebugDraw( Display &display );
@@ -54,55 +62,57 @@ class b2GLESDebugDraw : public b2Draw
 
 	public:
 		void DrawDebugData( const PhysicsWorld& physics, Renderer &renderer );
+		float GetMetersPerPixel();
+		float GetPixelsPerMeter();
 
 	protected:
-		void DrawShape( b2Fixture* fixture, const b2Transform& xf, const b2Color& color);
-		void DrawJoint( b2Joint* joint );
+		void DrawShape( b2ShapeId fixture, const b2Transform& xf, Box2dDebugColor color);
+		void DrawJoint( b2JointId joint );
 		void DrawParticleSystem( const b2ParticleSystem& system );
 
 	public:
 		// b2Draw.
 
-		virtual void DrawPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+		virtual void DrawPolygon(const b2Vec2* vertices, int vertexCount, Box2dDebugColor color);
 
-		virtual void DrawSolidPolygon(const b2Vec2* vertices, int32 vertexCount, const b2Color& color);
+		virtual void DrawSolidPolygon(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, Box2dDebugColor color);
 
+		virtual void DrawCircle(const b2Vec2& center, float radius, Box2dDebugColor color);
 
-		virtual void DrawCircle(const b2Vec2& center, float32 radius, const b2Color& color);
+		virtual void DrawParticles(const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count);
 
-		virtual void DrawParticles(const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count);
+		void DrawParticlesOffset( const b2Vec2 *centers, float radius, const b2ParticleColor *colors, int count, const b2Vec2 *offset );
 
-		void DrawParticlesOffset( const b2Vec2 *centers, float32 radius, const b2ParticleColor *colors, int32 count, const b2Vec2 *offset );
+		virtual void DrawSolidCircle(b2Transform transform, b2Vec2 center, float radius, Box2dDebugColor color);
 
-		virtual void DrawSolidCircle(const b2Vec2& center, float32 radius, const b2Vec2& axis, const b2Color& color);
-
-		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, const b2Color& color);
+		virtual void DrawSegment(const b2Vec2& p1, const b2Vec2& p2, Box2dDebugColor color);
 
 		virtual void DrawTransform(const b2Transform& xf);
 
-		virtual void DrawPoint(const b2Vec2& p, float32 size, const b2Color& color);
+		virtual void DrawPoint(const b2Vec2& p, float size, Box2dDebugColor color);
 
 		virtual void DrawString(int x, int y, const char* string, ...);
 
-		virtual void DrawAABB(b2AABB* aabb, const b2Color& color);
+		virtual void DrawAABB(b2AABB* aabb, Box2dDebugColor color);
 
 	public:
 
 		void DrawCircle( bool fill_body,
 							const b2Vec2& center,
-							float32 radius,
+							float radius,
 							const b2Vec2 *optionalAxis,
-							const b2Color& color,
+							Box2dDebugColor color,
 							const b2Vec2 *optionalOffset );
 
 	private:
 
-		void _SetVerticesUsed( int32 vertexCount );
+		void _SetVerticesUsed( int vertexCount );
 
 		void _DrawPolygon( bool fill_body,
+							b2Transform transform,
 							const b2Vec2* vertices,
-							int32 vertexCount,
-							const b2Color& color );
+							int vertexCount,
+							Box2dDebugColor color );
 
 		//! fRenderer and fScale are only valid between Begin() and End().
 		Renderer *fRenderer;
@@ -111,6 +121,8 @@ class b2GLESDebugDraw : public b2Draw
 
 		RenderData fData;
 		Shader *fShader;
+
+		b2DebugDraw fDebugDraw;
 };
 
 // ----------------------------------------------------------------------------

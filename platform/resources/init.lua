@@ -292,6 +292,7 @@ local ExtendedEventDispatcher = EventDispatcher:newClass()
 local physicsListenerCount =
 {
 	collision = 0,
+	hitCollision = 0,
 	preCollision = 0,
 	postCollision = 0,
 	particleCollision = 0,

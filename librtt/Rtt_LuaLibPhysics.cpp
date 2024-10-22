@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -35,8 +35,8 @@
 #include "Rtt_PhysicsTypes.h"
 #include "Rtt_PhysicsWorld.h"
 #include "Rtt_Runtime.h"
-#include "b2Separator.h"
-#include "b2GLESDebugDraw.h"
+// #include "b2Separator.h"
+// #include "b2GLESDebugDraw.h"
 
 #include "Rtt_ParticleSystemObject.h"
 
@@ -66,40 +66,39 @@ namespace Rtt
 bool
 LuaLibPhysics::IsWorldLocked( lua_State *L, const char caller[] )
 {
-    bool result = false;
-    
-    const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-    b2World *world = physics.GetWorld();
-    
-    if ( ! world )
-    {
-        CoronaLuaError(L, "physics.start() must be called before %s", caller);
-        result = true; // Behave as if locked to avoid accessing NULL physics world
-    }
-    // Emit 'errorMsg' if attempting to access World while locked
-    else if ( world->IsLocked() )
-    {
-        CoronaLuaError(L, "%s cannot be called when the world is locked and in the middle of number crunching, such as during a collision event", caller);
-        result = true;
-    }
-    
-    return result;
+	bool result = false;
+
+	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	// b2World *world = physics.GetWorld();
+
+	if ( ! b2World_IsValid(physics.GetWorldId()) )
+	{
+		CoronaLuaError(L, "physics.start() must be called before %s", caller);
+		result = true; // Behave as if locked to avoid accessing NULL physics world
+	}
+	// Emit 'errorMsg' if attempting to access World while locked
+	else if ( physics.GetWorld()->IsLocked() )
+	{
+	    CoronaLuaError(L, "%s cannot be called when the world is locked and in the middle of number crunching, such as during a collision event", caller);
+	    result = true;
+	}
+
+	return result;
 }
 
 bool
 LuaLibPhysics::IsWorldValid( lua_State *L, const char caller[] )
 {
-    bool result = true;
-    const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-    b2World *world = physics.GetWorld();
-    
-    if ( world == NULL )
-    {
-        CoronaLuaError(L, "physics.start() must be called before %s", caller);
-        result = false;
-    }
+	bool result = true;
+	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
-    return result;
+	if ( ! b2World_IsValid(physics.GetWorldId()) )
+	{
+		CoronaLuaError(L, "physics.start() must be called before %s", caller);
+		result = false;
+	}
+
+	return result;
 }
 
 static const U32 kGroundBodyData[1] = { 8675309 };
@@ -119,7 +118,8 @@ start( lua_State *L )
 	bool noSleep = lua_toboolean( L, 1 );
 	physics.StartWorld( * runtime, noSleep );
 
-	Rtt_ASSERT( physics.GetWorld() );
+	// Rtt_ASSERT( physics.GetWorld() );
+	Rtt_ASSERT( b2World_IsValid(physics.GetWorldId()) );
 
 	return 0;
 }
@@ -128,11 +128,11 @@ start( lua_State *L )
 static int
 pause( lua_State *L )
 {
-    if (LuaLibPhysics::IsWorldValid(L, "physics.pause()"))
-    {
-        PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-        physics.PauseWorld();
-    }
+	if (LuaLibPhysics::IsWorldValid(L, "physics.pause()"))
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		physics.PauseWorld();
+	}
 
 	return 0;
 }
@@ -163,19 +163,17 @@ setGravity( lua_State *L )
 	if ( lua_isnumber( L, curArg )
 		 && lua_isnumber( L, curArg+1 ) )
 	{
-        if (LuaLibPhysics::IsWorldValid(L, "physics.setGravity()"))
-        {
+		if (LuaLibPhysics::IsWorldValid(L, "physics.setGravity()"))
+		{
 			const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-			b2World *world = physics.GetWorld();
 
-			world->SetGravity( b2Vec2( luaL_toreal( L, curArg ),
-										luaL_toreal( L, ( curArg + 1 ) ) ) );
-        }
+			b2World_SetGravity(physics.GetWorldId(), { luaL_toreal( L, curArg ), luaL_toreal( L, ( curArg + 1 ) ) } );
+		}
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.setGravity() requires 2 parameters (number, number)");
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.setGravity() requires 2 parameters (number, number)");
+	}
 	return 0;
 }
 
@@ -184,33 +182,33 @@ static int
 getGravity( lua_State *L )
 {
 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-	b2World *world = physics.GetWorld();
+	// b2World *world = physics.GetWorld();
 
-    if (LuaLibPhysics::IsWorldValid(L, "physics.getGravity()"))
-    {
-        b2Vec2 gravity = world->GetGravity();
+	if (LuaLibPhysics::IsWorldValid(L, "physics.getGravity()"))
+	{
+		b2Vec2 gravity = b2World_GetGravity(physics.GetWorldId());
 
-        lua_pushnumber( L, Rtt_FloatToReal( gravity.x ) );
-        lua_pushnumber( L, Rtt_FloatToReal( gravity.y ) );
-        
-        return 2;
-    }
-    else
-    {
-        return 0;
-    }
+		lua_pushnumber( L, Rtt_FloatToReal( gravity.x ) );
+		lua_pushnumber( L, Rtt_FloatToReal( gravity.y ) );
+
+		return 2;
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static int
 SetReportCollisionsInContentCoordinates( lua_State *L )
 {
-    if (! lua_isboolean(L, 1))
-    {
-        CoronaLuaError(L, "physics.setReportCollisionsInContentCoordinates() requires 1 parameter (boolean)");
-        
-        return 0;
-    }
-    
+	if (! lua_isboolean(L, 1))
+	{
+		CoronaLuaError(L, "physics.setReportCollisionsInContentCoordinates() requires 1 parameter (boolean)");
+
+		return 0;
+	}
+
 	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
 	physics.SetReportCollisionsInContentCoordinates( lua_toboolean( L, 1 ) );
@@ -256,7 +254,7 @@ namespace // anonymous namespace.
 													DisplayObject *optional_display_object,
 													const b2Vec2& point,
 													const b2Vec2& normal,
-													const float32 fraction )
+													const float fraction )
 	{
 		if( ! result_index )
 		{
@@ -265,7 +263,7 @@ namespace // anonymous namespace.
 		}
 
 		// Meters to pixels.
-		b2Vec2 p_in_pixels( point );
+		b2Vec2 p_in_pixels = point;
 		p_in_pixels *= pixels_per_meter;
 
 		// Add the result.
@@ -356,6 +354,107 @@ namespace // anonymous namespace.
 		}
 	}
 
+	// Context for ray cast callbacks. Do what you want with this.
+	struct RayCastContext
+	{
+		size_t count;
+
+		lua_State *fL;
+		int fInitialTopIndexOfLuaStack;
+		float fPixelsPerMeter;
+	};
+
+	// This callback finds any hit. For this type of query we are usually just checking for obstruction,
+	// so the hit data is not relevant.
+	// NOTE: shape hits are not ordered, so this may not return the closest hit
+	float ray_cast_any_callback(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, void* context)
+	{
+		RayCastContext* rayContext = (RayCastContext*)context;
+
+		b2BodyId bodyId = b2Shape_GetBody(shapeId);
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData(bodyId);
+		// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
+		if (userData == nullptr) {
+			// By returning -1, we instruct the calling code to ignore this shape and
+			// continue the ray-cast to the next shape.
+			return -1.0f;
+		}
+
+		size_t result_index = 0;
+		add_hit_to_table_of_raycasting_results( rayContext->fL,
+												rayContext->fPixelsPerMeter,
+												result_index,
+												userData,
+												point,
+												normal,
+												fraction );
+
+		// At this point we have a hit, so we know the ray is obstructed.
+		// By returning 0, we instruct the calling code to terminate the ray-cast.
+		return 0.0f;
+	}
+
+	// This callback finds the closest hit. This is the most common callback used in games.
+	float ray_cast_closest_callback(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, void* context)
+	{
+		RayCastContext* rayContext = (RayCastContext*)context;
+
+		b2BodyId bodyId = b2Shape_GetBody(shapeId);
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData(bodyId);
+		if (userData == nullptr) {
+			// By returning -1, we instruct the calling code to ignore this shape and
+			// continue the ray-cast to the next shape.
+			return -1.0f;
+		}
+
+		lua_settop( rayContext->fL, rayContext->fInitialTopIndexOfLuaStack );
+
+		size_t result_index = 0;
+		add_hit_to_table_of_raycasting_results( rayContext->fL,
+												rayContext->fPixelsPerMeter,
+												result_index,
+												userData,
+												point,
+												normal,
+												fraction );
+
+		// By returning the current fraction, we instruct the calling code to clip the ray and
+		// continue the ray-cast to the next shape. WARNING: do not assume that shapes
+		// are reported in order. However, by clipping, we can always get the closest shape.
+		return fraction;
+	}
+
+	// This ray cast collects multiple hits along the ray.
+	// The shapes are not necessary reported in order, so we might not capture
+	// the closest shape.
+	// NOTE: shape hits are not ordered, so this may return hits in any order. This means that
+	// if you limit the number of results, you may discard the closest hit. You can see this
+	// behavior in the sample.
+	float ray_cast_multiple_callback(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, void* context)
+	{
+		RayCastContext* rayContext = (RayCastContext*)context;
+
+		b2BodyId bodyId = b2Shape_GetBody(shapeId);
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData(bodyId);
+		if (userData == nullptr) {
+			// By returning -1, we instruct the calling code to ignore this shape and
+			// continue the ray-cast to the next shape.
+			return -1.0f;
+		}
+
+		add_hit_to_table_of_raycasting_results( rayContext->fL,
+												rayContext->fPixelsPerMeter,
+												rayContext->count,
+												userData,
+												point,
+												normal,
+												fraction );
+
+		// By returning 1, we instruct the caller to continue without clipping the ray.
+		return 1.0f;
+	}
+
+	/*
 	class AnyHitAlongRay : public b2RayCastCallback
 	{
 	public:
@@ -379,7 +478,7 @@ namespace // anonymous namespace.
 			// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 			if ( ! (DisplayObject *)fixture->GetBody()->GetUserData() )
 				return -1;
-			
+
 			size_t result_index = 0;
 			add_hit_to_table_of_raycasting_results( fL,
 													LuaContext::GetRuntime( fL )->GetPhysicsWorld().GetPixelsPerMeter(),
@@ -422,7 +521,7 @@ namespace // anonymous namespace.
 			// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 			if ( ! (DisplayObject *)fixture->GetBody()->GetUserData() )
 				return -1;
-			
+
 			// We only want to return a single hit in the result table.
 			// We reset the top of the Lua stack to always write the result
 			// in the same position on the stack.
@@ -476,7 +575,7 @@ namespace // anonymous namespace.
 			// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 			if ( ! (DisplayObject *)fixture->GetBody()->GetUserData() )
 				return -1;
-			
+
 			add_hit_to_table_of_raycasting_results( fL,
 													fPixelsPerMeter,
 													fResultIndex,
@@ -493,6 +592,7 @@ namespace // anonymous namespace.
 		size_t fResultIndex;
 		float fPixelsPerMeter;
 	};
+	*/
 
 	struct hit
 	{
@@ -503,7 +603,7 @@ namespace // anonymous namespace.
 		hit( DisplayObject *display_object_,
 				b2Vec2 point_,
 				b2Vec2 normal_,
-				float32 fraction_ )
+				float fraction_ )
 		: display_object( display_object_ )
 		, point( point_ )
 		, normal( normal_ )
@@ -514,7 +614,7 @@ namespace // anonymous namespace.
 		DisplayObject *display_object;
 		b2Vec2 point;
 		b2Vec2 normal;
-		float32 fraction;
+		float fraction;
 
 		bool operator < ( const hit &other ) const
 		{
@@ -523,8 +623,70 @@ namespace // anonymous namespace.
 	};
 
 	typedef std::list< hit > ListHit;
-	typedef std::list< hit >::iterator ListHitIter;
+	// typedef std::list< hit >::iterator ListHitIter;
 
+	struct RayCastContextSorted
+	{
+		size_t count;
+
+		lua_State *fL;
+		float fPixelsPerMeter;
+		ListHit fListHit;
+	};
+
+	// This ray cast collects multiple hits along the ray and sorts them.
+	float ray_cast_sorted_callback(b2ShapeId shapeId, b2Vec2 point, b2Vec2 normal, float fraction, void* context)
+	{
+		RayCastContextSorted* rayContext = (RayCastContextSorted*)context;
+
+		b2BodyId bodyId = b2Shape_GetBody(shapeId);
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData(bodyId);
+		if (userData == nullptr) {
+			// By returning -1, we instruct the calling code to ignore this shape and
+			// continue the ray-cast to the next shape.
+			return -1.0f;
+		}
+
+		rayContext->fListHit.push_back( hit( userData,
+									point,
+									normal,
+									fraction ) );
+
+		// By returning 1, we instruct the caller to continue without clipping the ray.
+		return 1.0f;
+	}
+
+	bool push_results_to_lua(RayCastContextSorted *context)
+	{
+		if( context->fListHit.empty() )
+		{
+			// There's no result.
+			// Nothing to do.
+			return false;
+		}
+
+		// Sort the results from closest to farthest.
+		context->fListHit.sort();
+
+		size_t result_index = 0;
+
+		for ( std::list< hit >::iterator iter = context->fListHit.begin();
+				iter != context->fListHit.end();
+				++iter )
+		{
+			add_hit_to_table_of_raycasting_results( context->fL,
+													context->fPixelsPerMeter,
+													context->count,
+													iter->display_object,
+													iter->point,
+													iter->normal,
+													iter->fraction );
+		}
+
+		return true;
+	}
+
+	/*
 	class SortedHitsAlongRay : public b2RayCastCallback
 	{
 	public:
@@ -549,7 +711,7 @@ namespace // anonymous namespace.
 			// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 			if ( ! (DisplayObject *)fixture->GetBody()->GetUserData() )
 				return -1;
-			
+
 			// We don't want to push the result to Lua immediately because
 			// we want to sort them by distance from the starting point.
 			fListHit.push_back( hit( (DisplayObject *)fixture->GetBody()->GetUserData(),
@@ -596,17 +758,18 @@ namespace // anonymous namespace.
 		lua_State *fL;
 		ListHit fListHit;
 	};
+	*/
 } // anonymous namespace.
 
 static int
 common_ray_cast( lua_State *L,
-					b2RayCastCallback *callback )
+					b2CastResultFcn *callback, void *context )
 {
 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-	b2World *world = physics.GetWorld();
+	// b2World *world = physics.GetWorld();
 
-	b2Vec2 from_in_meters( lua_tonumber( L, 1 ), lua_tonumber( L, 2 ) );
-	b2Vec2 to_in_meters( lua_tonumber( L, 3 ), lua_tonumber( L, 4 ) );
+	b2Vec2 from_in_meters = { (float)lua_tonumber( L, 1 ), (float)lua_tonumber( L, 2 ) };
+	b2Vec2 to_in_meters = { (float)lua_tonumber( L, 3 ), (float)lua_tonumber( L, 4 ) };
 
 	// Pixels to meters.
 	float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
@@ -620,7 +783,8 @@ common_ray_cast( lua_State *L,
 	// Exception: For SortedHitsAlongRay, the results are accumulated
 	// so they can be sorted before they're pushed to the Lua stack.
 	int top_index_before_RayCast = lua_gettop( L );
-	world->RayCast( callback, from_in_meters, to_in_meters );
+	// world->RayCast( callback, from_in_meters, to_in_meters );
+	b2World_CastRay(physics.GetWorldId(), from_in_meters, to_in_meters - from_in_meters, b2DefaultQueryFilter(), callback, context);
 
 	// Any hits returned by RayCast() are pushed into a table that's
 	// on the stack. We want to return true if we're returning a result.
@@ -633,48 +797,67 @@ static int
 RayCast( lua_State *L )
 {
 	const char *behavior = lua_tostring( L, 5 );
-    
-    if (LuaLibPhysics::IsWorldValid(L, "physics.RayCast()"))
-    {
-        if( ! Rtt_StringCompare( "any", behavior ) )
-        {
-            AnyHitAlongRay callback( L );
 
-            return common_ray_cast( L,
-                                    &callback );
-        }
-        else if( ! Rtt_StringCompare( "unsorted", behavior ) )
-        {
-            UnsortedHitsAlongRay callback( L );
+	float pixels_per_meter = LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter();
 
-            return common_ray_cast( L,
-                                    &callback );
-        }
-        else if( ! Rtt_StringCompare( "sorted", behavior ) )
-        {
-            SortedHitsAlongRay callback( L );
+	if (LuaLibPhysics::IsWorldValid(L, "physics.RayCast()"))
+	{
+		if( ! Rtt_StringCompare( "any", behavior ) )
+		{
+			// AnyHitAlongRay callback( L );
+			RayCastContext context = {
+				0, L, -1,
+				LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
+			};
+			return common_ray_cast( L,
+									ray_cast_any_callback, &context );
+		}
+		else if( ! Rtt_StringCompare( "unsorted", behavior ) )
+		{
+			// UnsortedHitsAlongRay callback( L );
+			RayCastContext context = {
+				0, L, -1,
+				LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
+			};
 
-            common_ray_cast( L,
-                                &callback );
+			return common_ray_cast( L,
+									ray_cast_multiple_callback, &context );
+		}
+		else if( ! Rtt_StringCompare( "sorted", behavior ) )
+		{
+			// SortedHitsAlongRay callback( L );
+			RayCastContextSorted context = {
+				0, L,
+				LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter(),
+				ListHit()
+			};
 
-            // This leaves a table at the top of the Lua stack. This table is
-            // the result we return from this function.
-            return callback.PushResultsToLua();
-        }
-        else // if( ! Rtt_StringCompare( "closest", behavior ) )
-        {
-            // This MUST be the "else" case because it's the default option.
+			common_ray_cast( L,
+								ray_cast_sorted_callback, &context );
 
-            ClosestHitAlongRay callback( L );
+			// This leaves a table at the top of the Lua stack. This table is
+			// the result we return from this function.
+			// return callback.PushResultsToLua();
+			return push_results_to_lua(&context);
+		}
+		else // if( ! Rtt_StringCompare( "closest", behavior ) )
+		{
+			// This MUST be the "else" case because it's the default option.
 
-            return common_ray_cast( L,
-                                    &callback );
-        }
-    }
-    else
-    {
-        return 0;
-    }
+			// ClosestHitAlongRay callback( L );
+
+			RayCastContext context = {
+				0, L, lua_gettop( L ),
+				LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
+			};
+			return common_ray_cast( L,
+									ray_cast_closest_callback, &context );
+		}
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static int
@@ -692,14 +875,14 @@ ReflectRay( lua_State *L )
 			hit.normal.y
 	*/
 
-    if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_istable(L, 3))
-    {
-        CoronaLuaError(L, "physics.reflectRay() requires 3 parameters (number, number, table)");
-        
-        return 0;
-    }
+	if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_istable(L, 3))
+	{
+		CoronaLuaError(L, "physics.reflectRay() requires 3 parameters (number, number, table)");
 
-	b2Vec2 A_position( lua_tonumber( L, 1 ), lua_tonumber( L, 2 ) );
+		return 0;
+	}
+
+	b2Vec2 A_position = { (float)lua_tonumber( L, 1 ), (float)lua_tonumber( L, 2 ) };
 
 	b2Vec2 B_position;
 	{
@@ -738,17 +921,18 @@ ReflectRay( lua_State *L )
 		// This is a variant of the standard formula:
 		// I - 2.0 * dot(N, I) * N;
 
-		b2Vec2 incoming( B_position - A_position );
+		b2Vec2 incoming = B_position - A_position;
 
 		b2Vec2 incoming_along_normal( normal );
 		incoming_along_normal *= b2Dot( incoming, normal );
 
-		b2Vec2 incoming_along_plane( incoming - incoming_along_normal );
+		b2Vec2 incoming_along_plane = incoming - incoming_along_normal;
 
 		reflection = incoming_along_plane;
 		reflection -= incoming_along_normal;
 
-		reflection.Normalize();
+		// reflection.Normalize();
+		reflection = b2Normalize(reflection);
 	}
 
 	// Return the result.
@@ -761,6 +945,59 @@ ReflectRay( lua_State *L )
 
 namespace // anonymous namespace.
 {
+	struct QueryContext
+	{
+		lua_State *fL;
+		int fInitialTopIndexOfLuaStack;
+		float fPixelsPerMeter;
+		int fResultCount;
+		DisplayObject* target;
+	};
+
+	bool query_callback( b2ShapeId shapeId, void* context )
+	{
+		QueryContext* queryContext = static_cast<QueryContext*>( context );
+
+		b2BodyId bodyId = b2Shape_GetBody( shapeId );
+		if ( ! b2Body_IsValid( bodyId ) ) {
+			return true;
+		}
+		DisplayObject* userData = (DisplayObject*)b2Body_GetUserData( bodyId );
+
+		// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
+		if ( userData == nullptr || userData == queryContext->target ) {
+			return true;
+		}
+
+		if( ! queryContext->fResultCount )
+		{
+			// We're handling the first result.
+			lua_newtable( queryContext->fL );
+		}
+
+		// Add the result.
+		{
+			// Hit object.
+			// DisplayObject *userData = (DisplayObject *)fixture->GetBody()->GetUserData();
+
+			if ( userData )
+			{
+				userData->GetProxy()->PushTable( queryContext->fL );
+			}
+			else
+			{
+				lua_pushnil( queryContext->fL );
+			}
+
+			// Lua is one-based, so the first result must be at index 1.
+			++queryContext->fResultCount;
+			lua_rawseti( queryContext->fL, -2, queryContext->fResultCount );
+		}
+
+		// true: Continue the query.
+		return true;
+	}
+	/*
 	class HitsInRegion : public b2QueryCallback
 	{
 	public:
@@ -784,7 +1021,7 @@ namespace // anonymous namespace.
 			// Skip over objects that have been marked for deletion but have not yet been deleted from Box2D.
 			if ( ! (DisplayObject *)fixture->GetBody()->GetUserData() )
 				return true;
-			
+
 			if( ! fResultCount )
 			{
 				// We're handling the first result.
@@ -819,62 +1056,215 @@ namespace // anonymous namespace.
 		float fPixelsPerMeter;
 		int fResultCount;
 	};
+	*/
 } // anonymous namespace.
 
 static int
 QueryRegion( lua_State *L )
 {
-    if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_isnumber(L, 3) || ! lua_isnumber(L, 4))
-    {
-        CoronaLuaError(L, "physics.queryRegion() requires 4 parameters (number, number, number, number)");
-        
-        return 0;
-    }
-    
-    if (LuaLibPhysics::IsWorldValid(L, "physics.queryRegion()"))
-    {
-        const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-        b2World *world = physics.GetWorld();
+	if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_isnumber(L, 3) || ! lua_isnumber(L, 4))
+	{
+		CoronaLuaError(L, "physics.queryRegion() requires 4 parameters (number, number, number, number)");
 
-        b2AABB aabb;
-        aabb.lowerBound.Set( lua_tonumber( L, 1 ), lua_tonumber( L, 2 ) );
-        aabb.upperBound.Set( lua_tonumber( L, 3 ), lua_tonumber( L, 4 ) );
+		return 0;
+	}
 
-        // Pixels to meters.
-        float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
-        aabb.lowerBound *= meters_per_pixels;
-        aabb.upperBound *= meters_per_pixels;
+	if (LuaLibPhysics::IsWorldValid(L, "physics.queryRegion()"))
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		// b2World *world = physics.GetWorld();
 
-        HitsInRegion callback( L );
+		b2AABB aabb;
+		aabb.lowerBound = { (float)lua_tonumber( L, 1 ), (float)lua_tonumber( L, 2 ) };
+		aabb.upperBound = { (float)lua_tonumber( L, 3 ), (float)lua_tonumber( L, 4 ) };
 
-        // Important: If any results are found, "callback" will leave
-        // a table at the top of the Lua stack. This table at the top
-        // of the Lua stack is the result we return from this function.
-        int top_index_before_QueryAABB = lua_gettop( L );
-        world->QueryAABB( &callback, aabb );
+		// Pixels to meters.
+		float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
+		aabb.lowerBound *= meters_per_pixels;
+		aabb.upperBound *= meters_per_pixels;
 
-        // Any hits returned by QueryAABB() are pushed into a table that's
-        // on the stack. We want to return true if we're returning a result.
-        // Therefore we can compare the top index of the Lua stack before
-        // and after QueryAABB() to know if we're returning a table of hits.
-        return ( top_index_before_QueryAABB != lua_gettop( L ) );
-    }
-    else
-    {
-        return 0;
-    }
+		// HitsInRegion callback( L );
+		QueryContext context = {
+			L,
+			lua_gettop( L ),
+			meters_per_pixels,
+			0,
+			nullptr
+		};
+
+		// Important: If any results are found, "callback" will leave
+		// a table at the top of the Lua stack. This table at the top
+		// of the Lua stack is the result we return from this function.
+		int top_index_before_QueryAABB = lua_gettop( L );
+		// world->QueryAABB( &callback, aabb );
+
+		b2QueryFilter filter = b2DefaultQueryFilter();
+		if ( lua_isnumber( L, 5 ) ) {
+			filter.categoryBits = lua_tonumber( L, 5 );
+		}
+		if ( lua_isnumber( L, 6 ) ) {
+			filter.maskBits = lua_tonumber( L, 6 );
+		}
+		b2World_OverlapAABB( physics.GetWorldId(), aabb, filter, query_callback, &context );
+
+		// Any hits returned by QueryAABB() are pushed into a table that's
+		// on the stack. We want to return true if we're returning a result.
+		// Therefore we can compare the top index of the Lua stack before
+		// and after QueryAABB() to know if we're returning a table of hits.
+		return ( top_index_before_QueryAABB != lua_gettop( L ) );
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+static int
+QueryCircle( lua_State *L )
+{
+	if (! lua_isnumber(L, 1) || ! lua_isnumber(L, 2) || ! lua_isnumber(L, 3))
+	{
+		CoronaLuaError(L, "physics.QueryCircle() requires 4 parameters (number, number, number, number)");
+
+		return 0;
+	}
+
+	if (LuaLibPhysics::IsWorldValid(L, "physics.QueryCircle()"))
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+		// Pixels to meters.
+		float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
+
+		b2Circle circle = {
+			{ (float)lua_tonumber( L, 1 ) * meters_per_pixels, (float)lua_tonumber( L, 2 ) * meters_per_pixels },
+			(float)lua_tonumber( L, 3 ) * meters_per_pixels
+		};
+
+		QueryContext context = {
+			L,
+			lua_gettop( L ),
+			meters_per_pixels,
+			0,
+			nullptr
+		};
+
+		int top_index_before_query = lua_gettop( L );
+
+		b2QueryFilter filter = b2DefaultQueryFilter();
+		if ( lua_isnumber( L, 4 ) ) {
+			filter.categoryBits = lua_tonumber( L, 4 );
+		}
+		if ( lua_isnumber( L, 5 ) ) {
+			filter.maskBits = lua_tonumber( L, 5 );
+		}
+		b2World_OverlapCircle ( physics.GetWorldId(), &circle, b2Transform_identity, filter, query_callback, &context );
+
+		return ( top_index_before_query != lua_gettop( L ) );
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+static int
+QueryBody( lua_State *L )
+{
+	if ( LuaLibPhysics::IsWorldValid( L, "physics.queryBody()" ) )
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+		DisplayObject *o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+		Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+		if( o && ( o->GetExtensions() != NULL ) )
+		{
+			// Pixels to meters.
+			float meters_per_pixels = ( 1.0f / physics.GetPixelsPerMeter() );
+
+			QueryContext context = {
+				L,
+				lua_gettop( L ),
+				meters_per_pixels,
+				0,
+				o
+			};
+
+			int top_index_before_query = lua_gettop( L );
+
+			b2QueryFilter filter = b2DefaultQueryFilter();
+			if ( lua_isnumber( L, 2 ) ) {
+				filter.categoryBits = lua_tonumber( L, 2 );
+			}
+			if ( lua_isnumber( L, 3 ) ) {
+				filter.maskBits = lua_tonumber( L, 3 );
+			}
+			b2BodyId bodyId = o->GetExtensions()->GetBody();
+			b2Transform transform = b2Body_GetTransform( bodyId );
+			int count = b2Body_GetShapeCount( bodyId );
+			b2ShapeId *shapeArray = new b2ShapeId[ count ];
+			b2Body_GetShapes( bodyId, shapeArray, count );
+			int castDefaultCount = 0;
+			for ( int i = 0; i < count; ++i ) {
+				b2ShapeType shapeType = b2Shape_GetType( shapeArray[ i ] );
+				switch ( shapeType )
+				{
+					case b2_capsuleShape:
+					{
+						b2Capsule capsule = b2Shape_GetCapsule( shapeArray[ i ] );
+						b2World_OverlapCapsule( physics.GetWorldId(), &capsule, transform, filter, query_callback, &context );
+						break;
+					}
+					case b2_circleShape:
+					{
+						b2Circle circle = b2Shape_GetCircle( shapeArray[ i ] );
+						b2World_OverlapCircle( physics.GetWorldId(), &circle, transform, filter, query_callback, &context );
+						break;
+					}
+					case b2_polygonShape:
+					{
+						b2Polygon polygon = b2Shape_GetPolygon( shapeArray[ i ] );
+						b2World_OverlapPolygon( physics.GetWorldId(), &polygon, transform, filter, query_callback, &context );
+						break;
+					}
+					default:
+						castDefaultCount++;
+				}
+			}
+			delete [] shapeArray;
+
+
+			if ( castDefaultCount == 0 )
+			{
+				return ( top_index_before_query != lua_gettop( L ) );
+			}
+			else
+			{
+				return 0;
+			}
+		}
+		else
+		{
+			return 0;
+		}
+	}
+	else
+	{
+		return 0;
+	}
 }
 
 static int
 SetAverageCollisionPositions( lua_State *L )
 {
-    if (! lua_isboolean(L, 1))
-    {
-        CoronaLuaError(L, "physics.setAverageCollisionPositions() requires 1 parameter (boolean)");
-        
-        return 0;
-    }
-    
+	if (! lua_isboolean(L, 1))
+	{
+		CoronaLuaError(L, "physics.setAverageCollisionPositions() requires 1 parameter (boolean)");
+
+		return 0;
+	}
+
 	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
 	physics.SetAverageCollisionPositions( lua_toboolean( L, 1 ) );
@@ -895,12 +1285,12 @@ GetAverageCollisionPositions( lua_State *L )
 static int
 setScale( lua_State *L )
 {
-    if (! lua_isnumber(L, 1))
-    {
-        CoronaLuaError(L, "physics.setScale() requires 1 parameter (number)");
-        
-        return 0;
-    }
+	if (! lua_isnumber(L, 1))
+	{
+		CoronaLuaError(L, "physics.setScale() requires 1 parameter (number)");
+
+		return 0;
+	}
 
 	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 	physics.SetPixelsPerMeter( luaL_toreal( L, 1 ) );
@@ -909,15 +1299,15 @@ setScale( lua_State *L )
 }
 
 // Creates a b2Body with no fixtures
-static b2Body*
+static b2BodyId
 CreateBody( const PhysicsWorld& physics, DisplayObject *o )
 {
-	b2Body *result = NULL;
+	b2BodyId result = b2_nullBodyId;
 
-	b2World *world = physics.GetWorld();
-	if ( world )
+	// b2World *world = physics.GetWorld();
+	if ( b2World_IsValid(physics.GetWorldId()) )
 	{
-		b2BodyDef bd;
+		b2BodyDef bd = b2DefaultBodyDef();
 		bd.type = b2_dynamicBody; // default (settable with "bodyType" attribute)
 		bd.userData = o;
 
@@ -929,12 +1319,15 @@ CreateBody( const PhysicsWorld& physics, DisplayObject *o )
 
 		x = Rtt_RealDiv( x, scale );
 		y = Rtt_RealDiv( y, scale);
-		b2Vec2 pos( x, y );
+		b2Vec2 pos = { x, y };
 
 		Real angle = Rtt_RealDegreesToRadians( rotation );
 
-		result = world->CreateBody( & bd ); Rtt_ASSERT( result );
-		result->SetTransform( pos, angle );
+		bd.position = pos;
+		bd.rotation = b2MakeRot(angle);
+		result = b2CreateBody( physics.GetWorldId(), &bd );
+		// result = world->CreateBody( & bd ); Rtt_ASSERT( result );
+		// result->SetTransform( pos, angle );
 	}
 
 	return result;
@@ -945,29 +1338,39 @@ static const char kKinematicBodyType[] = "kinematic";
 // NOT USED: static const char kDynamicBodyType[] = "dynamic";
 
 static void
-InitializeFixturePhysicsDefaults( b2FixtureDef &outFixtureDef,
-									const b2Shape *optional_shapeDef )
+InitializeShapePhysicsDefaults(b2ShapeDef &outShapeDef)
 {
-	// "optional_shapeDef" is optional because, in the context
-	// of "InitializeFixtureUsing_Outline()", it's set in
-	// "b2Separator::SeparateAndCreateFixtures()".
-	outFixtureDef.shape = optional_shapeDef;
-
 	// Set sensible defaults
-	// IMPORTANT: These defaults are overridden by InitializeFixtureFromLua().
-	outFixtureDef.density = 0.01f; // previous default was zero, but that did odd things in Box2D dynamic bodies (contrary to documentation?)
-	outFixtureDef.friction = 0.3f;
-	outFixtureDef.restitution = 0.5f;
-	outFixtureDef.isSensor = false;
+	// IMPORTANT: These defaults are overridden by InitializeShapeFromLua().
+	outShapeDef.density = 0.01f; // previous default was zero, but that did odd things in Box2D dynamic bodies (contrary to documentation?)
+	outShapeDef.friction = 0.3f;
+	outShapeDef.restitution = 0.5f;
+	outShapeDef.isSensor = false;
 }
 
+// static void
+// InitializeFixturePhysicsDefaults( b2FixtureDef &outFixtureDef,
+// 									const b2Shape *optional_shapeDef )
+// {
+// 	// "optional_shapeDef" is optional because, in the context
+// 	// of "InitializeFixtureUsing_Outline()", it's set in
+// 	// "b2Separator::SeparateAndCreateFixtures()".
+// 	outFixtureDef.shape = optional_shapeDef;
+
+// 	// Set sensible defaults
+// 	// IMPORTANT: These defaults are overridden by InitializeShapeFromLua().
+// 	outFixtureDef.density = 0.01f; // previous default was zero, but that did odd things in Box2D dynamic bodies (contrary to documentation?)
+// 	outFixtureDef.friction = 0.3f;
+// 	outFixtureDef.restitution = 0.5f;
+// 	outFixtureDef.isSensor = false;
+// }
+
 static void
-InitializeFixtureFromLua( lua_State *L,
-							b2FixtureDef &outFixtureDef,
-							const b2Shape *optional_shapeDef,
+InitializeShapeFromLua( lua_State *L,
+							b2ShapeDef &outShapeDef,
 							int lua_arg_index )
 {
-	InitializeFixturePhysicsDefaults( outFixtureDef, optional_shapeDef );
+	InitializeShapePhysicsDefaults( outShapeDef );
 
 	if( ! lua_istable( L, lua_arg_index ) )
 	{
@@ -979,7 +1382,7 @@ InitializeFixtureFromLua( lua_State *L,
 	float density = (float) lua_tonumber( L, -1 );
 	if ( density > 0.0f )
 	{
-		outFixtureDef.density = density;
+		outShapeDef.density = density;
 	}
 	lua_pop( L, 1 );
 
@@ -988,7 +1391,7 @@ InitializeFixtureFromLua( lua_State *L,
 	float friction = (float) lua_tonumber( L, -1 );
 	if (friction >= 0.0f )
 	{
-		outFixtureDef.friction = friction;
+		outShapeDef.friction = friction;
 	}
 	lua_pop( L, 1 );
 
@@ -997,24 +1400,24 @@ InitializeFixtureFromLua( lua_State *L,
 	float restitution = (float) lua_tonumber( L, -1 );
 	if (restitution >= 0.0f )
 	{
-		outFixtureDef.restitution = restitution;
+		outShapeDef.restitution = restitution;
 	}
 	lua_pop( L, 1 );
 
 	// If not supplied, we assume a default of false
 	lua_getfield( L, lua_arg_index, "isSensor" );
-	outFixtureDef.isSensor = (bool)lua_toboolean( L, -1 );
+	outShapeDef.isSensor = (bool)lua_toboolean( L, -1 );
 	lua_pop( L, 1 );
 
 	lua_getfield( L, lua_arg_index, "filter" );
 	if ( lua_istable( L, -1 ) )
 	{
-		b2Filter& filter = outFixtureDef.filter;
+		b2Filter& filter = outShapeDef.filter;
 
 		lua_getfield( L, -1, "categoryBits" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
-			uint16 categoryBits = (uint16)lua_tonumber( L, -1 );
+			uint64_t categoryBits = (uint64_t)lua_tonumber( L, -1 );
 			filter.categoryBits = categoryBits;
 		}
 		lua_pop( L, 1 );
@@ -1022,7 +1425,7 @@ InitializeFixtureFromLua( lua_State *L,
 		lua_getfield( L, -1, "maskBits" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
-			uint16 maskBits = (uint16)lua_tonumber( L, -1 );
+			uint64_t maskBits = (uint64_t)lua_tonumber( L, -1 );
 			filter.maskBits = maskBits;
 		}
 		lua_pop( L, 1 );
@@ -1030,7 +1433,7 @@ InitializeFixtureFromLua( lua_State *L,
 		lua_getfield( L, -1, "groupIndex" );
 		if ( ! lua_isnil( L, -1 ) )
 		{
-			int16 groupIndex = (int16)lua_tonumber( L, -1 );
+			int32_t groupIndex = (int32_t)lua_tonumber( L, -1 );
 			filter.groupIndex = groupIndex;
 		}
 		lua_pop( L, 1 );
@@ -1043,11 +1446,14 @@ static const char kPivotJointType[] = "pivot";
 static const char kPistonJointType[] = "piston";
 static const char kFrictionJointType[] = "friction";
 static const char kWeldJointType[] = "weld"; // note: has no type-specific methods
+static const char kFakeJointType[] = "fake";
+static const char kNullJointType[] = "null";
 static const char kWheelJointType[] = "wheel"; // combines a piston and a pivot joint, like a wheel on a shock absorber
 static const char kPulleyJointType[] = "pulley";
 static const char kTouchJointType[] = "touch";
 static const char kGearJointType[] = "gear";
 static const char kRopeJointType[] = "rope";
+static const char kMotorJointType[] = "motor";
 
 /*
 static b2JointType
@@ -1104,24 +1510,25 @@ static int
 CreateAndPushJoint(
 	const ResourceHandle< lua_State >& luaStateHandle,
 	const PhysicsWorld& physics,
-	const b2JointDef& jointDef )
+	b2JointId jointId)
 {
 	int result = 0;
-	b2World *world = physics.GetWorld();
-	if ( world )
+	b2WorldId worldId = physics.GetWorldId();
+	if ( b2World_IsValid(worldId) )
 	{
 		// Following is ownership graph:
 
 		// (1) b2World owns joint,
-		b2Joint *joint = world->CreateJoint( & jointDef );
+		// b2Joint *joint = world->CreateJoint( & jointDef );
 
 		// (2) Lua owns wrapper (which has a weak pointer to joint),
-		UserdataWrapper *wrapper = Rtt_NEW(
+		JointUserdataWrapper *wrapper = Rtt_NEW(
 			runtime.Allocator(),
-			UserdataWrapper( luaStateHandle, joint, PhysicsJoint::kMetatableName ) );
+			JointUserdataWrapper( luaStateHandle, jointId, PhysicsJoint::kMetatableName ) );
 
 		// and (3) joint has a weak back reference to wrapper.
-		joint->SetUserData( wrapper );
+		// joint->SetUserData( wrapper );
+		b2Joint_SetUserData( jointId, wrapper );
 
 		result = wrapper->Push();
 	}
@@ -1172,24 +1579,24 @@ newJoint( lua_State *L )
 
 			Rtt_WARN_SIM_PROXY_TYPE( L, 3, DisplayObject );
 			if ( ! e2 )
-            {
-                badArgIndex = 3;
-            }
-            else
-            {
-                // All joint types other than touch take two bodies which must not be
-                // the same object (Box2D asserts)
-                b2Body *body1 = e1->GetBody();
-                b2Body *body2 = e2->GetBody();
-                
-                if (body1 == body2)
-                {
-                    CoronaLuaError(L, "physics.newJoint() object1 and object2 cannot be the same object");
-                    
-                    return 0;
-                }
-            }
-        }
+			{
+				badArgIndex = 3;
+			}
+			else
+			{
+				// All joint types other than touch take two bodies which must not be
+				// the same object (Box2D asserts)
+				b2BodyId body1 = e1->GetBody();
+				b2BodyId body2 = e2->GetBody();
+
+				if (B2_ID_EQUALS(body1, body2))
+				{
+					CoronaLuaError(L, "physics.newJoint() object1 and object2 cannot be the same object");
+
+					return 0;
+				}
+			}
+		}
 
 		// [2] Create joints
 		if ( badArgIndex > 0 ) // On error, badArgIndex indicates the Lua index of the bad argument
@@ -1198,8 +1605,8 @@ newJoint( lua_State *L )
 		}
 		else if ( strcmp( kDistanceJointType, jointType ) == 0 )
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
 
 			Real px = luaL_torealphysics( L, 4, scale );
 			Real py = luaL_torealphysics( L, 5, scale );
@@ -1207,46 +1614,84 @@ newJoint( lua_State *L )
 			Real qx = luaL_torealphysics( L, 6, scale );
 			Real qy = luaL_torealphysics( L, 7, scale );
 
-			b2DistanceJointDef jointDef;
+			b2DistanceJointDef jointDef = b2DefaultDistanceJointDef();
 
-			b2Vec2 point1( px, py );
-			b2Vec2 point2( qx, qy );
+			b2Vec2 point1 = { px, py };
+			b2Vec2 point2 = { qx, qy };
 
-			jointDef.Initialize( body1, body2, point1, point2 );
+			jointDef.enableSpring = true;
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+			jointDef.localAnchorA = b2Body_GetLocalPoint( body1, point1 );
+			jointDef.localAnchorB = b2Body_GetLocalPoint( body2, point2 );
+			jointDef.length = b2Length( point2 - point1 );
+
 			if ( lua_isboolean( L, 8 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 8 );
 			}
-			CoronaLuaLog(L, "WARNING: distance joint collideConnected = %d!", lua_gettop(L));
+			// CoronaLuaLog(L, "WARNING: distance joint collideConnected = %d!", lua_gettop(L));
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateDistanceJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kPivotJointType, jointType ) == 0 )
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
 
 			Real px = luaL_torealphysics( L, 4, scale );
 			Real py = luaL_torealphysics( L, 5, scale );
 
-			b2RevoluteJointDef jointDef;
+			b2RevoluteJointDef jointDef = b2DefaultRevoluteJointDef();
 
-			b2Vec2 point1( px, py );
+			b2Vec2 point1 = { px, py };
 
-			jointDef.Initialize( body1, body2, point1 );
+			// jointDef.Initialize( body1, body2, point1 );
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+			jointDef.localAnchorA = b2Body_GetLocalPoint(body1, point1);
+			jointDef.localAnchorB = b2Body_GetLocalPoint(body2, point1);
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.referenceAngle = b2RelativeAngle( rotB, rotA );
 			if ( lua_isboolean( L, 6 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 6 );
 			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateRevoluteJoint( physics.GetWorldId(), &jointDef ) );
+		}
+
+		else if ( strcmp( kMotorJointType, jointType ) == 0 )
+		{
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
+
+			b2MotorJointDef jointDef = b2DefaultMotorJointDef();
+
+			// jointDef.Initialize( body1, body2 );
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+
+			jointDef.linearOffset = b2Body_GetLocalPoint( body1, b2Body_GetPosition(body2) );
+
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.angularOffset = b2RelativeAngle( rotB, rotA );
+
+			if ( lua_isboolean( L, 4 ) )
+			{
+				jointDef.collideConnected = lua_toboolean( L, 4 );
+			}
+
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateMotorJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kPistonJointType, jointType ) == 0 )
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
 
 			Real px = luaL_torealphysics( L, 4, scale );
 			Real py = luaL_torealphysics( L, 5, scale );
@@ -1255,205 +1700,238 @@ newJoint( lua_State *L )
 			Real axisX = luaL_toreal( L, 6 );
 			Real axisY = luaL_toreal( L, 7 );
 
-			b2PrismaticJointDef jointDef;
+			b2PrismaticJointDef jointDef = b2DefaultPrismaticJointDef();
 
-			b2Vec2 anchor( px, py );
-			b2Vec2 axis( axisX, axisY );
-			axis.Normalize();
+			b2Vec2 anchor = { px, py };
+			b2Vec2 axis = b2Normalize({ axisX, axisY });
 
-			jointDef.Initialize( body1, body2, anchor, axis );
+			// jointDef.Initialize( body1, body2, anchor, axis );
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+			jointDef.localAnchorA = b2Body_GetLocalPoint( body1, anchor );
+			jointDef.localAnchorB = b2Body_GetLocalPoint( body2, anchor );
+			jointDef.localAxisA = b2Body_GetLocalVector( body1, axis );
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.referenceAngle = b2RelativeAngle( rotB, rotA );
 			if ( lua_isboolean( L, 8 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 8 );
 			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreatePrismaticJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
-		else if ( strcmp( kFrictionJointType, jointType ) == 0 )
-		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+		// else if ( strcmp( kFrictionJointType, jointType ) == 0 )
+		// {
+		// 	b2BodyId body1 = e1->GetBody();
+		// 	b2BodyId body2 = e2->GetBody();
 
-			Real px = luaL_torealphysics( L, 4, scale );
-			Real py = luaL_torealphysics( L, 5, scale );
+		// 	Real px = luaL_torealphysics( L, 4, scale );
+		// 	Real py = luaL_torealphysics( L, 5, scale );
 
-			b2FrictionJointDef jointDef;
+		// 	b2FrictionJointDef jointDef;
 
-			b2Vec2 point1( px, py );
+		// 	b2Vec2 point1( px, py );
 
-			jointDef.Initialize( body1, body2, point1 );
-			if ( lua_isboolean( L, 6 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 6 );
-			}
+		// 	jointDef.Initialize( body1, body2, point1 );
+		// 	if ( lua_isboolean( L, 6 ) )
+		// 	{
+		// 		jointDef.collideConnected = lua_toboolean( L, 6 );
+		// 	}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
-		}
+		// 	result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+		// }
 
 		else if ( strcmp( kWeldJointType, jointType ) == 0 )
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
 
 			Real px = luaL_torealphysics( L, 4, scale );
 			Real py = luaL_torealphysics( L, 5, scale );
 
-			b2WeldJointDef jointDef;
+			b2WeldJointDef jointDef = b2DefaultWeldJointDef();
 
-			b2Vec2 point1( px, py );
+			b2Vec2 point1 = { px, py };
 
-			jointDef.Initialize( body1, body2, point1 );
+			// jointDef.Initialize( body1, body2, point1 );
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+			jointDef.localAnchorA = b2Body_GetLocalPoint( body1, point1 );
+			jointDef.localAnchorB = b2Body_GetLocalPoint( body2, point1 );
+			b2Rot rotA = b2Body_GetRotation( body1 );
+			b2Rot rotB = b2Body_GetRotation( body2 );
+			jointDef.referenceAngle = b2RelativeAngle( rotB, rotA );
 			if ( lua_isboolean( L, 6 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 6 );
 			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateWeldJoint( physics.GetWorldId(), &jointDef ) );
+		}
+
+		else if ( strcmp( kNullJointType, jointType ) == 0 || strcmp( kFakeJointType, jointType ) == 0 )
+		{
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
+
+			b2NullJointDef jointDef = b2DefaultNullJointDef();
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateNullJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kWheelJointType, jointType ) == 0 )
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+			b2BodyId body1 = e1->GetBody();
+			b2BodyId body2 = e2->GetBody();
 
 			Real px = luaL_torealphysics( L, 4, scale );
 			Real py = luaL_torealphysics( L, 5, scale );
 
-			Real qx = luaL_torealphysics( L, 6, scale );
-			Real qy = luaL_torealphysics( L, 7, scale );
+			// Don't scale the axis vector
+			Real qx = luaL_toreal( L, 6 );
+			Real qy = luaL_toreal( L, 7 );
 
 			// TODO
-			b2WheelJointDef jointDef;
+			b2WheelJointDef jointDef = b2DefaultWheelJointDef();
 
-			b2Vec2 point( px, py );
-			b2Vec2 axis( qx, qy );
+			b2Vec2 point = { px, py };
+			b2Vec2 axis = b2Normalize( { qx, qy } );
 
-			jointDef.Initialize( body1, body2, point, axis );
+			// jointDef.Initialize( body1, body2, point, axis );
+			jointDef.enableSpring = true;
+			jointDef.bodyIdA = body1;
+			jointDef.bodyIdB = body2;
+			jointDef.localAnchorA = b2Body_GetLocalPoint(body1, point);
+			jointDef.localAnchorB = b2Body_GetLocalPoint(body2, point);
+			jointDef.localAxisA = b2Body_GetLocalVector(body1, axis);
 			if ( lua_isboolean( L, 8 ) )
 			{
 				jointDef.collideConnected = lua_toboolean( L, 8 );
 			}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateWheelJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
-		else if ( strcmp( kPulleyJointType, jointType ) == 0 )
-		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
+		// else if ( strcmp( kPulleyJointType, jointType ) == 0 )
+		// {
+		// 	b2BodyId body1 = e1->GetBody();
+		// 	b2BodyId body2 = e2->GetBody();
 
-			Real px = luaL_torealphysics( L, 4, scale );
-			Real py = luaL_torealphysics( L, 5, scale );
+		// 	Real px = luaL_torealphysics( L, 4, scale );
+		// 	Real py = luaL_torealphysics( L, 5, scale );
 
-			Real qx = luaL_torealphysics( L, 6, scale );
-			Real qy = luaL_torealphysics( L, 7, scale );
+		// 	Real qx = luaL_torealphysics( L, 6, scale );
+		// 	Real qy = luaL_torealphysics( L, 7, scale );
 
-			Real rx = luaL_torealphysics( L, 8, scale );
-			Real ry = luaL_torealphysics( L, 9, scale );
+		// 	Real rx = luaL_torealphysics( L, 8, scale );
+		// 	Real ry = luaL_torealphysics( L, 9, scale );
 
-			Real sx = luaL_torealphysics( L, 10, scale );
-			Real sy = luaL_torealphysics( L, 11, scale );
+		// 	Real sx = luaL_torealphysics( L, 10, scale );
+		// 	Real sy = luaL_torealphysics( L, 11, scale );
 
-			Rtt_Real ratio = 1.0;
+		// 	Rtt_Real ratio = 1.0;
 
-			if ( lua_isnumber( L, 12 ) )
-			{
-				ratio = luaL_toreal( L, 12 );
-			}
+		// 	if ( lua_isnumber( L, 12 ) )
+		// 	{
+		// 		ratio = luaL_toreal( L, 12 );
+		// 	}
 
-			b2PulleyJointDef jointDef;
+		// 	b2PulleyJointDef jointDef;
 
-			b2Vec2 fixedAnchor1 = b2Vec2( px, py );
-			b2Vec2 fixedAnchor2 = b2Vec2( qx, qy );
-			b2Vec2 bodyAnchor1 = b2Vec2( rx, ry );
-			b2Vec2 bodyAnchor2 = b2Vec2( sx, sy );
+		// 	b2Vec2 fixedAnchor1 = b2Vec2( px, py );
+		// 	b2Vec2 fixedAnchor2 = b2Vec2( qx, qy );
+		// 	b2Vec2 bodyAnchor1 = b2Vec2( rx, ry );
+		// 	b2Vec2 bodyAnchor2 = b2Vec2( sx, sy );
 
-			jointDef.Initialize( body1, body2, fixedAnchor1, fixedAnchor2, bodyAnchor1, bodyAnchor2, ratio );
-			if ( lua_isboolean( L, 13 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 13 );
-			}
+		// 	jointDef.Initialize( body1, body2, fixedAnchor1, fixedAnchor2, bodyAnchor1, bodyAnchor2, ratio );
+		// 	if ( lua_isboolean( L, 13 ) )
+		// 	{
+		// 		jointDef.collideConnected = lua_toboolean( L, 13 );
+		// 	}
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
-		}
+		// 	result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+		// }
 
 		else if ( strcmp( kTouchJointType, jointType ) == 0 )
 		{
 			float px = luaL_torealphysics( L, 3, scale );
 			float py = luaL_torealphysics( L, 4, scale );
 
-			b2MouseJointDef jointDef;
+			b2MouseJointDef jointDef = b2DefaultMouseJointDef();
 
-			b2Vec2 targetPoint( px, py );
+			b2Vec2 targetPoint = { px, py };
 
 			// Unlike the other b2JointDef subclasses, b2MouseJointDef has no Initialize() method.
 			// Instead, we set the struct attributes directly (the relevant reference code is the Test class in the Box2D testbed).
 
-			b2Body *body = e1->GetBody();
+			b2BodyId body = e1->GetBody();
 
-			jointDef.bodyA = physics.GetGroundBody();
-			jointDef.bodyB = body;
+			jointDef.bodyIdA = physics.GetGroundBodyId();
+			jointDef.bodyIdB = body;
 			jointDef.target = targetPoint;
-			jointDef.maxForce = 1000.f * body->GetMass();
-			body->SetAwake( true );
+			jointDef.maxForce = 1000.f * b2Body_GetMass( body );
+			b2Body_SetAwake( body, true );
 
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateMouseJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
-		else if ( strcmp( kGearJointType, jointType ) == 0 )
+		// else if ( strcmp( kGearJointType, jointType ) == 0 )
+		// {
+		// 	b2BodyId body1 = e1->GetBody();
+		// 	b2BodyId body2 = e2->GetBody();
+
+		// 	b2GearJointDef jointDef;
+
+		// 	jointDef.bodyA = body1;
+		// 	jointDef.bodyB = body2;
+
+		// 	jointDef.joint1 = PhysicsJoint::GetJoint( L, 4 );
+		// 	jointDef.joint2 = PhysicsJoint::GetJoint( L, 5 );
+
+		// 	jointDef.ratio = luaL_toreal( L, 6 );
+		// 	if ( lua_isboolean( L, 7 ) )
+		// 	{
+		// 		jointDef.collideConnected = lua_toboolean( L, 7 );
+		// 	}
+
+		// 	result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+		// }
+
+		// else if ( strcmp( kRopeJointType, jointType ) == 0 )
+		// {
+		// 	b2BodyId body1 = e1->GetBody();
+		// 	b2BodyId body2 = e2->GetBody();
+
+		// 	Real ax = luaL_torealphysics( L, 4, scale );
+		// 	Real ay = luaL_torealphysics( L, 5, scale );
+
+		// 	Real bx = luaL_torealphysics( L, 6, scale );
+		// 	Real by = luaL_torealphysics( L, 7, scale );
+
+		// 	b2RopeJointDef jointDef;
+
+		// 	jointDef.bodyA = body1;
+		// 	jointDef.bodyB = body2;
+
+		// 	jointDef.localAnchorA = b2Vec2( ax, ay );
+		// 	jointDef.localAnchorB = b2Vec2( bx, by );
+
+		// 	jointDef.maxLength = (body1->GetPosition() - body2->GetPosition()).Length();
+		// 	if ( lua_isboolean( L, 8 ) )
+		// 	{
+		// 		jointDef.collideConnected = lua_toboolean( L, 8 );
+		// 	}
+
+		// 	result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+		// }
+		else
 		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
-
-			b2GearJointDef jointDef;
-
-			jointDef.bodyA = body1;
-			jointDef.bodyB = body2;
-
-			jointDef.joint1 = PhysicsJoint::GetJoint( L, 4 );
-			jointDef.joint2 = PhysicsJoint::GetJoint( L, 5 );
-
-			jointDef.ratio = luaL_toreal( L, 6 );
-			if ( lua_isboolean( L, 7 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 7 );
-			}
-
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
+			CoronaLuaError(L, "physics.newJoint() unknown joint type '%s'", jointType);
 		}
-
-		else if ( strcmp( kRopeJointType, jointType ) == 0 )
-		{
-			b2Body *body1 = e1->GetBody();
-			b2Body *body2 = e2->GetBody();
-
-			Real ax = luaL_torealphysics( L, 4, scale );
-			Real ay = luaL_torealphysics( L, 5, scale );
-
-			Real bx = luaL_torealphysics( L, 6, scale );
-			Real by = luaL_torealphysics( L, 7, scale );
-
-			b2RopeJointDef jointDef;
-
-			jointDef.bodyA = body1;
-			jointDef.bodyB = body2;
-
-			jointDef.localAnchorA = b2Vec2( ax, ay );
-			jointDef.localAnchorB = b2Vec2( bx, by );
-
-			jointDef.maxLength = (body1->GetPosition() - body2->GetPosition()).Length();
-			if ( lua_isboolean( L, 8 ) )
-			{
-				jointDef.collideConnected = lua_toboolean( L, 8 );
-			}
-
-			result = CreateAndPushJoint( luaStateHandle, physics, jointDef );
-		}
-        else
-        {
-            CoronaLuaError(L, "physics.newJoint() unknown joint type '%s'", jointType);
-        }
 	}
 
 	return result;
@@ -1477,7 +1955,7 @@ newParticleSystem( lua_State *L )
 	}
 
 	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-	b2World *world = physics.GetWorld();
+	b2LiquidWorld *world = physics.GetWorld();
 	if( ! world )
 	{
 		return 0;
@@ -1496,19 +1974,18 @@ newParticleSystem( lua_State *L )
 		luaL_error( L,
 					"Invalid ParticleSystemObject." );
 
-        return 0;
+		return 0;
 	}
-
-	return 0;
 }
 
 // addBody() helpers.
 
-static void _FixtureCreator( b2Body *body,
-								b2FixtureDef *fixtureDef,
-								int &fixtureIndex )
+static void _ShapeCreator( b2BodyId bodyId,
+							b2ShapeDef *shapeDef,
+							b2Polygon *polygon,
+							int &fixtureIndex )
 {
-	b2Fixture *fixture = body->CreateFixture( fixtureDef );
+	// b2Fixture *fixture = body->CreateFixture( fixtureDef );
 
 	// Store fixture index in the fixture's userData
 	// This is a low-overhead way to reidentify specific fixtures
@@ -1522,7 +1999,50 @@ static void _FixtureCreator( b2Body *body,
 	// http://developer.coronalabs.com/content/game-edition-collision-detection#Collisions_with_multi-element_bodies
 
 	// an ordered index for all fixtures, ranging from 1 to n
-	fixture->SetUserData( (void *)(intptr_t)fixtureIndex++ );
+	// fixture->SetUserData( (void *)(intptr_t)fixtureIndex++ );
+	shapeDef->userData = (void *)(intptr_t)fixtureIndex++;
+	b2CreatePolygonShape( bodyId, shapeDef, polygon );
+}
+
+static void _CircleShapeCreator( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
+									b2Circle *cirlce,
+									int &fixtureIndex )
+{
+	shapeDef->userData = (void *)(intptr_t)fixtureIndex++;
+	b2CreateCircleShape( bodyId, shapeDef, cirlce );
+}
+
+static void _ChainCreator( b2BodyId bodyId,
+							b2ChainDef *chainDef,
+							int &fixtureIndex )
+{
+	chainDef->userData = (void *)(intptr_t)fixtureIndex++;
+	b2CreateChain( bodyId, chainDef );
+}
+
+static void _SegmentsShapeCreator( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
+									const b2Vec2 *points,
+									int32_t numPoints,
+									int &fixtureIndex )
+{
+	for ( int i = 0; i < numPoints - 1; ++i ) {
+		b2Segment segment = { points[i], points[i + 1] };
+
+		b2ShapeDef def = *shapeDef;
+		def.userData = (void *)(intptr_t)fixtureIndex++;
+		b2CreateSegmentShape( bodyId, &def, &segment );
+	}
+}
+
+static void _CapsuleShapeCreator( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
+									b2Capsule *capsule,
+									int &fixtureIndex )
+{
+	shapeDef->userData = (void *)(intptr_t)fixtureIndex++;
+	b2CreateCapsuleShape( bodyId, shapeDef, capsule );
 }
 
 static bool
@@ -1531,7 +2051,7 @@ InitializeFixtureUsing_Rectangle( lua_State *L,
 									int &fixtureIndex,
 									b2Vec2 &center_in_pixels,
 									DisplayObject *display_object,
-									b2Body *body,
+									b2BodyId bodyId,
 									float meter_per_pixels_scale )
 {
 	DEBUG_PRINT( "%s\n", __FUNCTION__ );
@@ -1545,23 +2065,23 @@ InitializeFixtureUsing_Rectangle( lua_State *L,
 	halfW *= meter_per_pixels_scale;
 	halfH *= meter_per_pixels_scale;
 
-	b2FixtureDef fixtureDef;
+	// b2FixtureDef fixtureDef;
 
-	b2PolygonShape polygonDef;
+	// b2PolygonShape polygonDef;
 
-	polygonDef.SetAsBox( halfW,
-							halfH,
-							( center_in_pixels * meter_per_pixels_scale ),
-							0.0f );
+	b2Polygon box = b2MakeOffsetBox( halfW,
+									halfH,
+									( center_in_pixels * meter_per_pixels_scale ),
+									b2Rot_identity );
+	b2ShapeDef shapeDef = b2DefaultShapeDef();
+	InitializeShapeFromLua( L,
+							shapeDef,
+							lua_arg_index );
 
-	InitializeFixtureFromLua( L,
-								fixtureDef,
-								&polygonDef,
-								lua_arg_index );
-
-	_FixtureCreator( body,
-						&fixtureDef,
-						fixtureIndex );
+	_ShapeCreator( bodyId,
+					&shapeDef,
+					&box,
+					fixtureIndex );
 
 	return true;
 }
@@ -1582,7 +2102,7 @@ static void _ArrayVertex2_to_b2Vec2Vector( ArrayVertex2 &v_array_in,
 		Vertex2 &v_in = v_array_in[ i ];
 		b2Vec2 &v_out = v_array_out[ i ];
 
-		v_out.Set( v_in.x, v_in.y );
+		v_out = { v_in.x, v_in.y };
 
 		v_out += center_in_pixels;
 
@@ -1615,8 +2135,10 @@ static void _FromLua_to_b2Vec2Vector( lua_State *L,
 		// Lua is one-based, so the second element must be at index 2.
 		lua_rawgeti( L, table_index, ( n + 1 ) );
 
-		v.Set( luaL_toreal( L, -2 ),
-				luaL_toreal( L, -1 ) );
+		// v.Set( luaL_toreal( L, -2 ),
+		// 		luaL_toreal( L, -1 ) );
+		v.x = luaL_toreal( L, -2 );
+		v.y = luaL_toreal( L, -1 );
 
 		lua_pop( L, 2 );
 
@@ -1656,7 +2178,7 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 									int &fixtureIndex,
 									b2Vec2 &center_in_pixels,
 									DisplayObject *display_object,
-									b2Body *body,
+									b2BodyId bodyId,
 									float meter_per_pixels_scale )
 {
 	// This might be a static line.
@@ -1668,7 +2190,7 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 		// It's a LineObject.
 
 		// We only support static lines.
-		body->SetType( b2_staticBody );
+		b2Body_SetType( bodyId, b2_staticBody );
 
 		LineObject *line_object = static_cast< LineObject * >( display_object );
 		OpenPath &path = static_cast< OpenPath& >( line_object->GetPath() );
@@ -1694,20 +2216,26 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 			return true;
 		}
 
-		b2FixtureDef fixtureDef;
+		// b2FixtureDef fixtureDef;
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
 
-		b2ChainShape chainDef;
-		chainDef.CreateChain( &vertexList[ 0 ],
-								(int)vertexList.size() );
+		// b2ChainShape chainDef;
+		// chainDef.CreateChain( &vertexList[ 0 ],
+		// 						(int)vertexList.size() );
+		b2ChainDef chainDef = b2DefaultChainDef();
+		chainDef.friction = shapeDef.friction;
+		chainDef.restitution = shapeDef.restitution;
+		chainDef.filter = shapeDef.filter;
+		chainDef.points = &vertexList[ 0 ];
+		chainDef.count = (int)vertexList.size();
+		chainDef.isLoop = false;
 
-		InitializeFixtureFromLua( L,
-									fixtureDef,
-									&chainDef,
-									lua_arg_index );
-
-		_FixtureCreator( body,
-							&fixtureDef,
-							fixtureIndex );
+		_ChainCreator(bodyId,
+						&chainDef,
+						fixtureIndex );
 
 		return true;
 	}
@@ -1721,12 +2249,12 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 												int &fixtureIndex,
 												b2Vec2 &center_in_pixels,
 												DisplayObject *display_object,
-												b2Body *body,
+												b2BodyId bodyId,
 												float meter_per_pixels_scale )
 {
 	// This might be an arbitrary polygonal shape.
 
-	if( ( body->GetType() == b2_staticBody ) &&
+	if( ( b2Body_GetType(bodyId) == b2_staticBody ) &&
 		( &LuaShapeObjectProxyVTable::Constant() == &display_object->GetProxy()->Delegate() ) )
 	{
 		DEBUG_PRINT( "%s\n", __FUNCTION__ );
@@ -1753,20 +2281,26 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 											center_in_pixels,
 											meter_per_pixels_scale );
 
-			b2FixtureDef fixtureDef;
+			// b2FixtureDef fixtureDef;
+			b2ShapeDef shapeDef = b2DefaultShapeDef();
+			InitializeShapeFromLua( L,
+									shapeDef,
+									lua_arg_index );
 
-			b2ChainShape chainDef;
-			chainDef.CreateLoop( &vertexList[ 0 ],
-									(int)vertexList.size() );
+			// b2ChainShape chainDef;
+			// chainDef.CreateLoop( &vertexList[ 0 ],
+			// 						(int)vertexList.size() );
+			b2ChainDef chainDef = b2DefaultChainDef();
+			chainDef.friction = shapeDef.friction;
+			chainDef.restitution = shapeDef.restitution;
+			chainDef.filter = shapeDef.filter;
+			chainDef.points = &vertexList[ 0 ];
+			chainDef.count = (int)vertexList.size();
+			chainDef.isLoop = true;
 
-			InitializeFixtureFromLua( L,
-										fixtureDef,
-										&chainDef,
-										lua_arg_index );
-
-			_FixtureCreator( body,
-								&fixtureDef,
-								fixtureIndex );
+			_ChainCreator(bodyId,
+							&chainDef,
+							fixtureIndex );
 
 			return true;
 		}
@@ -1775,13 +2309,14 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 	return false;
 }
 
+/*
 static bool
 InitializeFixtureUsing_Outline( lua_State *L,
 								int lua_arg_index,
 								int &fixtureIndex,
 								b2Vec2 &center_in_pixels,
 								DisplayObject *display_object,
-								b2Body *body,
+								b2BodyId bodyId,
 								float meter_per_pixels_scale )
 {
 	lua_getfield( L, lua_arg_index, "outline" );
@@ -1816,7 +2351,7 @@ InitializeFixtureUsing_Outline( lua_State *L,
 
 		b2FixtureDef fixtureDef;
 
-		InitializeFixtureFromLua( L,
+		InitializeShapeFromLua( L,
 									fixtureDef,
 									NULL,
 									lua_arg_index );
@@ -1899,7 +2434,7 @@ InitializeFixtureUsing_Outline( lua_State *L,
 		bool ok = sep.SeparateAndCreateFixtures( body,
 													&fixtureDef,
 													fixtureIndex,
-													_FixtureCreator,
+													_ShapeCreator,
 													vertexList,
 													translate,
 													scale );
@@ -1918,6 +2453,7 @@ InitializeFixtureUsing_Outline( lua_State *L,
 	lua_pop( L, 1 );
 	return false;
 }
+*/
 
 static bool
 InitializeFixtureUsing_Radius( lua_State *L,
@@ -1925,7 +2461,7 @@ InitializeFixtureUsing_Radius( lua_State *L,
 								int &fixtureIndex,
 								b2Vec2 &center_in_pixels,
 								DisplayObject *display_object,
-								b2Body *body,
+								b2BodyId bodyId,
 								float meter_per_pixels_scale )
 {
 	lua_getfield( L, lua_arg_index, "radius" );
@@ -1933,28 +2469,100 @@ InitializeFixtureUsing_Radius( lua_State *L,
 	{
 		DEBUG_PRINT( "%s\n", __FUNCTION__ );
 
-		b2FixtureDef fixtureDef;
+		// b2FixtureDef fixtureDef;
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
 
 		// This is a circular shape :: TODO: add optional x,y properties for offset circles? (for multi-shape case)
-		b2CircleShape circleDef;
-		circleDef.m_radius = Rtt_REAL_16TH; // default to 1/16th of a meter
+		// b2CircleShape circleDef;
+		// circleDef.m_radius = Rtt_REAL_16TH; // default to 1/16th of a meter
 		Real radius = Rtt_FloatToReal( lua_tonumber( L, -1 ) );
 		radius *= meter_per_pixels_scale; // Convert to meters.
 		if ( radius < Rtt_REAL_0 )
 		{
 			radius = Rtt_REAL_16TH;
 		}
-		circleDef.m_radius = Rtt_RealToFloat( radius );
-		
-		circleDef.m_p = ( center_in_pixels * meter_per_pixels_scale );
+		// circleDef.m_radius = Rtt_RealToFloat( radius );
 
-		InitializeFixtureFromLua( L,
-									fixtureDef,
-									&circleDef,
+		// circleDef.m_p = ( center_in_pixels * meter_per_pixels_scale );
+
+		b2Circle circle = { center_in_pixels * meter_per_pixels_scale, Rtt_RealToFloat( radius ) };
+
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
+
+		_CircleShapeCreator( bodyId,
+							&shapeDef,
+							&circle,
+							fixtureIndex );
+
+		lua_pop( L, 1 );
+		return true;
+	}
+
+	lua_pop( L, 1 );
+	return false;
+}
+
+static bool
+InitializeFixtureUsing_Circle( lua_State *L,
+							int lua_arg_index,
+							int &fixtureIndex,
+							b2Vec2 &center_in_pixels,
+							DisplayObject *display_object,
+							b2BodyId bodyId,
+							float meter_per_pixels_scale )
+{
+	lua_getfield( L, lua_arg_index, "circle" );
+	if ( lua_istable( L, -1 ) )
+	{
+		DEBUG_PRINT( "%s\n", __FUNCTION__ );
+
+		Real pixels_per_meter_scale = ( 1.0f / meter_per_pixels_scale );
+		bool hasCenter = true;
+		//float angle = 0.f;
+
+		lua_getfield( L, -1, "x" );
+		hasCenter &= ( lua_type( L, -1 ) == LUA_TNUMBER );
+		Real x = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "y" );
+		hasCenter &= ( lua_type( L, -1 ) == LUA_TNUMBER );
+		Real y = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "radius" );
+		Real radius = Rtt_FloatToReal( lua_tonumber( L, -1 ) );
+		radius *= meter_per_pixels_scale; // Convert to meters.
+		lua_pop( L, 1 );
+
+		// b2FixtureDef fixtureDef;
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+
+		if( hasCenter )
+		{
+			center_in_pixels = { x, y };
+		}
+
+		// b2CircleShape circleDef;
+		if ( radius < Rtt_REAL_0 )
+		{
+			radius = Rtt_REAL_16TH;
+		}
+		// circleDef.m_radius = Rtt_RealToFloat( radius );
+
+		// circleDef.m_p.Set(center_in_pixels.x, center_in_pixels.y);
+
+		b2Circle circle = { center_in_pixels, Rtt_RealToFloat( radius ) };
+
+		InitializeShapeFromLua( L,
+									shapeDef,
 									lua_arg_index );
 
-		_FixtureCreator( body,
-							&fixtureDef,
+		_CircleShapeCreator( bodyId,
+							&shapeDef,
+							&circle,
 							fixtureIndex );
 
 		lua_pop( L, 1 );
@@ -1971,7 +2579,7 @@ InitializeFixtureUsing_Chain( lua_State *L,
 								int &fixtureIndex,
 								b2Vec2 &center_in_pixels,
 								DisplayObject *display_object,
-								b2Body *body,
+								b2BodyId bodyId,
 								float meter_per_pixels_scale )
 {
 	lua_getfield( L, lua_arg_index, "connectFirstAndLastChainVertex" );
@@ -1994,16 +2602,32 @@ InitializeFixtureUsing_Chain( lua_State *L,
 									center_in_pixels,
 									meter_per_pixels_scale );
 
-		b2FixtureDef fixtureDef;
+		// b2FixtureDef fixtureDef;
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
 
-		b2ChainShape chainDef;
+		// b2ChainShape chainDef;
 
+		// if ( vertexList.size() < 4 ) {
+		// }
 		if( connectFirstAndLastChainVertex )
 		{
 			if( vertexList.size() >= 3 )
 			{
-				chainDef.CreateLoop( &vertexList[ 0 ],
-										(int)vertexList.size() );
+				// chainDef.CreateLoop( &vertexList[ 0 ],
+				// 						(int)vertexList.size() );
+				b2ChainDef chainDef = b2DefaultChainDef();
+				chainDef.friction = shapeDef.friction;
+				chainDef.restitution = shapeDef.restitution;
+				chainDef.filter = shapeDef.filter;
+				chainDef.points = &vertexList[ 0 ];
+				chainDef.count = (int32_t)vertexList.size();
+				chainDef.isLoop = true;
+				_ChainCreator( bodyId,
+									&chainDef,
+									fixtureIndex );
 			}
 			else
 			{
@@ -2019,8 +2643,13 @@ InitializeFixtureUsing_Chain( lua_State *L,
 		{
 			if( vertexList.size() >= 2 )
 			{
-				chainDef.CreateChain( &vertexList[ 0 ],
-										(int)vertexList.size() );
+				// chainDef.CreateChain( &vertexList[ 0 ],
+				// 						(int)vertexList.size() );
+				_SegmentsShapeCreator( bodyId,
+										&shapeDef,
+										&vertexList[ 0 ],
+										(int32_t)vertexList.size(),
+										fixtureIndex );
 			}
 			else
 			{
@@ -2032,15 +2661,6 @@ InitializeFixtureUsing_Chain( lua_State *L,
 				return true;
 			}
 		}
-
-		InitializeFixtureFromLua( L,
-									fixtureDef,
-									&chainDef,
-									lua_arg_index );
-
-		_FixtureCreator( body,
-							&fixtureDef,
-							fixtureIndex );
 
 		lua_pop( L, 1 );
 		return true;
@@ -2056,7 +2676,7 @@ InitializeFixtureUsing_Box( lua_State *L,
 							int &fixtureIndex,
 							b2Vec2 &center_in_pixels,
 							DisplayObject *display_object,
-							b2Body *body,
+							b2BodyId bodyId,
 							float meter_per_pixels_scale )
 {
 	lua_getfield( L, lua_arg_index, "box" );
@@ -2091,28 +2711,90 @@ InitializeFixtureUsing_Box( lua_State *L,
 		Real radians = Rtt_RealDegreesToRadians( luaL_toreal( L, -1 ) );
 		lua_pop( L, 1 );
 
-		b2FixtureDef fixtureDef;
+		// b2FixtureDef fixtureDef;
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
 
-		b2PolygonShape polygonDef;
+		// b2PolygonShape polygonDef;
 
 		if( hasCenter )
 		{
-			center_in_pixels.Set( x, y );
+			center_in_pixels = { x, y };
 		}
 
-		polygonDef.SetAsBox( halfW,
-								halfH,
-								center_in_pixels,
-								radians );
+		b2Polygon box = b2MakeOffsetBox( halfW,
+												halfH,
+												center_in_pixels,
+												b2MakeRot( radians ) );
 
-		InitializeFixtureFromLua( L,
-									fixtureDef,
-									&polygonDef,
-									lua_arg_index );
+		lua_getfield( L, lua_arg_index, "roundness" );
+		box.radius = luaL_torealphysics( L, -1, pixels_per_meter_scale );;
+		lua_pop( L, 1 );
 
-		_FixtureCreator( body,
-							&fixtureDef,
-							fixtureIndex );
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
+
+		_ShapeCreator( bodyId,
+						&shapeDef,
+						&box,
+						fixtureIndex );
+
+		lua_pop( L, 1 );
+		return true;
+	}
+
+	lua_pop( L, 1 );
+	return false;
+}
+
+static bool
+InitializeFixtureUsing_Capsule( lua_State *L,
+							int lua_arg_index,
+							int &fixtureIndex,
+							b2Vec2 &center_in_pixels,
+							DisplayObject *display_object,
+							b2BodyId bodyId,
+							float meter_per_pixels_scale )
+{
+	lua_getfield( L, lua_arg_index, "capsule" );
+	if ( lua_istable( L, -1 ) )
+	{
+		DEBUG_PRINT( "%s\n", __FUNCTION__ );
+
+		Real pixels_per_meter_scale = ( 1.0f / meter_per_pixels_scale );
+
+		lua_getfield( L, -1, "x1" );
+		Real cx1 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "y1" );
+		Real cy1 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "x2" );
+		Real cx2 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "y2" );
+		Real cy2 = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		lua_getfield( L, -1, "radius" );
+		Real radius = luaL_torealphysics( L, -1, pixels_per_meter_scale );
+		lua_pop( L, 1 );
+
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+
+		b2Capsule capsule = { { cx1, cy1 }, { cx2, cy2 }, radius };
+
+		InitializeShapeFromLua( L,
+								shapeDef,
+								lua_arg_index );
+
+		_CapsuleShapeCreator( bodyId,
+								&shapeDef,
+								&capsule,
+								fixtureIndex );
 
 		lua_pop( L, 1 );
 		return true;
@@ -2128,7 +2810,7 @@ InitializeFixtureUsing_Shape( lua_State *L,
 								int &fixtureIndex,
 								b2Vec2 &center_in_pixels,
 								DisplayObject *display_object,
-								b2Body *body,
+								b2BodyId bodyId,
 								float meter_per_pixels_scale )
 {
 	lua_getfield( L, lua_arg_index, "shape" );
@@ -2155,21 +2837,29 @@ InitializeFixtureUsing_Shape( lua_State *L,
 									center_in_pixels,
 									meter_per_pixels_scale );
 
-		b2FixtureDef fixtureDef;
+		// b2FixtureDef fixtureDef;
 
-		b2PolygonShape polygonDef;
+		// b2PolygonShape polygonDef;
 
-		bool ok = polygonDef.Set( &vertexList[ 0 ],
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+
+		b2Hull hull = b2ComputeHull( &vertexList[ 0 ],
 									(int)vertexList.size() );
+		bool ok = b2ValidateHull(&hull);
 		if( ok )
 		{
-			InitializeFixtureFromLua( L,
-										fixtureDef,
-										&polygonDef,
+			lua_getfield( L, lua_arg_index, "roundness" );
+			float radius = 	luaL_torealphysics( L, -1, 1.0f / meter_per_pixels_scale );;
+			lua_pop( L, 1 );
+
+			b2Polygon polygon = b2MakePolygon(&hull, radius);
+			InitializeShapeFromLua( L,
+										shapeDef,
 										lua_arg_index );
 
-			_FixtureCreator( body,
-								&fixtureDef,
+			_ShapeCreator( bodyId,
+								&shapeDef,
+								&polygon,
 								fixtureIndex );
 		}
 		else
@@ -2201,12 +2891,12 @@ add_b2Body_to_DisplayObject( lua_State *L,
 	{
 		Vertex2 offset = display_object->GetAnchorOffset();
 
-		center_in_pixels.Set( offset.x,
-								offset.y );
+		center_in_pixels = { offset.x, offset.y };
 	}
 	else
 	{
-		center_in_pixels.SetZero();
+		// center_in_pixels.SetZero();
+		center_in_pixels = b2Vec2_zero;
 	}
 
 	// Trimming is not per se connected to adjusting the group's center; for
@@ -2216,7 +2906,7 @@ add_b2Body_to_DisplayObject( lua_State *L,
 	// might be more appropriate if we wanted fine-grained control.
 	DisplayDefaults & defaults = LuaContext::GetRuntime( L )->GetDisplay().GetDefaults();
 	bool isTrimCorrected = defaults.IsImageSheetFrameTrimCorrected();
-	
+
 	if ( isTrimCorrected && display_object->AsGroupObject() )
 	{
 		Rect bounds;
@@ -2227,9 +2917,9 @@ add_b2Body_to_DisplayObject( lua_State *L,
 		center_in_pixels.x += center.x;
 		center_in_pixels.y += center.y;
 	}
-	
-	b2World *world = physics.GetWorld();
-	b2Body *body = CreateBody( physics, display_object );
+
+	// b2World *world = physics.GetWorld();
+	b2BodyId bodyId = CreateBody( physics, display_object );
 
 	int firstFixtureArg = 2;
 
@@ -2250,7 +2940,8 @@ add_b2Body_to_DisplayObject( lua_State *L,
 				t = b2_kinematicBody;
 			}
 		}
-		body->SetType( t );
+		// body->SetType( t );
+		b2Body_SetType( bodyId, t  );
 	}
 
 	if ( ! lua_istable( L, firstFixtureArg ) )
@@ -2266,8 +2957,8 @@ add_b2Body_to_DisplayObject( lua_State *L,
 		// snaps to the boundaries of the display object. The result is that declaring no elements is now the same as declaring an
 		// empty table, which is the desired outcome -- see Fogbugz #1671.
 
-		b2FixtureDef fixtureDef;
-		b2PolygonShape polygonDef;
+		// b2FixtureDef fixtureDef;
+		// b2PolygonShape polygonDef;
 
 		Real halfW = Rtt_RealDiv2( display_object->GetGeometricProperty( kWidth ) );
 		Real halfH = Rtt_RealDiv2( display_object->GetGeometricProperty( kHeight ) );
@@ -2276,12 +2967,15 @@ add_b2Body_to_DisplayObject( lua_State *L,
 		halfW *= meter_per_pixels_scale;
 		halfH *= meter_per_pixels_scale;
 
-		polygonDef.SetAsBox( halfW,
-								halfH,
-								( center_in_pixels * meter_per_pixels_scale ),
-								0.0f );
+		b2Polygon box = b2MakeOffsetBox( halfW,
+										halfH,
+										( center_in_pixels * meter_per_pixels_scale ),
+										b2Rot_identity );
 
-		InitializeFixturePhysicsDefaults( fixtureDef, &polygonDef );
+		b2ShapeDef shapeDef = b2DefaultShapeDef();
+		InitializeShapePhysicsDefaults( shapeDef );
+
+		// InitializeFixturePhysicsDefaults( fixtureDef, &polygonDef );
 
 		// Store fixture index in the fixture's userData
 		// This is a low-overhead way to reidentify specific fixtures by index during Lua collision events; the fixture indexes
@@ -2289,12 +2983,14 @@ add_b2Body_to_DisplayObject( lua_State *L,
 		// note that Corona uses the term "body element" to mean Box2D's "fixture", when speaking of multi-element bodies.
 		// See user documentation here: http://developer.coronalabs.com/content/game-edition-collision-detection#Collisions_with_multi-element_bodies
 
-		b2Fixture *fixture = body->CreateFixture( & fixtureDef );
+		// b2Fixture *fixture = body->CreateFixture( & fixtureDef );
 
 		// an ordered index for all fixtures, ranging from 1 to n
 		intptr_t fixtureIndex = 1;
 
-		fixture->SetUserData( (void *)fixtureIndex );
+		// fixture->SetUserData( (void *)fixtureIndex );
+		shapeDef.userData = (void *)fixtureIndex;
+		b2CreatePolygonShape(bodyId, &shapeDef, &box);
 	}
 	else
 	{
@@ -2316,56 +3012,70 @@ add_b2Body_to_DisplayObject( lua_State *L,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_Box( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
+											meter_per_pixels_scale ) ||
+				InitializeFixtureUsing_Capsule( L,
+											lua_arg_index,
+											fixtureIndex,
+											center_in_pixels,
+											display_object,
+											bodyId,
+											meter_per_pixels_scale ) ||
+				InitializeFixtureUsing_Circle( L,
+											lua_arg_index,
+											fixtureIndex,
+											center_in_pixels,
+											display_object,
+											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_Chain( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_Radius( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) ||
-				InitializeFixtureUsing_Outline( L,
-											lua_arg_index,
-											fixtureIndex,
-											center_in_pixels,
-											display_object,
-											body,
-											meter_per_pixels_scale ) ||
+				// InitializeFixtureUsing_Outline( L,
+				// 							lua_arg_index,
+				// 							fixtureIndex,
+				// 							center_in_pixels,
+				// 							display_object,
+				// 							bodyId,
+				// 							meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_ArbitraryPolygonalShape( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_StaticLine( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) ||
 				InitializeFixtureUsing_Rectangle( L,
 											lua_arg_index,
 											fixtureIndex,
 											center_in_pixels,
 											display_object,
-											body,
+											bodyId,
 											meter_per_pixels_scale ) );
 		} // end loop over fixtureArgs
 	}
@@ -2373,7 +3083,7 @@ add_b2Body_to_DisplayObject( lua_State *L,
 	if ( display_object->InitializeExtensions( physics.Allocator() ) )
 	{
 		DisplayObjectExtensions *extensions = display_object->GetExtensions();
-		extensions->SetBody( body, *world );
+		extensions->SetBody( bodyId, physics.GetWorldId() );
 
 		return true;
 	}
@@ -2448,13 +3158,13 @@ removeBody( lua_State *L )
 			result = ( NULL != o->GetExtensions() );
 
 			if (result)
-            {                
-                o->RemoveExtensions();
-            }
-            else
-            {
-                CoronaLuaWarning(L, "physics.removeBody() given a display object that is not a physics object");
-            }
+			{
+				o->RemoveExtensions();
+			}
+			else
+			{
+				CoronaLuaWarning(L, "physics.removeBody() given a display object that is not a physics object");
+			}
 		}
 	}
 
@@ -2487,11 +3197,11 @@ setDrawMode( lua_State *L )
 	{
 		display.SetDrawMode( Display::kPhysicsDebugDrawMode );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.setDrawMode() parameter must be one of '%s', '%s' or '%s'",
-                       kNormalDrawName, kHybridDrawName, kDebugDrawName);
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.setDrawMode() parameter must be one of '%s', '%s' or '%s'",
+					   kNormalDrawName, kHybridDrawName, kDebugDrawName);
+	}
 
 	return 0;
 }
@@ -2505,10 +3215,10 @@ setVelocityIterations( lua_State *L )
 		S32 velocityIterations = (S32) lua_tointeger( L, 1 );
 		physics.SetVelocityIterations( velocityIterations );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.setVelocityIterations() requires 1 parameter (number)");
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.setVelocityIterations() requires 1 parameter (number)");
+	}
 
 	return 0;
 }
@@ -2522,10 +3232,10 @@ setPositionIterations( lua_State *L )
 		S32 positionIterations = (S32) lua_tointeger( L, 1 );
 		physics.SetPositionIterations( positionIterations );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.setPositionIterations() requires 1 parameter (number)");
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.setPositionIterations() requires 1 parameter (number)");
+	}
 
 	return 0;
 }
@@ -2540,7 +3250,7 @@ setContinuous( lua_State *L )
 		if ( result )
 		{
 			PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-			physics.GetWorld()->SetContinuousPhysics( lua_toboolean( L, 1 ) );
+			b2World_EnableContinuous( physics.GetWorldId(), lua_toboolean( L, 1 ) );
 		}
 	}
 	else
@@ -2563,29 +3273,29 @@ setMKS( lua_State *L )
 
 		if ( Rtt_StringCompare( "velocityThreshold", key ) == 0 )
 		{
-			b2Settings::velocityThreshold = value;
+			// b2Settings::velocityThreshold = value;
 		}
 		else if ( Rtt_StringCompare( "linearSlop", key ) == 0 )
 		{
-			b2Settings::linearSlop = value;
+			// b2Settings::linearSlop = value;
 		}
 		else if ( Rtt_StringCompare( "timeToSleep", key ) == 0 )
 		{
-			b2Settings::timeToSleep = value;
+			// b2Settings::timeToSleep = value;
 		}
 		else if ( Rtt_StringCompare( "maxSubSteps", key ) == 0 )
 		{
-			b2Settings::maxSubSteps = (int) luaL_checkinteger( L, 2 );
+			// b2Settings::maxSubSteps = (int) luaL_checkinteger( L, 2 );
 		}
 		else if ( Rtt_StringCompare( "linearSleepTolerance", key ) == 0 )
 		{
-			b2Settings::linearSleepTolerance = value;
-			b2Settings::linearSleepToleranceSq = value * value;
+			// b2Settings::linearSleepTolerance = value;
+			// b2Settings::linearSleepToleranceSq = value * value;
 		}
 		else if ( Rtt_StringCompare( "angularSleepTolerance", key ) == 0 )
 		{
-			b2Settings::angularSleepTolerance = value;
-			b2Settings::angularSleepToleranceSq = value * value;
+			// b2Settings::angularSleepTolerance = value;
+			// b2Settings::angularSleepToleranceSq = value * value;
 		}
 		else
 		{
@@ -2607,27 +3317,27 @@ getMKS( lua_State *L )
 
 	if ( Rtt_StringCompare( "velocityThreshold", key ) == 0 )
 	{
-		value = b2Settings::velocityThreshold;
+		// value = b2Settings::velocityThreshold;
 	}
 	else if ( Rtt_StringCompare( "linearSlop", key ) == 0 )
 	{
-		value = b2Settings::linearSlop;
+		// value = b2Settings::linearSlop;
 	}
 	else if ( Rtt_StringCompare( "timeToSleep", key ) == 0 )
 	{
-		value = b2Settings::timeToSleep;
+		// value = b2Settings::timeToSleep;
 	}
 	else if ( Rtt_StringCompare( "maxSubSteps", key ) == 0 )
 	{
-		value = b2Settings::maxSubSteps;
+		// value = b2Settings::maxSubSteps;
 	}
 	else if ( Rtt_StringCompare( "linearSleepTolerance", key ) == 0 )
 	{
-		value = b2Settings::linearSleepTolerance;
+		// value = b2Settings::linearSleepTolerance;
 	}
 	else if ( Rtt_StringCompare( "angularSleepTolerance", key ) == 0 )
 	{
-		value = b2Settings::angularSleepTolerance;
+		// value = b2Settings::angularSleepTolerance;
 	}
 	else
 	{
@@ -2717,10 +3427,10 @@ toMKS( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		result = LuaLibPhysics::ToMKS( unitType, physics, result );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.toMKS() unit type '%s' not recognized", unitName);
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.toMKS() unit type '%s' not recognized", unitName);
+	}
 
 	lua_pushnumber( L, result );
 	return 1;
@@ -2741,10 +3451,10 @@ fromMKS( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		result = LuaLibPhysics::FromMKS( unitType, physics, result );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.fromMKS() unit type '%s' not recognized", unitName);
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.fromMKS() unit type '%s' not recognized", unitName);
+	}
 
 	lua_pushnumber( L, result );
 	return 1;
@@ -2763,10 +3473,10 @@ setTimeStep( lua_State *L )
 		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		physics.SetTimeStep( lua_tonumber( L, 1 ) );
 	}
-    else
-    {
-        CoronaLuaError(L, "physics.setTimeStep() requires 1 parameter (number)");
-    }
+	else
+	{
+		CoronaLuaError(L, "physics.setTimeStep() requires 1 parameter (number)");
+	}
 
 	return 0;
 }
@@ -2827,6 +3537,80 @@ getNumSteps( lua_State *L )
 	return 1;
 }
 
+// physics.setSubSteps( subSteps )
+// Sets subSteps of physics sumulator per time step. Default is 4
+static int
+SetSubSteps( lua_State *L )
+{
+	if ( lua_isnumber( L, 1 ) )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		physics.SetSubSteps( (S32) lua_tointeger( L, 1 ) );
+	}
+	else
+	{
+		CoronaLuaError(L, "physics.setTimeScale() requires 1 parameter (number)");
+	}
+
+	return 0;
+}
+
+// physics.getSubSteps( )
+// Returns subSteps of physics sumulator per time step.
+static int
+GetSubSteps( lua_State *L )
+{
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushinteger(L, physics.GetSubSteps());
+	return 1;
+}
+
+static int
+Explode( lua_State *L )
+{
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.explode()" );
+
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		b2ExplosionDef def = b2DefaultExplosionDef();
+		def.position = { luaL_torealphysics( L, 1, scale ), luaL_torealphysics( L, 2, scale ) };
+		def.radius = luaL_torealphysics( L, 3, scale );
+		def.falloff = luaL_torealphysics( L, 4, scale );
+		def.impulsePerLength = lua_tonumber( L , 5 );
+		if ( lua_isnumber( L, 6 ) )
+		{
+			def.maskBits = lua_tonumber( L , 6 );
+		}
+
+		b2World_Explode( physics.GetWorldId(), &def );
+	}
+
+	return 0;
+}
+
+static int
+SetContactTuning( lua_State *L )
+{
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.setContactTuning()" );
+
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		float hertz = lua_tonumber( L , 1 ); // The contact stiffness (cycles per second)
+		float dampingRatio = lua_tonumber( L , 2 ); // The contact bounciness with 1 being critical damping (non-dimensional)
+		float pushVelocity = lua_tonumber( L , 3 ); // The maximum contact constraint push out velocity (meters per second)
+		b2World_SetContactTuning( physics.GetWorldId(), hertz, dampingRatio, pushVelocity );
+	}
+
+	return 0;
+}
+
+
 int
 LuaLibPhysics::Open( lua_State *L )
 {
@@ -2848,6 +3632,8 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "rayCast", RayCast },
 		{ "reflectRay", ReflectRay },
 		{ "queryRegion", QueryRegion },
+		{ "queryCircle", QueryCircle },
+		{ "queryBody", QueryBody },
 		{ "setAverageCollisionPositions", SetAverageCollisionPositions },
 		{ "getAverageCollisionPositions", GetAverageCollisionPositions },
 		{ "setScale", setScale },
@@ -2868,6 +3654,10 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "getTimeScale", getTimeScale },
 		{ "setNumSteps", setNumSteps },
 		{ "getNumSteps", getNumSteps },
+		{ "explode", Explode },
+		{ "setContactTuning", SetContactTuning },
+		{ "setSubSteps", SetSubSteps },
+		{ "getSubSteps", GetSubSteps },
 
 		{ NULL, NULL }
 	};
@@ -2884,10 +3674,11 @@ LuaLibPhysics::Open( lua_State *L )
 		snprintf( s,
 					( sizeof( s ) - sizeof( s[ 0 ] ) ),
 					"Box2D %d.%d.%d with %s",
-					b2_version.major,
-					b2_version.minor,
-					b2_version.revision,
-					b2_liquidFunVersionString );
+					b2GetVersion().major,
+					b2GetVersion().minor,
+					b2GetVersion().revision,
+					"LiquidFun not support" );
+					// b2_liquidFunVersionString );
 
 		lua_pushstring( L, s );
 		lua_setfield( L, -2, "engineVersion" );

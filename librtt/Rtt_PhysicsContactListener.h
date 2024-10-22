@@ -12,7 +12,9 @@
 
 #ifdef Rtt_PHYSICS	
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
+#include "liquid_callbacks.h"
+#include <mutex>
 
 // ----------------------------------------------------------------------------
 
@@ -32,29 +34,33 @@ class PhysicsContactListener : public b2ContactListener
 	public:
 		// b2ContactListener
 		// Fixture <-> Fixture contact.
-		virtual void BeginContact(b2Contact* contact);
-		virtual void EndContact(b2Contact* contact);
-		virtual void PreSolve(b2Contact* contact, const b2Manifold* oldManifold);
-		virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);
+		void BeginContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold manifold );
+		void EndContact( b2ShapeId shapeIdA, b2ShapeId shapeIdB );
+		bool PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const b2Manifold* manifold );
+		// virtual void PostSolve(b2Contact* contact, const b2ContactImpulse* impulse);
+		void BeginContactHit( b2ContactHitEvent* hitEvent );
 
 		// b2ContactListener
 		// Fixture <-> Particle contact.
-		virtual void BeginContact( b2ParticleSystem *particleSystem,
+		virtual void BeginParticleContact( b2ParticleSystem *particleSystem,
 									b2ParticleBodyContact *particleBodyContact );
-		virtual void EndContact( b2Fixture *fixture,
+		virtual void EndParticleContact( b2ShapeId fixture,
 									b2ParticleSystem *particleSystem,
 									int32 particleIndex );
 
 	private:
 
+		/*
 		bool GetCollisionParams( b2Contact* contact,
 									DisplayObject *&out_object1,
 									DisplayObject *&out_object2,
 									b2Vec2 &out_position,
 									size_t &out_fixtureIndex1,
 									size_t &out_fixtureIndex2 );
+		*/
 
 		Runtime& fRuntime;
+		std::mutex fDispatchEventMutex;
 };
 
 

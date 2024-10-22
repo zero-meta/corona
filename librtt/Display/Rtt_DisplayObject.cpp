@@ -30,7 +30,7 @@
 
 #ifdef Rtt_PHYSICS
 	#include "Rtt_Runtime.h"
-	#include "Box2D/Box2D.h"
+	#include "box2d/box2d.h"
 #endif
 
 
@@ -500,8 +500,8 @@ DisplayObject::Translate( Real dx, Real dy )
 #ifdef Rtt_PHYSICS
 		if ( fExtensions && ! IsProperty( kIsExtensionsLocked ) )
 		{
-			b2Body *body = fExtensions->GetBody();
-			if ( body )
+			b2BodyId body = fExtensions->GetBody();
+			if ( b2Body_IsValid(body) )
 			{
 				StageObject *stage = GetStage();
 				if ( Rtt_VERIFY( stage ) )
@@ -515,18 +515,19 @@ DisplayObject::Translate( Real dx, Real dy )
 					else
 					{
 						Real scale = physics.GetPixelsPerMeter();
-						
-						float angle = body->GetAngle();
-						
+
+						// float angle = body->GetAngle();
+						b2Rot rotation = b2Body_GetRotation( body );
+
 						Real x = fTransform.GetProperty( kOriginX );
 						Real y = fTransform.GetProperty( kOriginY );
-						
+
 						x = Rtt_RealDiv( x, scale );
 						y = Rtt_RealDiv( y, scale );
-						
-						b2Vec2 position( Rtt_RealToFloat( x ), Rtt_RealToFloat( y ) );
-						body->SetAwake( true );
-						body->SetTransform( position, angle );
+
+						b2Vec2 position = { Rtt_RealToFloat( x ), Rtt_RealToFloat( y ) };
+						b2Body_SetAwake( body, true );
+						b2Body_SetTransform( body, position, rotation );
 					}
 				}
 			}
@@ -579,8 +580,8 @@ DisplayObject::Rotate( Real deltaTheta )
 #ifdef Rtt_PHYSICS
 		if ( fExtensions && ! IsProperty( kIsExtensionsLocked ) )
 		{
-			b2Body *body = fExtensions->GetBody();
-			if ( body )
+			b2BodyId body = fExtensions->GetBody();
+			if ( b2Body_IsValid(body) )
 			{
 				StageObject *stage = GetStage();
 				if ( Rtt_VERIFY( stage ) )
@@ -603,9 +604,9 @@ DisplayObject::Rotate( Real deltaTheta )
 						y = Rtt_RealDiv( y, scale );
 						angle = Rtt_RealDegreesToRadians( angle );
 						
-						b2Vec2 position( Rtt_RealToFloat( x ), Rtt_RealToFloat( y ) );
-						body->SetAwake( true );
-						body->SetTransform( position, Rtt_RealToFloat( angle ) );
+						b2Vec2 position = { Rtt_RealToFloat( x ), Rtt_RealToFloat( y ) };
+						b2Body_SetAwake( body, true );
+						b2Body_SetTransform( body, position, b2MakeRot(angle) );
 					}
 				}
 			}
@@ -1460,6 +1461,8 @@ DisplayObject::SetSelfBounds( Real width, Real height )
 void
 DisplayObject::SetGeometricProperty( enum GeometricProperty p, Real newValue )
 {
+	if (isnan(newValue)) { return; }
+
 	Real currentValue;
 
 	switch( p )
@@ -1839,6 +1842,11 @@ DisplayObject::RemoveExtensions()
 {
 	if ( fExtensions )
 	{
+		b2BodyId bodyId = fExtensions->GetBody();
+		if ( b2Body_IsValid(bodyId) ) {
+			b2DestroyBody( bodyId );
+			fExtensions->SetBody( b2_nullBodyId, b2_nullWorldId);
+		}
 		Rtt_DELETE( fExtensions );
 		fExtensions = NULL;
 

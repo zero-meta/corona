@@ -1,6 +1,6 @@
 [submodule "external/Box2D"]
 	path = external/Box2D
-	url = https://github.com/coronalabs/submodule-box2d.git
+	url = https://github.com/zero-meta/submodule-box2d.git
 	branch = master
 [submodule "external/CryptoPP"]
 	path = external/CryptoPP
@@ -48,12 +48,12 @@
 	branch = master
 [submodule "simulator-extensions/welcomescreen"]
 	path = simulator-extensions/welcomescreen
-	url = https://github.com/coronalabs/submodule-welcomescreen.git
+	url = https://github.com/zero-meta/submodule-welcomescreen.git
 	branch = master
 [submodule "subrepos/enterprise"]
 	path = subrepos/enterprise
-	url = https://github.com/coronalabs/submodule-native.git
-	branch = master
+	url = https://github.com/labolado/submodule-native.git
+	branch = dev_box2d_v3
 [submodule "subrepos/easing"]
 	path = subrepos/easing
 	url = https://github.com/coronalabs/framework-easing.git
@@ -82,3 +82,10 @@
 	path = external/MetalANGLE
 	url = https://github.com/coronalabs/metalangle.git
 	branch = Solar2D-Changes-Reverted
+[submodule "external/box2d_v3"]
+	path = external/box2d_v3
+	url = https://github.com/labolado/submodule-box2d_v3.git
+	branch = dev_solar2d
+[submodule "external/enkiTS"]
+	path = external/enkiTS
+	url = https://github.com/zero-meta/enkiTS.git

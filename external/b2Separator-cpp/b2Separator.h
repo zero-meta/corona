@@ -35,13 +35,13 @@ public:
 		 * @see b2PolygonShape.SetAsVector()
 		 * @see b2Fixture
 		 **/
-	typedef void (*FixtureCreator_t)( b2Body *body,
-										b2FixtureDef *fixtureDef,
+	typedef void (*FixtureCreator_t)( b2BodyId bodyid,
+										b2ShapeDef *shapeDef,
 										int &fixtureIndex );
 
 	// "translate" is applied first, then "scale", to all vertices in vertices_vec.
-	bool SeparateAndCreateFixtures( b2Body *body,
-									b2FixtureDef *fixtureDef,
+	bool SeparateAndCreateFixtures( b2BodyId bodyId,
+									b2ShapeDef *shapeDef,
 									int &fixtureIndex,
 									FixtureCreator_t fixture_creator,
 									b2Vec2Vector &vertices_vec,

@@ -37,6 +37,7 @@ class MPlatformDevice
 			kHeadingEvent,
 			kMultitouchEvent,
 			kCollisionEvent,
+			kHitCollisionEvent,
 			kPreCollisionEvent,
 			kPostCollisionEvent,
 			kParticleCollisionEvent,

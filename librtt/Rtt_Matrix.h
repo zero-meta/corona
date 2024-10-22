@@ -15,7 +15,7 @@
 
 // ----------------------------------------------------------------------------
 
-struct b2Mat33;
+// struct b2Mat33;
 
 namespace Rtt
 {
@@ -69,7 +69,7 @@ class Matrix
 
 		void ToGLMatrix( Rtt_Real m[16] ) const;
 		void ToGLMatrix3x3( Rtt_Real m[9] ) const;
-		void Tob2Mat33( b2Mat33 &m ) const;
+		// void Tob2Mat33( b2Mat33 &m ) const;
 
 		#ifdef Rtt_DEBUG
 			bool TestIdentity() const;

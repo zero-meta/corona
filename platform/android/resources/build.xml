@@ -83,8 +83,8 @@
 	<condition property="corona.native.android" value="${BUNDLE_DIR}/../../../../../android">
 		<available file="${BUNDLE_DIR}/../../../../../android" />
 	</condition>
-	<condition property="corona.native.android" value="${user.home}/Library/Application Support/Corona/Native/Corona/android">
-		<available file="${user.home}/Library/Application Support/Corona/Native/Corona/android" />
+	<condition property="corona.native.android" value="${user.home}/Library/Application Support/Corona/NativePE/Corona/android">
+		<available file="${user.home}/Library/Application Support/Corona/NativePE/Corona/android" />
 	</condition>	
 	<condition property="corona.native.android" value="${BUNDLE_DIR}/Native/Corona/android">
 		<available file="${BUNDLE_DIR}/Native/Corona/android" />

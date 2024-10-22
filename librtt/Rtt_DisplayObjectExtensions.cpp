@@ -1,7 +1,7 @@
 //////////////////////////////////////////////////////////////////////////////
 //
 // This file is part of the Corona game engine.
-// For overview and more information on licensing please refer to README.md 
+// For overview and more information on licensing please refer to README.md
 // Home page: https://github.com/coronalabs/corona
 // Contact: support@coronalabs.com
 //
@@ -20,7 +20,7 @@
 #include "Rtt_PhysicsWorld.h"
 #include "Rtt_Runtime.h"
 
-#include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
 
 // ----------------------------------------------------------------------------
 
@@ -32,7 +32,7 @@ namespace Rtt
 DisplayObjectExtensions::DisplayObjectExtensions( DisplayObject& owner )
 :	fOwner( owner )
 #ifdef Rtt_PHYSICS
-	, fBody( NULL )
+	, fBodyId( b2_nullBodyId )
 #endif
 {
 }
@@ -40,12 +40,13 @@ DisplayObjectExtensions::DisplayObjectExtensions( DisplayObject& owner )
 DisplayObjectExtensions::~DisplayObjectExtensions()
 {
 #ifdef Rtt_PHYSICS
-	if ( fBody )
+	if ( b2Body_IsValid(fBodyId) )
 	{
 		GroupObject *parent = fOwner.GetParent();
 		if ( Rtt_VERIFY( parent ) )
 		{
-			fBody->SetUserData( NULL );
+			// fBody->SetUserData( NULL );
+			b2Body_SetUserData( fBodyId, NULL );
 
 			// Do NOT DestroyBody here.  Instead, at end of StepWorld(), we lazily
 			// detect if the body's userdata is NULL. If it is, we know to destroy
@@ -78,14 +79,15 @@ DisplayObjectExtensions::setLinearVelocity( lua_State *L )
 		Real scale = physics.GetPixelsPerMeter();
 
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
+		b2BodyId bodyId = extensions->GetBody();
 
 		Real vx = Rtt_RealDiv( lua_tonumber( L, 2 ), scale );
 		Real vy = Rtt_RealDiv( lua_tonumber( L, 3 ), scale );
 
-		b2Vec2 velocity = b2Vec2( Rtt_RealToFloat( vx ), Rtt_RealToFloat( vy ) );
+		b2Vec2 velocity = { Rtt_RealToFloat( vx ), Rtt_RealToFloat( vy ) };
 
-		fBody->SetLinearVelocity( velocity );
+		// fBody->SetLinearVelocity( velocity );
+		b2Body_SetLinearVelocity(bodyId, velocity);
 	}
 
 	return 0;
@@ -104,8 +106,8 @@ DisplayObjectExtensions::getLinearVelocity( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		b2Vec2 velocityInPixelsPerSecond = ( fBody->GetLinearVelocity() * physics.GetPixelsPerMeter() );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Vec2 velocityInPixelsPerSecond = ( b2Body_GetLinearVelocity(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, velocityInPixelsPerSecond.x );
 		lua_pushnumber( L, velocityInPixelsPerSecond.y );
@@ -126,8 +128,8 @@ DisplayObjectExtensions::getMassWorldCenter( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		b2Vec2 massWorldCenterInPixels = ( fBody->GetWorldCenter() * physics.GetPixelsPerMeter() );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Vec2 massWorldCenterInPixels = ( b2Body_GetWorldCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massWorldCenterInPixels.x );
 		lua_pushnumber( L, massWorldCenterInPixels.y );
@@ -148,8 +150,8 @@ DisplayObjectExtensions::getMassLocalCenter( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		b2Vec2 massLocalCenterInPixels = ( fBody->GetLocalCenter() * physics.GetPixelsPerMeter() );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Vec2 massLocalCenterInPixels = ( b2Body_GetLocalCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massLocalCenterInPixels.x );
 		lua_pushnumber( L, massLocalCenterInPixels.y );
@@ -171,16 +173,16 @@ DisplayObjectExtensions::applyForce( lua_State *L )
 	if ( o )
 	{
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		b2Vec2 force = b2Vec2( lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Vec2 force = { (float)lua_tonumber( L, 2 ), (float)lua_tonumber( L, 3 ) };
 
 		Real px = Rtt_FloatToReal( lua_tonumber( L, 4 ) );
 		Real py = Rtt_FloatToReal( lua_tonumber( L, 5 ) );
 		px = Rtt_RealDiv( px, scale );
 		py = Rtt_RealDiv( py, scale );
-		b2Vec2 point = b2Vec2( Rtt_RealToFloat( px ), Rtt_RealToFloat( py ) );
+		b2Vec2 point = { Rtt_RealToFloat( px ), Rtt_RealToFloat( py ) };
 
-		fBody->ApplyForce( force, point, true );
+		b2Body_ApplyForce( bodyId, force, point, true );
 	}
 
 	return 0;
@@ -197,8 +199,8 @@ DisplayObjectExtensions::applyTorque( lua_State *L )
 	if ( o )
 	{
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		fBody->ApplyTorque( lua_tonumber( L, 2 ), true );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Body_ApplyTorque( bodyId, lua_tonumber( L, 2 ), true );
 	}
 
 	return 0;
@@ -217,16 +219,16 @@ DisplayObjectExtensions::applyLinearImpulse( lua_State *L )
 	if ( o )
 	{
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		b2Vec2 impulse = b2Vec2( lua_tonumber( L, 2 ), lua_tonumber( L, 3 ) );
+		b2BodyId bodyId = extensions->GetBody();
+		b2Vec2 impulse = { (float)lua_tonumber( L, 2 ), (float)lua_tonumber( L, 3 ) };
 
 		Real px = Rtt_FloatToReal( lua_tonumber( L, 4 ) );
 		Real py = Rtt_FloatToReal( lua_tonumber( L, 5 ) );
 		px = Rtt_RealDiv( px, scale );
 		py = Rtt_RealDiv( py, scale );
-		b2Vec2 point = b2Vec2( Rtt_RealToFloat( px ), Rtt_RealToFloat( py ) );
+		b2Vec2 point = { Rtt_RealToFloat( px ), Rtt_RealToFloat( py ) };
 
-		fBody->ApplyLinearImpulse( impulse, point, true );
+		b2Body_ApplyLinearImpulse( bodyId, impulse, point, true );
 	}
 
 	return 0;
@@ -243,8 +245,9 @@ DisplayObjectExtensions::applyAngularImpulse( lua_State *L )
 	if ( o )
 	{
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		fBody->ApplyTorque( lua_tonumber( L, 2 ), true );
+		b2BodyId bodyId = extensions->GetBody();
+		// fBody->ApplyTorque( lua_tonumber( L, 2 ), true );
+		b2Body_ApplyAngularImpulse( bodyId, lua_tonumber( L, 2 ), true );
 	}
 
 	return 0;
@@ -261,8 +264,8 @@ DisplayObjectExtensions::resetMassData( lua_State *L )
 	if ( o )
 	{
 		Self *extensions = o->GetExtensions();
-		b2Body *fBody = extensions->GetBody();
-		fBody->ResetMassData();
+		b2BodyId bodyId = extensions->GetBody();
+		b2Body_ApplyMassFromShapes(bodyId);
 	}
 
 	return 0;
@@ -281,18 +284,18 @@ DisplayObjectExtensions::getWorldVector(lua_State* L)
 		Real scale = physics.GetPixelsPerMeter();
 
 		Self* extensions = o->GetExtensions();
-		b2Body* fBody = extensions->GetBody();
+		b2BodyId bodyId = extensions->GetBody();
 
 		Real lx = Rtt_RealDiv(lua_tonumber(L, 2), scale);
 		Real ly = Rtt_RealDiv(lua_tonumber(L, 3), scale);
 
-		b2Vec2 localVector = b2Vec2(Rtt_RealToFloat(lx), Rtt_RealToFloat(ly));
+		b2Vec2 localVector = { Rtt_RealToFloat(lx), Rtt_RealToFloat(ly) };
 
-		b2Vec2 worldVector = fBody->GetWorldVector(localVector);
+		b2Vec2 worldVector = b2Body_GetWorldVector(bodyId, localVector);
 
 		lua_pushnumber(L, worldVector.x);
 		lua_pushnumber(L, worldVector.y);
-		
+
 		return 2;
 	}
 
@@ -312,12 +315,13 @@ DisplayObjectExtensions::getInertia(lua_State* L)
 		Real scale = physics.GetPixelsPerMeter();
 
 		Self* extensions = o->GetExtensions();
-		b2Body* fBody = extensions->GetBody();
-	
-		float32 inertia = fBody->GetInertia() * scale;
+		b2BodyId bodyId = extensions->GetBody();
+
+		// float32 inertia = fBody->GetInertia() * scale;
+		float inertia = b2Body_GetRotationalInertia(bodyId);
 
 		lua_pushnumber(L, inertia);
-		
+
 		return 1;
 	}
 
@@ -337,18 +341,20 @@ DisplayObjectExtensions::getLinearVelocityFromWorldPoint(lua_State* L)
 		Real scale = physics.GetPixelsPerMeter();
 
 		Self* extensions = o->GetExtensions();
-		b2Body* fBody = extensions->GetBody();
+		b2BodyId bodyId = extensions->GetBody();
 
 		Real wx = Rtt_RealDiv(lua_tonumber(L, 2), scale);
 		Real wy = Rtt_RealDiv(lua_tonumber(L, 3), scale);
 
-		b2Vec2 worldPoint = b2Vec2(Rtt_RealToFloat(wx), Rtt_RealToFloat(wy));
+		b2Vec2 worldPoint = { Rtt_RealToFloat(wx), Rtt_RealToFloat(wy) };
 
-		b2Vec2 velocity = fBody->GetLinearVelocityFromWorldPoint(worldPoint);
+		// b2Vec2 velocity = fBody->GetLinearVelocityFromWorldPoint(worldPoint);
+		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), worldPoint - b2Body_GetWorldCenterOfMass(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
-		
+
 		return 2;
 	}
 
@@ -368,22 +374,86 @@ DisplayObjectExtensions::getLinearVelocityFromLocalPoint(lua_State* L)
 		Real scale = physics.GetPixelsPerMeter();
 
 		Self* extensions = o->GetExtensions();
-		b2Body* fBody = extensions->GetBody();
+		b2BodyId bodyId = extensions->GetBody();
 
 		Real wx = Rtt_RealDiv(lua_tonumber(L, 2), scale);
 		Real ly = Rtt_RealDiv(lua_tonumber(L, 3), scale);
 
-		b2Vec2 localPoint = b2Vec2(Rtt_RealToFloat(wx), Rtt_RealToFloat(ly));
+		b2Vec2 localPoint = { Rtt_RealToFloat(wx), Rtt_RealToFloat(ly) };
 
-		b2Vec2 velocity = fBody->GetLinearVelocityFromLocalPoint(localPoint);
+		// b2Vec2 velocity = fBody->GetLinearVelocityFromLocalPoint(localPoint);
+		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), b2Body_GetWorldPoint(bodyId, localPoint) - b2Body_GetWorldCenterOfMass(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
-		
+
 		return 2;
 	}
 
 	return 0;
+}
+
+typedef void shapeSetStateFcn( b2ShapeId shapeId, bool state );
+
+static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		bool state = lua_toboolean( L, 2 );
+		int count = b2Body_GetShapeCount( bodyId );
+		int shapeIndexStart = 0;
+		int shapeIndexEnd = count;
+		if ( lua_isnumber( L, 3 ) )
+		{
+			shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+		}
+		if ( lua_isnumber( L, 4 ) )
+		{
+			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+		}
+		b2ShapeId* shapeArray = new b2ShapeId[ count ];
+		b2Body_GetShapes( bodyId, shapeArray, count );
+		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
+			setState( shapeArray[ i ], state );
+		}
+
+		delete[] shapeArray;
+
+		return 0;
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::setHitEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableHitEvents );
+}
+
+int
+DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableContactEvents );
+}
+
+int
+DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
+}
+
+int
+DisplayObjectExtensions::setPreSolveEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnablePreSolveEvents );
 }
 
 #endif // Rtt_PHYSICS
@@ -401,7 +471,7 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 	int result = 0;
 
 #ifdef Rtt_PHYSICS
-	if ( fBody )
+	if ( b2Body_IsValid(fBodyId) )
 	{
 		result = 1;
 
@@ -432,9 +502,13 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			"getInertia",						// 22
 			"getLinearVelocityFromWorldPoint",	// 23
 			"getLinearVelocityFromLocalPoint",  // 24
+			"setHitEventsEnabled",              // 25
+			"setContactEventsEnabled",          // 26
+			"setSensorEventsEnabled",           // 27
+			"setPreSolveEventsEnabled",         // 28
 		};
 		static const int numKeys = sizeof( keys ) / sizeof( const char * );
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 25, 19, 14, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 29, 26, 14, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -442,48 +516,48 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 		{
 		case 0:
 			{
-				lua_pushboolean( L, fBody->IsAwake() );
+				lua_pushboolean( L, b2Body_IsAwake(fBodyId) );
 			}
 			break;
 		case 1:
 			{
-				lua_pushboolean( L, fBody->IsActive() );
+				lua_pushboolean( L, b2Body_IsEnabled(fBodyId) );
 			}
 			break;
 		case 2:
 			{
-				lua_pushboolean( L, fBody->IsBullet() );
+				lua_pushboolean( L, b2Body_IsBullet(fBodyId) );
 			}
 			break;
 		case 3:
 			{
-				lua_pushboolean( L, fBody->IsSleepingAllowed() );
+				lua_pushboolean( L, b2Body_IsSleepEnabled(fBodyId) );
 			}
 			break;
 		case 4:
 			{
-				lua_pushboolean( L, fBody->IsFixedRotation() );
+				lua_pushboolean( L, b2Body_IsFixedRotation(fBodyId) );
 			}
 			break;
 		case 5:
 			{
-				Real va = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( fBody->GetAngularVelocity() ) );
+				Real va = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2Body_GetAngularVelocity(fBodyId) ) );
 				lua_pushnumber( L, va );
 			}
 			break;
 		case 6:
 			{
-				lua_pushnumber( L, fBody->GetLinearDamping() );
+				lua_pushnumber( L, b2Body_GetLinearDamping(fBodyId) );
 			}
 			break;
 		case 7:
 			{
-				lua_pushnumber( L, fBody->GetAngularDamping() );
+				lua_pushnumber( L, b2Body_GetAngularDamping(fBodyId) );
 			}
 			break;
 		case 8:
 			{
-				switch ( fBody->GetType() ) {
+				switch ( b2Body_GetType(fBodyId) ) {
 				case b2_staticBody:
 					lua_pushstring( L, kStaticBodyType );
 					break;
@@ -539,12 +613,12 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 17:
 			{
-				lua_pushnumber( L, fBody->GetMass() );
+				lua_pushnumber( L, b2Body_GetMass(fBodyId) );
 			}
 			break;
 		case 18:
 			{
-				lua_pushnumber( L, fBody->GetGravityScale() );
+				lua_pushnumber( L, b2Body_GetGravityScale(fBodyId) );
 			}
 			break;
 		case 19:
@@ -577,6 +651,26 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint);
 			}
 			break;
+		case 25:
+			{
+				lua_pushcfunction(L, Self::setHitEventsEnabled);
+			}
+			break;
+		case 26:
+			{
+				lua_pushcfunction(L, Self::setContactEventsEnabled);
+			}
+			break;
+		case 27:
+			{
+				lua_pushcfunction(L, Self::setSensorEventsEnabled);
+			}
+			break;
+		case 28:
+			{
+				lua_pushcfunction(L, Self::setPreSolveEventsEnabled);
+			}
+			break;
 		default:
 			{
 				result = 0;
@@ -607,7 +701,7 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 	if ( ! key ) { return false; }
 
 #ifdef Rtt_PHYSICS
-	if ( fBody )
+	if ( b2Body_IsValid(fBodyId) )
 	{
 		result = true;
 
@@ -633,46 +727,51 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 		{
 		case 0:
 			{
-				fBody->SetAwake( lua_toboolean( L, valueIndex ) );
+				b2Body_SetAwake( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		case 1:
 			{
 				if ( ! LuaLibPhysics::IsWorldLocked( L, "display object property isBodyActive cannot be set" ) )
 				{
-					fBody->SetActive( lua_toboolean( L, valueIndex ) );
+					// fBody->SetActive( lua_toboolean( L, valueIndex ) );
+					if ( lua_toboolean( L, valueIndex ) ) {
+						b2Body_Enable( fBodyId );
+					} else {
+						b2Body_Disable( fBodyId );
+					}
 				}
 			}
 			break;
 		case 2:
 			{
-				fBody->SetBullet( lua_toboolean( L, valueIndex ) );
+				b2Body_SetBullet( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		case 3:
 			{
-				fBody->SetSleepingAllowed( lua_toboolean( L, valueIndex ) );
+				b2Body_EnableSleep( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		case 4:
 			{
-				fBody->SetFixedRotation( lua_toboolean( L, valueIndex ) );
+				b2Body_SetFixedRotation( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		case 5:
 			{
 				Real va = Rtt_RealDegreesToRadians( lua_tonumber( L, valueIndex ) );
-				fBody->SetAngularVelocity( Rtt_RealToFloat( va ) );
+				b2Body_SetAngularVelocity( fBodyId, Rtt_RealToFloat( va ) );
 			}
 			break;
 		case 6:
 			{
-				fBody->SetLinearDamping( lua_tonumber( L, valueIndex ) );
+				b2Body_SetLinearDamping( fBodyId, lua_tonumber( L, valueIndex ) );
 			}
 			break;
 		case 7:
 			{
-				fBody->SetAngularDamping( lua_tonumber( L, valueIndex ) );
+				b2Body_SetAngularDamping( fBodyId, lua_tonumber( L, valueIndex ) );
 			}
 			break;
 		case 8:
@@ -683,19 +782,19 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 				{
 					if ( strcmp( kStaticBodyType, bodyType ) == 0 )
 					{
-						fBody->SetType( b2_staticBody );
+						b2Body_SetType( fBodyId, b2_staticBody );
 					}
 					else if ( strcmp( kDynamicBodyType, bodyType ) == 0 )
 					{
-						fBody->SetType( b2_dynamicBody );
+						b2Body_SetType( fBodyId, b2_dynamicBody );
 					}
 					else if ( strcmp( kKinematicBodyType, bodyType ) == 0 )
 					{
-						fBody->SetType( b2_kinematicBody );
+						b2Body_SetType( fBodyId, b2_kinematicBody );
 					}
 					else
 					{
-						fBody->SetType( b2_dynamicBody );
+						b2Body_SetType( fBodyId, b2_dynamicBody );
 					}
 				}
 			}
@@ -704,15 +803,18 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			{
 				// Set all fixtures in the body (we call these "body elements") to the desired sensor state
 				bool sensorState = lua_toboolean( L, valueIndex );
-				for ( b2Fixture *f = fBody->GetFixtureList(); f; f = f->GetNext() )
-				{
-					f->SetSensor( sensorState );
+				int count = b2Body_GetShapeCount( fBodyId );
+				b2ShapeId* shapeArray = new b2ShapeId[ count ];
+				b2Body_GetShapes( fBodyId, shapeArray, count );
+				for ( int i = 0; i < count; ++i ) {
+					b2Shape_SetSensor( shapeArray[ i ], sensorState );
 				}
+				delete[] shapeArray;
 			}
 			break;
 		case 10:
 			{
-				fBody->SetGravityScale( lua_tonumber( L, valueIndex ) );
+				b2Body_SetGravityScale( fBodyId, lua_tonumber( L, valueIndex ) );
 			}
 			break;
 		default:
@@ -728,21 +830,22 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 
 #ifdef Rtt_PHYSICS
 void
-DisplayObjectExtensions::SetBody( b2Body *body, b2World& world )
+DisplayObjectExtensions::SetBody( b2BodyId bodyId, b2WorldId worldId )
 {
-	if ( body == fBody )
+	if ( B2_ID_EQUALS(bodyId, fBodyId ) )
 	{
 		// Nothing to do.
 		return;
 	}
 
-	if ( fBody )
+	if ( b2Body_IsValid(fBodyId) )
 	{
 		// Get rid of the previous body.
-		world.DestroyBody( fBody );
+		// world.DestroyBody( fBody );
+		b2DestroyBody(fBodyId);
 	}
 
-	fBody = body;
+	fBodyId = bodyId;
 }
 
 #endif // Rtt_PHYSICS

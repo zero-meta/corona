@@ -57,7 +57,7 @@ then
 	# Get the base buildnum with a dash at the front of it suitable for concatenating with "${PRODUCT_DIR}"
 	# (the code that follows is ok with this not being set)
 	# shellcheck disable=2001
-	BUILD_NUM=$(echo "$FULL_BUILD_NUM" | sed -e 's/.*\.\(.*\)/-\1/')
+	BUILD_NUM=$(echo "$FULL_BUILD_NUM" | sed -e 's/[^.]*\.\(.*\)/-\1/')
 else
 	echo "Error: FULL_BUILD_NUM is a required parameter"
 	exit 1
@@ -202,7 +202,7 @@ xcrun SetFile -a E "$TMPPATH/${PRODUCT_DIR}/Documentation.html" # hide extension
 			rm -r "$ZD"
 		done
 
-		
+
 		codesign --timestamp --deep --force --options runtime --strict --sign 'Developer ID Application: Corona Labs Inc' "${LIBRARIES[@]}"
 		codesign --timestamp --deep --force --options runtime --strict --sign 'Developer ID Application: Corona Labs Inc' --entitlements "$ENTITLEMENTS"  "${EXECUTABLES[@]}"
 	)
@@ -263,7 +263,9 @@ fi
 if [ -x "$(command -v appdmg)" ]
 then
 	sed "s#XXXXXXXX#../../$RESULT_DIR#g ; s#YYYY#$FULL_BUILD_NUM#g" sdk/dmg/appdmg.json > sdk/dmg/processed_appdmg.json
+	set +e
 	appdmg sdk/dmg/processed_appdmg.json "$DMG_FILE"
+	set -e
 else
 	"$TOOLSPATH"/create-dmg/create-dmg $JENKINS --volname "$VOLUME_NAME" --background "$BACKGROUND_PATH" --window-size $WINDOW_WIDTH $WINDOW_HEIGHT --app-drop-link $APP_X $APP_Y --icon "$ICON_NAME" $ICON_X $ICON_Y --icon-size $ICON_SIZE "$DMG_FILE" "$TMPPATH"
 fi

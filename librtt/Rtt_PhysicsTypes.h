@@ -20,15 +20,17 @@
 #include <queue>
 #include <vector>
 
-#include "Box2D/Box2D.h"
+// #include "Box2D/Box2D.h"
+#include "box2d/box2d.h"
+#include "liquid_shape.h"
 
 // ----------------------------------------------------------------------------
 
 typedef std::vector<b2Vec2> b2Vec2Vector;
 typedef std::vector<b2Vec2Vector> b2Vec2VectorVector;
 typedef std::queue<b2Vec2Vector> b2Vec2VectorQueue;
-typedef std::vector< b2PolygonShape * > b2PolygonShapePtrVector;
-typedef std::vector< b2PolygonShape * >::iterator b2PolygonShapePtrVectorIter;
+typedef std::vector< b2LiquidShape * > b2PolygonShapePtrVector;
+typedef std::vector< b2LiquidShape * >::iterator b2PolygonShapePtrVectorIter;
 
 // ----------------------------------------------------------------------------
 

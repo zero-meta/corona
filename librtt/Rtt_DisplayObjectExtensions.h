@@ -15,8 +15,9 @@
 // ----------------------------------------------------------------------------
 
 #ifdef Rtt_PHYSICS
-	class b2Body;
-	class b2World;
+	// class b2Body;
+	// class b2World;
+	#include "box2d/box2d.h"
 #endif
 
 struct lua_State;
@@ -58,6 +59,10 @@ class DisplayObjectExtensions : public LuaProxyVTable
 		static int getInertia( lua_State *L );
 		static int getLinearVelocityFromWorldPoint(lua_State *L);
 		static int getLinearVelocityFromLocalPoint(lua_State* L);
+		static int setHitEventsEnabled( lua_State* L );
+		static int setContactEventsEnabled( lua_State* L );
+		static int setSensorEventsEnabled( lua_State* L );
+		static int setPreSolveEventsEnabled( lua_State* L );
 
 #endif // Rtt_PHYSICS
 
@@ -68,8 +73,8 @@ class DisplayObjectExtensions : public LuaProxyVTable
 
 #ifdef Rtt_PHYSICS
 	public:
-		void SetBody( b2Body *body, b2World& world );
-		b2Body* GetBody() const { return fBody; }
+		void SetBody( b2BodyId bodyId, b2WorldId worldId );
+		b2BodyId GetBody() const { return fBodyId; }
 #endif // Rtt_PHYSICS
 
 	private:
@@ -77,7 +82,7 @@ class DisplayObjectExtensions : public LuaProxyVTable
 
 	private:
 #ifdef Rtt_PHYSICS
-		b2Body *fBody;
+		b2BodyId fBodyId;
 #endif // Rtt_PHYSICS
 };
 

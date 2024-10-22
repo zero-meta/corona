@@ -5629,7 +5629,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/Box2D,
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
+					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
@@ -5697,7 +5699,9 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"../../external/b2Separator-cpp",
-					../../external/Box2D,
+					"../../external/box2d_v3",
+					"../../external/box2d_v3/include",
+					../../external/enkiTS/src,
 					../../external/smoothpolygon,
 					/System/Library/Frameworks/OpenAL.framework/Headers,
 					../../external/luasocket/src,
