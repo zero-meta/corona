@@ -137,6 +137,43 @@ jobs:
           path: ./output
 
 
+  webtemplate:
+    needs:
+      - source-code
+    runs-on: macos-13
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_15.2.app/Contents/Developer
+    steps:
+      - run: CDR="$(basename "$(pwd)")" ; cd .. ; rm -rf "$CDR" ; mkdir -p "$CDR" ; cd "$CDR"
+      - name: Set up emsdk
+        run: |
+          wget -q --header='Accept:application/octet-stream' https://github.com/coronalabs/emsdk/releases/download/e2.0.34/emsdk.tar.xz -O emsdk.tar.xz
+          tar -xjf emsdk.tar.xz -C ~/
+          xattr -r -d com.apple.quarantine ~/emsdk || true
+      - name: Get processed code
+        uses: actions/download-artifact@v4
+        with:
+          name: SourceCode
+          path: SourceCode
+      - name: Unpack source code
+        run: tar -xzf SourceCode/corona.tgz
+      - run: ./tools/GHAction/daily_env.sh
+      - name: Build webtemplate
+        working-directory: ./platform/emscripten/gmake
+        run: |
+          source ~/emsdk/emsdk_env.sh
+          ./build_template.sh
+      - name: Copy result to output
+        run: |
+          mkdir -p output
+          cp -v platform/emscripten/webtemplate.zip output
+      - name: Upload webtemplate artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Webtemplate
+          path: ./output
+
+
   CoronaCards-Android:
     needs: native
     runs-on: ubuntu-20.04
@@ -225,6 +262,7 @@ jobs:
       - source-code
       - collect-ios-templates
       - native
+      - webtemplate
     if: (! failure() && ! cancelled())
     runs-on: macos-14
     steps:
@@ -246,6 +284,13 @@ jobs:
           path: Collected-ios-templates
       - name: Put collected iOS templates in place
         run: cp -Rv Collected-ios-templates/* platform/resources/
+      - name: Get Webtemplate
+        uses: actions/download-artifact@v4
+        with:
+          name: Webtemplate
+          path: Webtemplate
+      - name: Put webtemplate in place
+        run: cp -v Webtemplate/webtemplate.zip platform/resources/
       - run: mkdir docs
       - name: Get Sample Code
         uses: actions/checkout@v4
@@ -285,6 +330,7 @@ jobs:
     needs:
       - source-code
       - native
+      - webtemplate
     runs-on: windows-2022
     steps:
       - name: Get processed code
@@ -309,6 +355,14 @@ jobs:
         shell: bash
       - name: Move docs outside the directory
         run: mv docs ../docs
+      - name: Get Webtemplate
+        uses: actions/download-artifact@v4
+        with:
+          name: Webtemplate
+          path: Webtemplate
+      - name: Put webtemplate in place
+        run: cp -v Webtemplate/webtemplate.zip platform/resources/
+        shell: bash
       - name: Get Corona Native
         uses: actions/download-artifact@v4
         with:
