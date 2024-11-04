@@ -783,8 +783,26 @@ common_ray_cast( lua_State *L,
 	// Exception: For SortedHitsAlongRay, the results are accumulated
 	// so they can be sorted before they're pushed to the Lua stack.
 	int top_index_before_RayCast = lua_gettop( L );
-	// world->RayCast( callback, from_in_meters, to_in_meters );
-	b2World_CastRay(physics.GetWorldId(), from_in_meters, to_in_meters - from_in_meters, b2DefaultQueryFilter(), callback, context);
+
+	b2QueryFilter filter = b2DefaultQueryFilter();
+	filter.categoryBits = UINT64_MAX;
+	if ( lua_istable( L, 6 ) )
+	{
+		lua_getfield( L, 6, "categoryBits" );
+		if ( lua_isnumber( L, -1 ) )
+		{
+			filter.categoryBits = lua_tonumber( L, -1 );
+		}
+		lua_pop( L, 1 );
+
+		lua_getfield( L, 6, "maskBits" );
+		if ( lua_isnumber( L, -1 ) )
+		{
+			filter.maskBits = lua_tonumber( L, -1 );
+		}
+		lua_pop( L, 1 );
+	}
+	b2World_CastRay(physics.GetWorldId(), from_in_meters, to_in_meters - from_in_meters, filter, callback, context);
 
 	// Any hits returned by RayCast() are pushed into a table that's
 	// on the stack. We want to return true if we're returning a result.
@@ -1099,11 +1117,22 @@ QueryRegion( lua_State *L )
 		// world->QueryAABB( &callback, aabb );
 
 		b2QueryFilter filter = b2DefaultQueryFilter();
-		if ( lua_isnumber( L, 5 ) ) {
-			filter.categoryBits = lua_tonumber( L, 5 );
-		}
-		if ( lua_isnumber( L, 6 ) ) {
-			filter.maskBits = lua_tonumber( L, 6 );
+		filter.categoryBits = UINT64_MAX;
+		if ( lua_istable( L, 5 ) )
+		{
+			lua_getfield( L, 5, "categoryBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.categoryBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
+
+			lua_getfield( L, 5, "maskBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.maskBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
 		}
 		b2World_OverlapAABB( physics.GetWorldId(), aabb, filter, query_callback, &context );
 
@@ -1152,11 +1181,22 @@ QueryCircle( lua_State *L )
 		int top_index_before_query = lua_gettop( L );
 
 		b2QueryFilter filter = b2DefaultQueryFilter();
-		if ( lua_isnumber( L, 4 ) ) {
-			filter.categoryBits = lua_tonumber( L, 4 );
-		}
-		if ( lua_isnumber( L, 5 ) ) {
-			filter.maskBits = lua_tonumber( L, 5 );
+		filter.categoryBits = UINT64_MAX;
+		if ( lua_istable( L, 4 ) )
+		{
+			lua_getfield( L, 4, "categoryBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.categoryBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
+
+			lua_getfield( L, 4, "maskBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.maskBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
 		}
 		b2World_OverlapCircle ( physics.GetWorldId(), &circle, b2Transform_identity, filter, query_callback, &context );
 
@@ -1194,11 +1234,22 @@ QueryBody( lua_State *L )
 			int top_index_before_query = lua_gettop( L );
 
 			b2QueryFilter filter = b2DefaultQueryFilter();
-			if ( lua_isnumber( L, 2 ) ) {
-				filter.categoryBits = lua_tonumber( L, 2 );
-			}
-			if ( lua_isnumber( L, 3 ) ) {
-				filter.maskBits = lua_tonumber( L, 3 );
+			filter.categoryBits = UINT64_MAX;
+			if ( lua_istable( L, 2 ) )
+			{
+				lua_getfield( L, 2, "categoryBits" );
+				if ( lua_isnumber( L, -1 ) )
+				{
+					filter.categoryBits = lua_tonumber( L, -1 );
+				}
+				lua_pop( L, 1 );
+
+				lua_getfield( L, 2, "maskBits" );
+				if ( lua_isnumber( L, -1 ) )
+				{
+					filter.maskBits = lua_tonumber( L, -1 );
+				}
+				lua_pop( L, 1 );
 			}
 			b2BodyId bodyId = o->GetExtensions()->GetBody();
 			b2Transform transform = b2Body_GetTransform( bodyId );
