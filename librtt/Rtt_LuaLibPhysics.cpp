@@ -3799,8 +3799,7 @@ LuaLibPhysics::Open( lua_State *L )
 					b2GetVersion().major,
 					b2GetVersion().minor,
 					b2GetVersion().revision,
-					"LiquidFun not support" );
-					// b2_liquidFunVersionString );
+					b2_liquidFunVersionString );
 
 		lua_pushstring( L, s );
 		lua_setfield( L, -2, "engineVersion" );
