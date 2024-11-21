@@ -377,7 +377,6 @@
 		417D570F2C8705C1005C9DAD /* tracked_block.h in Headers */ = {isa = PBXBuildFile; fileRef = 417D56F12C8705C0005C9DAD /* tracked_block.h */; };
 		417D57102C8705C1005C9DAD /* voronoi_diagram.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 417D56F22C8705C0005C9DAD /* voronoi_diagram.cpp */; };
 		417D57112C8705C1005C9DAD /* voronoi_diagram.h in Headers */ = {isa = PBXBuildFile; fileRef = 417D56F32C8705C0005C9DAD /* voronoi_diagram.h */; };
-		41B9AD6C2C5B9B5C000F59B1 /* jsmn.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACC52C5B9B5C000F59B1 /* jsmn.h */; };
 		41B9AD862C5B9B5E000F59B1 /* base.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACE42C5B9B5C000F59B1 /* base.h */; };
 		41B9AD872C5B9B5E000F59B1 /* box2d.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACE52C5B9B5C000F59B1 /* box2d.h */; };
 		41B9AD882C5B9B5E000F59B1 /* collision.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9ACE62C5B9B5C000F59B1 /* collision.h */; };
@@ -1284,7 +1283,6 @@
 		417D56F12C8705C0005C9DAD /* tracked_block.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = tracked_block.h; sourceTree = "<group>"; };
 		417D56F22C8705C0005C9DAD /* voronoi_diagram.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = voronoi_diagram.cpp; sourceTree = "<group>"; };
 		417D56F32C8705C0005C9DAD /* voronoi_diagram.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = voronoi_diagram.h; sourceTree = "<group>"; };
-		41B9ACC52C5B9B5C000F59B1 /* jsmn.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jsmn.h; sourceTree = "<group>"; };
 		41B9ACE42C5B9B5C000F59B1 /* base.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = base.h; sourceTree = "<group>"; };
 		41B9ACE52C5B9B5C000F59B1 /* box2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = box2d.h; sourceTree = "<group>"; };
 		41B9ACE62C5B9B5C000F59B1 /* collision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = collision.h; sourceTree = "<group>"; };
@@ -2451,19 +2449,10 @@
 			path = liquidfun;
 			sourceTree = "<group>";
 		};
-		41B9ACC62C5B9B5C000F59B1 /* jsmn */ = {
-			isa = PBXGroup;
-			children = (
-				41B9ACC52C5B9B5C000F59B1 /* jsmn.h */,
-			);
-			path = jsmn;
-			sourceTree = "<group>";
-		};
 		41B9ACE32C5B9B5C000F59B1 /* extern */ = {
 			isa = PBXGroup;
 			children = (
 				417D56F42C8705C0005C9DAD /* liquidfun */,
-				41B9ACC62C5B9B5C000F59B1 /* jsmn */,
 			);
 			path = extern;
 			sourceTree = "<group>";
@@ -3008,7 +2997,6 @@
 				41B9AD8A2C5B9B5E000F59B1 /* math_functions.h in Headers */,
 				417D56F82C8705C0005C9DAD /* free_list.h in Headers */,
 				417D56F62C8705C0005C9DAD /* block_allocator.h in Headers */,
-				41B9AD6C2C5B9B5C000F59B1 /* jsmn.h in Headers */,
 				41B9ADAD2C5B9B60000F59B1 /* array.h in Headers */,
 				41B9ADB52C5B9B60000F59B1 /* broad_phase.h in Headers */,
 				41B9AD862C5B9B5E000F59B1 /* base.h in Headers */,

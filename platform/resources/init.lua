@@ -308,6 +308,20 @@ function ExtendedEventDispatcher:addEventListener( eventName, listener )
 				system.beginListener( eventName )
 			end
 			physicsListenerCount[eventName] = numListeners + 1
+
+			if eventName == "collision" then
+				if type(self.setContactEventsEnabled) == "function" then
+					self:setContactEventsEnabled(true)
+				end
+			elseif eventName == "hitCollision" then
+				if type(self.setHitEventsEnabled) == "function" then
+					self:setHitEventsEnabled(true)
+				end
+			elseif eventName == "preCollision" then
+				if type(self.setPreSolveEventsEnabled) == "function" then
+					self:setPreSolveEventsEnabled(true)
+				end
+			end
 		end
 	end
 	return wasAdded or nil
