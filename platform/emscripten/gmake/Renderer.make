@@ -24,7 +24,7 @@ ifeq ($(config),Debug)
   # TARGETDIR  = ../../../Build/gmake/bin/Debug
   TARGETDIR  = obj/Debug
   TARGET     = $(TARGETDIR)/libRenderer.a
-  DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK -DRtt_EMSCRIPTEN_ENV
+  DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK -DRtt_EMSCRIPTEN_ENV -DCORONABUILDER_NO_PHYSICS
   INCLUDES  += -I../../../librtt -I../system/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
