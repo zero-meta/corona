@@ -48,7 +48,7 @@ ifeq ($(config),Release)
   # TARGETDIR  = ../../../Build/gmake/bin/Release
   TARGETDIR  = obj/Release
   TARGET     = $(TARGETDIR)/libRenderer.a
-  DEFINES   += -DNDEBUG -DRtt_EMSCRIPTEN_ENV
+  DEFINES   += -DNDEBUG -DRtt_EMSCRIPTEN_ENV -DCORONABUILDER_NO_PHYSICS
   INCLUDES  += -I../../../librtt -I../system/include
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
   ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
