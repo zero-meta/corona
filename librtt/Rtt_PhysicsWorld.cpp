@@ -585,7 +585,7 @@ PhysicsWorld::StepEvents() {
 	for ( int i = 0; i < sensorEvents.endCount; ++i )
 	{
 		b2SensorEndTouchEvent event = sensorEvents.endEvents[i];
-		if ( b2Shape_IsValid( event.visitorShapeId ) )
+		if ( b2Shape_IsValid( event.sensorShapeId ) && b2Shape_IsValid( event.visitorShapeId ) )
 		{
 			fWorldContactListener->EndContact( event.sensorShapeId, event.visitorShapeId );
 		}
