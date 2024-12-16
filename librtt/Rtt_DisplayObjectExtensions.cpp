@@ -556,9 +556,10 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			"setSensorEventsEnabled",           // 27
 			"setPreSolveEventsEnabled",         // 28
 			"setFilter",                        // 29
+			"allowFastRotation",                // 30
 		};
 		static const int numKeys = sizeof( keys ) / sizeof( const char * );
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 30, 28, 14, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 31, 28, 14, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -683,47 +684,52 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 21:
 			{
-				lua_pushcfunction(L, Self::getWorldVector );
+				lua_pushcfunction( L, Self::getWorldVector );
 			}
 			break;
 		case 22:
 			{
-				lua_pushcfunction(L, Self::getInertia);
+				lua_pushcfunction( L, Self::getInertia );
 			}
 			break;
 		case 23:
 			{
-				lua_pushcfunction(L, Self::getLinearVelocityFromWorldPoint);
+				lua_pushcfunction( L, Self::getLinearVelocityFromWorldPoint );
 			}
 			break;
 		case 24:
 			{
-				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint);
+				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint );
 			}
 			break;
 		case 25:
 			{
-				lua_pushcfunction(L, Self::setHitEventsEnabled);
+				lua_pushcfunction( L, Self::setHitEventsEnabled );
 			}
 			break;
 		case 26:
 			{
-				lua_pushcfunction(L, Self::setContactEventsEnabled);
+				lua_pushcfunction( L, Self::setContactEventsEnabled );
 			}
 			break;
 		case 27:
 			{
-				lua_pushcfunction(L, Self::setSensorEventsEnabled);
+				lua_pushcfunction( L, Self::setSensorEventsEnabled );
 			}
 			break;
 		case 28:
 			{
-				lua_pushcfunction(L, Self::setPreSolveEventsEnabled);
+				lua_pushcfunction( L, Self::setPreSolveEventsEnabled );
 			}
 			break;
 		case 29:
 			{
-				lua_pushcfunction(L, Self::setFilter);
+				lua_pushcfunction( L, Self::setFilter );
+			}
+			break;
+		case 30:
+			{
+				lua_pushboolean( L, b2Body_AllowFastRotation(fBodyId) );
 			}
 			break;
 		default:
@@ -772,9 +778,10 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			"angularDamping",			// 7
 			"bodyType",					// 8
 			"isSensor",					// 9
-			"gravityScale"				// 10
+			"gravityScale",				// 10
+			"allowFastRotation",        // 11
 		};
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 11, 21, 2, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 12, 21, 2, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -870,6 +877,11 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 		case 10:
 			{
 				b2Body_SetGravityScale( fBodyId, lua_tonumber( L, valueIndex ) );
+			}
+			break;
+		case 11:
+			{
+				b2Body_SetAllowFastRotation( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		default:
