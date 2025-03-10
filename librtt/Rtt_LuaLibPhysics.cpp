@@ -71,7 +71,7 @@ LuaLibPhysics::IsWorldLocked( lua_State *L, const char caller[] )
 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 	// b2World *world = physics.GetWorld();
 
-	if ( ! b2World_IsValid(physics.GetWorldId()) )
+	if ( ! physics.IsWorldValid() )
 	{
 		CoronaLuaError(L, "physics.start() must be called before %s", caller);
 		result = true; // Behave as if locked to avoid accessing NULL physics world
@@ -92,7 +92,7 @@ LuaLibPhysics::IsWorldValid( lua_State *L, const char caller[] )
 	bool result = true;
 	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
-	if ( ! b2World_IsValid(physics.GetWorldId()) )
+	if ( ! physics.IsWorldValid() )
 	{
 		CoronaLuaError(L, "physics.start() must be called before %s", caller);
 		result = false;
@@ -119,7 +119,7 @@ start( lua_State *L )
 	physics.StartWorld( * runtime, noSleep );
 
 	// Rtt_ASSERT( physics.GetWorld() );
-	Rtt_ASSERT( b2World_IsValid(physics.GetWorldId()) );
+	Rtt_ASSERT( physics.IsWorldValid() );
 
 	return 0;
 }
@@ -1356,7 +1356,7 @@ CreateBody( const PhysicsWorld& physics, DisplayObject *o )
 	b2BodyId result = b2_nullBodyId;
 
 	// b2World *world = physics.GetWorld();
-	if ( b2World_IsValid(physics.GetWorldId()) )
+	if ( physics.IsWorldValid() )
 	{
 		b2BodyDef bd = b2DefaultBodyDef();
 		bd.type = b2_dynamicBody; // default (settable with "bodyType" attribute)

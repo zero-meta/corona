@@ -85,6 +85,8 @@ class PhysicsWorld
 		// b2Body* GetGroundBody() const { return fGroundBody; }
 		b2BodyId GetGroundBodyId() const { return fGroundBodyId; }
 
+		bool IsWorldValid() const { return fWorld != NULL && b2World_IsValid(fWorld->GetWorldId()); }
+
 	public:
 		Rtt_Allocator *Allocator() const { return & fAllocator; }
 		bool IsProperty( Properties mask ) const { return (fProperties & mask) != 0; }
