@@ -82,6 +82,7 @@ OBJECTS := \
 	$(OBJDIR)/tracked_block.o \
 	$(OBJDIR)/voronoi_diagram.o \
 	$(OBJDIR)/aabb.o \
+	$(OBJDIR)/arena_allocator.o \
 	$(OBJDIR)/array.o \
 	$(OBJDIR)/bitset.o \
 	$(OBJDIR)/body.o \
@@ -104,10 +105,10 @@ OBJECTS := \
 	$(OBJDIR)/mouse_joint.o \
 	$(OBJDIR)/prismatic_joint.o \
 	$(OBJDIR)/revolute_joint.o \
+	$(OBJDIR)/sensor.o \
 	$(OBJDIR)/shape.o \
 	$(OBJDIR)/solver.o \
 	$(OBJDIR)/solver_set.o \
-	$(OBJDIR)/stack_allocator.o \
 	$(OBJDIR)/table.o \
 	$(OBJDIR)/timer.o \
 	$(OBJDIR)/types.o \
@@ -215,6 +216,9 @@ $(OBJDIR)/voronoi_diagram.o: ../../../external/box2d_v3/extern/liquidfun/voronoi
 $(OBJDIR)/aabb.o: ../../../external/box2d_v3/src/aabb.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/arena_allocator.o: ../../../external/box2d_v3/src/arena_allocator.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/array.o: ../../../external/box2d_v3/src/array.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -281,6 +285,9 @@ $(OBJDIR)/prismatic_joint.o: ../../../external/box2d_v3/src/prismatic_joint.c
 $(OBJDIR)/revolute_joint.o: ../../../external/box2d_v3/src/revolute_joint.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/sensor.o: ../../../external/box2d_v3/src/sensor.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/shape.o: ../../../external/box2d_v3/src/shape.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
@@ -288,9 +295,6 @@ $(OBJDIR)/solver.o: ../../../external/box2d_v3/src/solver.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/solver_set.o: ../../../external/box2d_v3/src/solver_set.c
-	@echo $(notdir $<)
-	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/stack_allocator.o: ../../../external/box2d_v3/src/stack_allocator.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/table.o: ../../../external/box2d_v3/src/table.c

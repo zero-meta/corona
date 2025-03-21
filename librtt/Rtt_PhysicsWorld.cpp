@@ -231,7 +231,6 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		shapeDef.filter = { 1, 0, 0 };
 		shapeDef.isSensor = true;
 		shapeDef.enableContactEvents = false;
-		shapeDef.enableSensorEvents = false;
 		shapeDef.enablePreSolveEvents = false;
 		b2Segment segment = { {-20.0f, 0.0f}, {20.0f, 0.0f} };
 		b2CreateSegmentShape( fGroundBodyId, &shapeDef, &segment );

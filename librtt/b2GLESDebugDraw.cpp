@@ -107,7 +107,7 @@ void DrawPointFcn(b2Vec2 p, float size, b2HexColor color, void* context)
 	static_cast<b2GLESDebugDraw*>(context)->DrawPoint( p, size, MakeRGBA(color) );
 }
 
-void DrawStringFcn(b2Vec2 p, const char* s, void* context)
+void DrawStringFcn(b2Vec2 p, const char* s, b2HexColor color, void* context)
 {
 	// static_cast<b2GLESDebugDraw*>(context)->DrawString(p, s);
 }
@@ -170,31 +170,33 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 		fData.fUserUniform3 = NULL;
 
 		b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
-		fDebugDraw = {
-						DrawPolygonFcn,
-						DrawSolidPolygonFcn,
-						DrawCircleFcn,
-						DrawSolidCircleFcn,
-						DrawSolidCapsuleFcn,
-						DrawSegmentFcn,
-						DrawTransformFcn,
-						DrawPointFcn,
-						DrawStringFcn,
-						GetBodyTransformFcn,
-						bounds,
-						false, // drawUsingBounds
-						true,  // shapes
-						true,  // joints
-						false, // joint extras
-						false, // aabbs
-						true, // mass
-						false, // contacts
-						false, // colors
-						false, // normals
-						false, // impulse
-						false, // friction
-						this
-					};
+		fDebugDraw = {};
+		fDebugDraw.DrawPolygon = DrawPolygonFcn;
+		fDebugDraw.DrawSolidPolygon = DrawSolidPolygonFcn;
+		fDebugDraw.DrawCircle = DrawCircleFcn;
+		fDebugDraw.DrawSolidCircle = DrawSolidCircleFcn;
+		fDebugDraw.DrawSolidCapsule = DrawSolidCapsuleFcn;
+		fDebugDraw.DrawSegment = DrawSegmentFcn;
+		fDebugDraw.DrawTransform = DrawTransformFcn;
+		fDebugDraw.DrawPoint = DrawPointFcn;
+		fDebugDraw.DrawString = DrawStringFcn;
+		fDebugDraw.GetBodyTransform = GetBodyTransformFcn;
+		fDebugDraw.drawingBounds = bounds;
+
+		fDebugDraw.useDrawingBounds = false;
+		fDebugDraw.drawShapes = true;
+		fDebugDraw.drawJoints = true;
+		fDebugDraw.drawJointExtras = false;
+		fDebugDraw.drawAABBs = false;
+		fDebugDraw.drawMass = true;
+		fDebugDraw.drawBodyNames = false;
+		fDebugDraw.drawContacts = false;
+		fDebugDraw.drawGraphColors = false;
+		fDebugDraw.drawContactNormals = false;
+		fDebugDraw.drawContactImpulses = false;
+		fDebugDraw.drawFrictionImpulses = false;
+
+		fDebugDraw.context = this;
 	}
 }
 
@@ -649,7 +651,7 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 	for( int i = 0;
 			i < vertexCount;
 			++i,
-			theta += ( ( 2.0f * b2_pi ) / (float)vertexCount ) )
+			theta += ( ( 2.0f * B2_PI ) / (float)vertexCount ) )
 	{
 		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
 

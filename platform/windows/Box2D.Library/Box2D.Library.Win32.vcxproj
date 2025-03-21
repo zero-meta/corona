@@ -40,10 +40,13 @@
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_functions.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\types.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\aabb.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\arena_allocator.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\array.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\atomic.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\bitset.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\body.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\broad_phase.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\constants.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\constraint_graph.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact_solver.h" />
@@ -52,10 +55,10 @@
     <ClInclude Include="..\..\..\external\box2d_v3\src\id_pool.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\island.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\joint.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\sensor.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\shape.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver_set.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\stack_allocator.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\table.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\world.h" />
     <ClInclude Include="..\..\..\external\enkiTS\src\LockLessMultiReadPipe.h" />
@@ -77,6 +80,7 @@
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\tracked_block.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\voronoi_diagram.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\aabb.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\arena_allocator.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\array.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\bitset.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c" />
@@ -99,10 +103,10 @@
     <ClCompile Include="..\..\..\external\box2d_v3\src\mouse_joint.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\prismatic_joint.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\revolute_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\sensor.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\shape.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\solver.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\solver_set.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\stack_allocator.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\table.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\timer.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\types.c" />
@@ -184,7 +188,6 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>%(AdditionalOptions) /experimental:c11atomics</AdditionalOptions>
       <LanguageStandard>Default</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers />

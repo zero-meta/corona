@@ -737,6 +737,7 @@ add_library( corona SHARED
 		# ${CORONA_ROOT}/external/Box2D/Box2D/Particle/b2VoronoiDiagram.cpp
 
 		${CORONA_ROOT}/external/box2d_v3/src/aabb.c
+		${CORONA_ROOT}/external/box2d_v3/src/arena_allocator.c
 		${CORONA_ROOT}/external/box2d_v3/src/array.c
 		${CORONA_ROOT}/external/box2d_v3/src/bitset.c
 		${CORONA_ROOT}/external/box2d_v3/src/body.c
@@ -759,10 +760,10 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/box2d_v3/src/mouse_joint.c
 		${CORONA_ROOT}/external/box2d_v3/src/prismatic_joint.c
 		${CORONA_ROOT}/external/box2d_v3/src/revolute_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/sensor.c
 		${CORONA_ROOT}/external/box2d_v3/src/shape.c
 		${CORONA_ROOT}/external/box2d_v3/src/solver.c
 		${CORONA_ROOT}/external/box2d_v3/src/solver_set.c
-		${CORONA_ROOT}/external/box2d_v3/src/stack_allocator.c
 		${CORONA_ROOT}/external/box2d_v3/src/table.c
 		${CORONA_ROOT}/external/box2d_v3/src/timer.c
 		${CORONA_ROOT}/external/box2d_v3/src/types.c

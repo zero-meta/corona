@@ -2298,10 +2298,13 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 		// b2ChainShape chainDef;
 		// chainDef.CreateChain( &vertexList[ 0 ],
 		// 						(int)vertexList.size() );
+		b2SurfaceMaterial material = {};
 		b2ChainDef chainDef = b2DefaultChainDef();
-		chainDef.friction = shapeDef.friction;
-		chainDef.restitution = shapeDef.restitution;
+		material.friction = shapeDef.friction;
+		material.restitution = shapeDef.restitution;
 		chainDef.filter = shapeDef.filter;
+		chainDef.materials = &material;
+		chainDef.materialCount = 1;
 		chainDef.points = &vertexList[ 0 ];
 		chainDef.count = (int)vertexList.size();
 		chainDef.isLoop = false;
@@ -2363,9 +2366,12 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 			// b2ChainShape chainDef;
 			// chainDef.CreateLoop( &vertexList[ 0 ],
 			// 						(int)vertexList.size() );
+			b2SurfaceMaterial material = {};
 			b2ChainDef chainDef = b2DefaultChainDef();
-			chainDef.friction = shapeDef.friction;
-			chainDef.restitution = shapeDef.restitution;
+			material.friction = shapeDef.friction;
+			material.restitution = shapeDef.restitution;
+			chainDef.materials = &material;
+			chainDef.materialCount = 1;
 			chainDef.filter = shapeDef.filter;
 			chainDef.points = &vertexList[ 0 ];
 			chainDef.count = (int)vertexList.size();
@@ -2707,8 +2713,11 @@ InitializeFixtureUsing_Chain( lua_State *L,
 			if( vertexList.size() >= 3 )
 			{
 				b2ChainDef chainDef = b2DefaultChainDef();
-				chainDef.friction = shapeDef.friction;
-				chainDef.restitution = shapeDef.restitution;
+				b2SurfaceMaterial material = {};
+				material.friction = shapeDef.friction;
+				material.restitution = shapeDef.restitution;
+				chainDef.materials = &material;
+				chainDef.materialCount = 1;
 				chainDef.filter = shapeDef.filter;
 				chainDef.points = &vertexList[ 0 ];
 				chainDef.count = (int32_t)vertexList.size();
@@ -2747,8 +2756,11 @@ InitializeFixtureUsing_Chain( lua_State *L,
 						chainDef.points = &vertexList[ 0 ];
 						chainDef.count = (int32_t)vertexList.size();
 					}
-					chainDef.friction = shapeDef.friction;
-					chainDef.restitution = shapeDef.restitution;
+					b2SurfaceMaterial material = {};
+					material.friction = shapeDef.friction;
+					material.restitution = shapeDef.restitution;
+					chainDef.materials = &material;
+					chainDef.materialCount = 1;
 					chainDef.filter = shapeDef.filter;
 					chainDef.isLoop = false;
 					_ChainCreator( bodyId,

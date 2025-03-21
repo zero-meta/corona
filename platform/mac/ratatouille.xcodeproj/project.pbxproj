@@ -334,6 +334,12 @@
 		1F34F53D21115FB2006EE117 /* Rtt_LinuxAppPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F53321115FB1006EE117 /* Rtt_LinuxAppPackager.cpp */; };
 		1F34F54021116446006EE117 /* LinuxAppBuild.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F34F53E21116445006EE117 /* LinuxAppBuild.xib */; };
 		1F34F5432111661E006EE117 /* LinuxAppBuildController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F5412111661E006EE117 /* LinuxAppBuildController.mm */; };
+		414D6B6F2D8D3D51008B70EF /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B6B2D8D3D51008B70EF /* atomic.h */; };
+		414D6B702D8D3D51008B70EF /* constants.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B6C2D8D3D51008B70EF /* constants.h */; };
+		414D6B712D8D3D51008B70EF /* arena_allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B692D8D3D51008B70EF /* arena_allocator.h */; };
+		414D6B722D8D3D51008B70EF /* sensor.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B6D2D8D3D51008B70EF /* sensor.h */; };
+		414D6B732D8D3D51008B70EF /* arena_allocator.c in Sources */ = {isa = PBXBuildFile; fileRef = 414D6B6A2D8D3D51008B70EF /* arena_allocator.c */; };
+		414D6B742D8D3D51008B70EF /* sensor.c in Sources */ = {isa = PBXBuildFile; fileRef = 414D6B6E2D8D3D51008B70EF /* sensor.c */; };
 		4155A5682C61D8FC002F8BBD /* LockLessMultiReadPipe.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A53A2C61D8CF002F8BBD /* LockLessMultiReadPipe.h */; };
 		4155A5692C61D909002F8BBD /* TaskScheduler_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4155A53B2C61D8CF002F8BBD /* TaskScheduler_c.cpp */; };
 		4155A56A2C61D917002F8BBD /* TaskScheduler_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 4155A53C2C61D8CF002F8BBD /* TaskScheduler_c.h */; };
@@ -416,8 +422,6 @@
 		41B9AAD92C5A446A000F59B1 /* solver_set.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA472C5A4468000F59B1 /* solver_set.h */; };
 		41B9AADA2C5A446A000F59B1 /* solver.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA482C5A4468000F59B1 /* solver.c */; };
 		41B9AADB2C5A446A000F59B1 /* solver.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA492C5A4468000F59B1 /* solver.h */; };
-		41B9AADC2C5A446A000F59B1 /* stack_allocator.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA4A2C5A4468000F59B1 /* stack_allocator.c */; };
-		41B9AADD2C5A446A000F59B1 /* stack_allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA4B2C5A4468000F59B1 /* stack_allocator.h */; };
 		41B9AADE2C5A446A000F59B1 /* table.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA4C2C5A4468000F59B1 /* table.c */; };
 		41B9AADF2C5A446A000F59B1 /* table.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA4D2C5A4468000F59B1 /* table.h */; };
 		41B9AAE02C5A446A000F59B1 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA4E2C5A4468000F59B1 /* timer.c */; };
@@ -2762,6 +2766,12 @@
 		1F34F5412111661E006EE117 /* LinuxAppBuildController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = LinuxAppBuildController.mm; sourceTree = "<group>"; };
 		1F34F5422111661E006EE117 /* LinuxAppBuildController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinuxAppBuildController.h; sourceTree = "<group>"; };
 		1F46A96521136B51009CC875 /* linuxPackageApp.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = linuxPackageApp.lua; path = ../platform/resources/linuxPackageApp.lua; sourceTree = "<group>"; };
+		414D6B692D8D3D51008B70EF /* arena_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arena_allocator.h; sourceTree = "<group>"; };
+		414D6B6A2D8D3D51008B70EF /* arena_allocator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arena_allocator.c; sourceTree = "<group>"; };
+		414D6B6B2D8D3D51008B70EF /* atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
+		414D6B6C2D8D3D51008B70EF /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		414D6B6D2D8D3D51008B70EF /* sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensor.h; sourceTree = "<group>"; };
+		414D6B6E2D8D3D51008B70EF /* sensor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sensor.c; sourceTree = "<group>"; };
 		4155A53A2C61D8CF002F8BBD /* LockLessMultiReadPipe.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LockLessMultiReadPipe.h; sourceTree = "<group>"; };
 		4155A53B2C61D8CF002F8BBD /* TaskScheduler_c.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskScheduler_c.cpp; sourceTree = "<group>"; };
 		4155A53C2C61D8CF002F8BBD /* TaskScheduler_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler_c.h; sourceTree = "<group>"; };
@@ -2846,8 +2856,6 @@
 		41B9AA472C5A4468000F59B1 /* solver_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = solver_set.h; sourceTree = "<group>"; };
 		41B9AA482C5A4468000F59B1 /* solver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = solver.c; sourceTree = "<group>"; };
 		41B9AA492C5A4468000F59B1 /* solver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = solver.h; sourceTree = "<group>"; };
-		41B9AA4A2C5A4468000F59B1 /* stack_allocator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stack_allocator.c; sourceTree = "<group>"; };
-		41B9AA4B2C5A4468000F59B1 /* stack_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stack_allocator.h; sourceTree = "<group>"; };
 		41B9AA4C2C5A4468000F59B1 /* table.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = table.c; sourceTree = "<group>"; };
 		41B9AA4D2C5A4468000F59B1 /* table.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = table.h; sourceTree = "<group>"; };
 		41B9AA4E2C5A4468000F59B1 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = timer.c; sourceTree = "<group>"; };
@@ -4600,6 +4608,12 @@
 		41B9AA542C5A4468000F59B1 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				414D6B692D8D3D51008B70EF /* arena_allocator.h */,
+				414D6B6A2D8D3D51008B70EF /* arena_allocator.c */,
+				414D6B6B2D8D3D51008B70EF /* atomic.h */,
+				414D6B6C2D8D3D51008B70EF /* constants.h */,
+				414D6B6D2D8D3D51008B70EF /* sensor.h */,
+				414D6B6E2D8D3D51008B70EF /* sensor.c */,
 				41B9AA1A2C5A4468000F59B1 /* aabb.c */,
 				41B9AA1B2C5A4468000F59B1 /* aabb.h */,
 				41B9AA1E2C5A4468000F59B1 /* array.c */,
@@ -4644,8 +4658,6 @@
 				41B9AA472C5A4468000F59B1 /* solver_set.h */,
 				41B9AA482C5A4468000F59B1 /* solver.c */,
 				41B9AA492C5A4468000F59B1 /* solver.h */,
-				41B9AA4A2C5A4468000F59B1 /* stack_allocator.c */,
-				41B9AA4B2C5A4468000F59B1 /* stack_allocator.h */,
 				41B9AA4C2C5A4468000F59B1 /* table.c */,
 				41B9AA4D2C5A4468000F59B1 /* table.h */,
 				41B9AA4E2C5A4468000F59B1 /* timer.c */,
@@ -5706,7 +5718,6 @@
 			files = (
 				41B9AABF2C5A4469000F59B1 /* contact_solver.h in Headers */,
 				4155A6362C6B64CA002F8BBD /* stack_queue.h in Headers */,
-				41B9AADD2C5A446A000F59B1 /* stack_allocator.h in Headers */,
 				4155A63B2C6B64CA002F8BBD /* voronoi_diagram.h in Headers */,
 				41B9AAB52C5A4469000F59B1 /* bitset.h in Headers */,
 				4155A62A2C6B64CA002F8BBD /* liquid_world.h in Headers */,
@@ -5744,6 +5755,10 @@
 				4155A56C2C61D922002F8BBD /* TaskScheduler.h in Headers */,
 				41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */,
 				41B9AA8C2C5A4469000F59B1 /* base.h in Headers */,
+				414D6B6F2D8D3D51008B70EF /* atomic.h in Headers */,
+				414D6B702D8D3D51008B70EF /* constants.h in Headers */,
+				414D6B712D8D3D51008B70EF /* arena_allocator.h in Headers */,
+				414D6B722D8D3D51008B70EF /* sensor.h in Headers */,
 				4155A6322C6B64CA002F8BBD /* particle.h in Headers */,
 				4155A6282C6B64CA002F8BBD /* liquid_stack_allocator.h in Headers */,
 				41B9AA8D2C5A4469000F59B1 /* box2d.h in Headers */,
@@ -7228,7 +7243,6 @@
 				41B9AAD22C5A446A000F59B1 /* motor_joint.c in Sources */,
 				4155A6212C6B64CA002F8BBD /* free_list.cpp in Sources */,
 				4155A6312C6B64CA002F8BBD /* particle.cpp in Sources */,
-				41B9AADC2C5A446A000F59B1 /* stack_allocator.c in Sources */,
 				4155A62B2C6B64CA002F8BBD /* particle_assembly.cpp in Sources */,
 				4155A62D2C6B64CA002F8BBD /* particle_group.cpp in Sources */,
 				4155A6332C6B64CA002F8BBD /* settings.cpp in Sources */,
@@ -7247,6 +7261,8 @@
 				41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */,
 				4155A62F2C6B64CA002F8BBD /* particle_system.cpp in Sources */,
 				41B9AAE32C5A446A000F59B1 /* wheel_joint.c in Sources */,
+				414D6B732D8D3D51008B70EF /* arena_allocator.c in Sources */,
+				414D6B742D8D3D51008B70EF /* sensor.c in Sources */,
 				41B9AAAE2C5A4469000F59B1 /* aabb.c in Sources */,
 				41B9AAC72C5A446A000F59B1 /* dynamic_tree.c in Sources */,
 				41B9AAB82C5A4469000F59B1 /* body.c in Sources */,

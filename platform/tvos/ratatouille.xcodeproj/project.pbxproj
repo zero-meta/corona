@@ -26,6 +26,8 @@
 		03D1C53E1D70CBBF00DB02EE /* Rtt_Preference.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C5381D70CBB400DB02EE /* Rtt_Preference.cpp */; };
 		03D1C53F1D70CBC200DB02EE /* Rtt_PreferenceCollection.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C53A1D70CBB400DB02EE /* Rtt_PreferenceCollection.cpp */; };
 		03D1C5401D70CBC500DB02EE /* Rtt_PreferenceValue.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 03D1C53C1D70CBB400DB02EE /* Rtt_PreferenceValue.cpp */; };
+		414D6BC32D8D53CC008B70EF /* sensor.c in Sources */ = {isa = PBXBuildFile; fileRef = 414D6BC22D8D53CC008B70EF /* sensor.c */; };
+		414D6BC42D8D53CC008B70EF /* arena_allocator.c in Sources */ = {isa = PBXBuildFile; fileRef = 414D6BBE2D8D53CC008B70EF /* arena_allocator.c */; };
 		41DC1BC82C9C2D94000E52D2 /* block_allocator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B1C2C9C2D94000E52D2 /* block_allocator.cpp */; };
 		41DC1BC92C9C2D94000E52D2 /* free_list.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B1E2C9C2D94000E52D2 /* free_list.cpp */; };
 		41DC1BCA2C9C2D94000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B222C9C2D94000E52D2 /* liquid_callbacks.cpp */; };
@@ -65,7 +67,6 @@
 		41DC1C032C9C2D94000E52D2 /* shape.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B9A2C9C2D94000E52D2 /* shape.c */; };
 		41DC1C042C9C2D94000E52D2 /* solver_set.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B9C2C9C2D94000E52D2 /* solver_set.c */; };
 		41DC1C052C9C2D94000E52D2 /* solver.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1B9E2C9C2D94000E52D2 /* solver.c */; };
-		41DC1C062C9C2D94000E52D2 /* stack_allocator.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA02C9C2D94000E52D2 /* stack_allocator.c */; };
 		41DC1C072C9C2D94000E52D2 /* table.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA22C9C2D94000E52D2 /* table.c */; };
 		41DC1C082C9C2D94000E52D2 /* timer.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA42C9C2D94000E52D2 /* timer.c */; };
 		41DC1C092C9C2D94000E52D2 /* types.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA52C9C2D94000E52D2 /* types.c */; };
@@ -1580,6 +1581,12 @@
 		03D1C53B1D70CBB400DB02EE /* Rtt_PreferenceCollection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_PreferenceCollection.h; path = ../../librtt/Rtt_PreferenceCollection.h; sourceTree = "<group>"; };
 		03D1C53C1D70CBB400DB02EE /* Rtt_PreferenceValue.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Rtt_PreferenceValue.cpp; path = ../../librtt/Rtt_PreferenceValue.cpp; sourceTree = "<group>"; };
 		03D1C53D1D70CBB400DB02EE /* Rtt_PreferenceValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_PreferenceValue.h; path = ../../librtt/Rtt_PreferenceValue.h; sourceTree = "<group>"; };
+		414D6BBD2D8D53CC008B70EF /* arena_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arena_allocator.h; sourceTree = "<group>"; };
+		414D6BBE2D8D53CC008B70EF /* arena_allocator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arena_allocator.c; sourceTree = "<group>"; };
+		414D6BBF2D8D53CC008B70EF /* atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
+		414D6BC02D8D53CC008B70EF /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
+		414D6BC12D8D53CC008B70EF /* sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensor.h; sourceTree = "<group>"; };
+		414D6BC22D8D53CC008B70EF /* sensor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sensor.c; sourceTree = "<group>"; };
 		41DC1B1C2C9C2D94000E52D2 /* block_allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = block_allocator.cpp; sourceTree = "<group>"; };
 		41DC1B1D2C9C2D94000E52D2 /* block_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = block_allocator.h; sourceTree = "<group>"; };
 		41DC1B1E2C9C2D94000E52D2 /* free_list.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = free_list.cpp; sourceTree = "<group>"; };
@@ -1661,8 +1668,6 @@
 		41DC1B9D2C9C2D94000E52D2 /* solver_set.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = solver_set.h; sourceTree = "<group>"; };
 		41DC1B9E2C9C2D94000E52D2 /* solver.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = solver.c; sourceTree = "<group>"; };
 		41DC1B9F2C9C2D94000E52D2 /* solver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = solver.h; sourceTree = "<group>"; };
-		41DC1BA02C9C2D94000E52D2 /* stack_allocator.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = stack_allocator.c; sourceTree = "<group>"; };
-		41DC1BA12C9C2D94000E52D2 /* stack_allocator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = stack_allocator.h; sourceTree = "<group>"; };
 		41DC1BA22C9C2D94000E52D2 /* table.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = table.c; sourceTree = "<group>"; };
 		41DC1BA32C9C2D94000E52D2 /* table.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = table.h; sourceTree = "<group>"; };
 		41DC1BA42C9C2D94000E52D2 /* timer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = timer.c; sourceTree = "<group>"; };
@@ -2864,6 +2869,12 @@
 		41DC1BAA2C9C2D94000E52D2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				414D6BBD2D8D53CC008B70EF /* arena_allocator.h */,
+				414D6BBE2D8D53CC008B70EF /* arena_allocator.c */,
+				414D6BBF2D8D53CC008B70EF /* atomic.h */,
+				414D6BC02D8D53CC008B70EF /* constants.h */,
+				414D6BC12D8D53CC008B70EF /* sensor.h */,
+				414D6BC22D8D53CC008B70EF /* sensor.c */,
 				41DC1B702C9C2D94000E52D2 /* aabb.c */,
 				41DC1B712C9C2D94000E52D2 /* aabb.h */,
 				41DC1B742C9C2D94000E52D2 /* array.c */,
@@ -2908,8 +2919,6 @@
 				41DC1B9D2C9C2D94000E52D2 /* solver_set.h */,
 				41DC1B9E2C9C2D94000E52D2 /* solver.c */,
 				41DC1B9F2C9C2D94000E52D2 /* solver.h */,
-				41DC1BA02C9C2D94000E52D2 /* stack_allocator.c */,
-				41DC1BA12C9C2D94000E52D2 /* stack_allocator.h */,
 				41DC1BA22C9C2D94000E52D2 /* table.c */,
 				41DC1BA32C9C2D94000E52D2 /* table.h */,
 				41DC1BA42C9C2D94000E52D2 /* timer.c */,
@@ -5611,7 +5620,6 @@
 				41DC1C512C9C2E52000E52D2 /* TaskScheduler_c.cpp in Sources */,
 				41DC1BD22C9C2D94000E52D2 /* settings.cpp in Sources */,
 				41DC1BFC2C9C2D94000E52D2 /* joint.c in Sources */,
-				41DC1C062C9C2D94000E52D2 /* stack_allocator.c in Sources */,
 				41DC1BEC2C9C2D94000E52D2 /* array.c in Sources */,
 				41DC1BF02C9C2D94000E52D2 /* broad_phase.c in Sources */,
 				41DC1BFA2C9C2D94000E52D2 /* id_pool.c in Sources */,
@@ -5619,6 +5627,8 @@
 				41DC1BF82C9C2D94000E52D2 /* geometry.c in Sources */,
 				41DC1C012C9C2D94000E52D2 /* prismatic_joint.c in Sources */,
 				41DC1C0C2C9C2D94000E52D2 /* world.c in Sources */,
+				414D6BC32D8D53CC008B70EF /* sensor.c in Sources */,
+				414D6BC42D8D53CC008B70EF /* arena_allocator.c in Sources */,
 				41DC1C0A2C9C2D94000E52D2 /* weld_joint.c in Sources */,
 				41DC1BCF2C9C2D94000E52D2 /* particle_group.cpp in Sources */,
 				41DC1BCE2C9C2D94000E52D2 /* particle_assembly.cpp in Sources */,

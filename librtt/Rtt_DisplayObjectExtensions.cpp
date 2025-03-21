@@ -444,11 +444,11 @@ DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
 	return setBodyStateWithShapeIndex( L, b2Shape_EnableContactEvents );
 }
 
-int
-DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
-{
-	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
-}
+// int
+// DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
+// {
+// 	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
+// }
 
 int
 DisplayObjectExtensions::setPreSolveEventsEnabled( lua_State* L )
@@ -724,7 +724,7 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 27:
 			{
-				lua_pushcfunction( L, Self::setSensorEventsEnabled );
+				// lua_pushcfunction( L, Self::setSensorEventsEnabled );
 			}
 			break;
 		case 28:
@@ -989,9 +989,12 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 							}
 
 							b2ChainDef chainDef = b2DefaultChainDef();
+							b2SurfaceMaterial material = {};
+							material.friction = b2Chain_GetFriction( chainId );
+							material.restitution = b2Chain_GetRestitution( chainId );;
+							chainDef.materials = &material;
+							chainDef.materialCount = 1;
 							chainDef.userData = b2Shape_GetUserData( segmentArray[0] );
-							chainDef.restitution = b2Chain_GetRestitution( chainId );
-							chainDef.friction = b2Chain_GetFriction( chainId );
 							chainDef.filter = b2Shape_GetFilter( segmentArray[0] );
 							chainDef.points = points.data();
 							chainDef.count = points.size();
