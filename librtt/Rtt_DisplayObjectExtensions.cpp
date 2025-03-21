@@ -17,6 +17,7 @@
 #include "Rtt_Lua.h"
 #include "Rtt_LuaContext.h"
 #include "Rtt_LuaLibPhysics.h"
+#include "Rtt_PhysicsTypes.h"
 #include "Rtt_PhysicsWorld.h"
 #include "Rtt_Runtime.h"
 
@@ -418,13 +419,12 @@ static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState 
 		{
 			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
 		}
-		b2ShapeId* shapeArray = new b2ShapeId[ count ];
-		b2Body_GetShapes( bodyId, shapeArray, count );
+		std::vector<b2ShapeId> shapeArray;
+		shapeArray.resize( count );
+		b2Body_GetShapes( bodyId, shapeArray.data(), count );
 		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
 			setState( shapeArray[ i ], state );
 		}
-
-		delete[] shapeArray;
 
 		return 0;
 	}
@@ -492,12 +492,22 @@ DisplayObjectExtensions::setFilter( lua_State* L )
 			lua_pop( L, 1 );
 
 			int count = b2Body_GetShapeCount( bodyId );
-			b2ShapeId* shapeArray = new b2ShapeId[ count ];
-			b2Body_GetShapes( bodyId, shapeArray, count );
-			for ( int i = 0; i < count; ++i ) {
+			int shapeIndexStart = 0;
+			int shapeIndexEnd = count;
+			if ( lua_isnumber( L, 3 ) )
+			{
+				shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+			}
+			if ( lua_isnumber( L, 4 ) )
+			{
+				shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+			}
+			std::vector<b2ShapeId> shapeArray;
+			shapeArray.resize( count );
+			b2Body_GetShapes( bodyId, shapeArray.data(), count );
+			for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
 				b2Shape_SetFilter( shapeArray[ i ], filter );
 			}
-			delete[] shapeArray;
 		}
 	}
 
@@ -866,12 +876,135 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 				// Set all fixtures in the body (we call these "body elements") to the desired sensor state
 				bool sensorState = lua_toboolean( L, valueIndex );
 				int count = b2Body_GetShapeCount( fBodyId );
-				b2ShapeId* shapeArray = new b2ShapeId[ count ];
-				b2Body_GetShapes( fBodyId, shapeArray, count );
-				for ( int i = 0; i < count; ++i ) {
-					b2Shape_SetSensor( shapeArray[ i ], sensorState );
+				std::vector<b2ShapeId> shapeArray;
+				shapeArray.resize( count );
+				b2Body_GetShapes( fBodyId, shapeArray.data(), count );
+				int destroyCount = 0;
+				std::vector<b2ChainId> chains;
+				for ( int i = 0; i < count; ++i )
+				{
+					b2ShapeId shapeId = shapeArray[i];
+					if ( b2Shape_IsSensor( shapeId ) != sensorState )
+					{
+						b2ShapeType type = b2Shape_GetType( shapeId );
+						if (type != b2ShapeType::b2_chainSegmentShape)
+						{
+							b2ShapeDef shapeDef = b2DefaultShapeDef();
+							shapeDef.userData = b2Shape_GetUserData( shapeId );
+							shapeDef.friction = b2Shape_GetFriction( shapeId );
+							shapeDef.restitution = b2Shape_GetRestitution( shapeId );
+							shapeDef.density = b2Shape_GetDensity( shapeId );
+							shapeDef.filter = b2Shape_GetFilter( shapeId );
+							shapeDef.isSensor = sensorState;
+							shapeDef.enableContactEvents = b2Shape_AreContactEventsEnabled( shapeId );
+							shapeDef.enableHitEvents = b2Shape_AreHitEventsEnabled( shapeId );
+							shapeDef.enablePreSolveEvents = b2Shape_ArePreSolveEventsEnabled( shapeId );
+
+							switch ( type )
+							{
+								case b2_circleShape:
+								{
+									b2Circle circle = b2Shape_GetCircle( shapeId );
+									b2CreateCircleShape( fBodyId, &shapeDef, &circle );
+									break;
+								}
+								case b2_capsuleShape:
+								{
+									b2Capsule capsule = b2Shape_GetCapsule( shapeId );
+									b2CreateCapsuleShape( fBodyId, &shapeDef, &capsule );
+									break;
+								}
+								case b2_polygonShape:
+								{
+									b2Polygon polygon = b2Shape_GetPolygon( shapeId );
+									b2CreatePolygonShape( fBodyId, &shapeDef, &polygon );
+									break;
+								}
+								case b2_segmentShape:
+								{
+									b2Segment segment = b2Shape_GetSegment( shapeId );
+									b2CreateSegmentShape( fBodyId, &shapeDef, &segment );
+									break;
+								}
+								default:
+									break;
+							}
+							b2Shape_SetUserData( shapeId, NULL );
+							b2DestroyShape( shapeId, false );
+							destroyCount++;
+						}
+						else
+						{
+							b2ChainId chainId = b2Shape_GetParentChain( shapeId );
+							bool found = false;
+							for ( int i = 0; i < chains.size(); i++ )
+							{
+								if ( B2_ID_EQUALS( chains[i], chainId ) )
+								{
+									found = true;
+									break;
+								}
+							}
+							if ( ! found )
+							{
+								chains.push_back( chainId );
+								destroyCount++;
+							}
+						}
+					}
 				}
-				delete[] shapeArray;
+				int numChains = chains.size();
+				if ( numChains > 0 ) {
+					for ( int i = 0; i < numChains; i++ )
+					{
+						b2ChainId chainId = chains[i];
+						int numSegments = b2Chain_GetSegmentCount( chainId );
+						if ( numSegments > 0 )
+						{
+							std::vector<b2ShapeId> segmentArray;
+							segmentArray.resize( numSegments );
+							b2Chain_GetSegments( chainId, segmentArray.data(), numSegments );
+							b2Vec2Vector points;
+							b2ChainSegment a = b2Shape_GetChainSegment( segmentArray[0] );
+							b2ChainSegment b = b2Shape_GetChainSegment( segmentArray[numSegments - 1] );
+							bool isLoop = b2Length(a.segment.point1 - b.segment.point2) < FLT_EPSILON && b2Length(a.segment.point2 - b.ghost2) < FLT_EPSILON;
+							if ( isLoop )
+							{
+								points.resize( numSegments );
+								for ( int j = 0; j < numSegments; j++ )
+								{
+									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).segment.point1;
+								}
+							}
+							else
+							{
+								points.resize( numSegments);
+								for ( int j = 0; j < numSegments; j++ )
+								{
+									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).ghost1;
+								}
+								points.push_back( b.segment.point1 );
+								points.push_back( b.segment.point2 );
+								points.push_back( b.ghost2 );
+							}
+
+							b2ChainDef chainDef = b2DefaultChainDef();
+							chainDef.userData = b2Shape_GetUserData( segmentArray[0] );
+							chainDef.restitution = b2Chain_GetRestitution( chainId );
+							chainDef.friction = b2Chain_GetFriction( chainId );
+							chainDef.filter = b2Shape_GetFilter( segmentArray[0] );
+							chainDef.points = points.data();
+							chainDef.count = points.size();
+							chainDef.isSensor = sensorState;
+							chainDef.isLoop = isLoop;
+
+							b2DestroyChain( chainId );
+
+							b2CreateChain( fBodyId, &chainDef );
+						}
+					}
+				}
+				if (destroyCount > 0) { b2Body_ApplyMassFromShapes( fBodyId ); }
 			}
 			break;
 		case 10:
