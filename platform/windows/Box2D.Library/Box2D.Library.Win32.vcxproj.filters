@@ -254,6 +254,9 @@
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover.c">
+      <Filter>src</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\external\box2d_v3\src\island.c">
       <Filter>src</Filter>
     </ClCompile>

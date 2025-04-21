@@ -27,7 +27,7 @@ ifeq ($(config),Debug)
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
   INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -msimd128 -msse2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS)
@@ -51,7 +51,7 @@ ifeq ($(config),Release)
   DEFINES   += -DNDEBUG
   INCLUDES  += -I../../../external/box2d_v3/extern/glad/include -I../../../external/box2d_v3/include -I../../../external/box2d_v3/
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2 -msimd128 -msse2
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
@@ -86,6 +86,7 @@ OBJECTS := \
 	$(OBJDIR)/array.o \
 	$(OBJDIR)/bitset.o \
 	$(OBJDIR)/body.o \
+	$(OBJDIR)/mover.o \
 	$(OBJDIR)/broad_phase.o \
 	$(OBJDIR)/constraint_graph.o \
 	$(OBJDIR)/contact.o \
@@ -226,6 +227,9 @@ $(OBJDIR)/bitset.o: ../../../external/box2d_v3/src/bitset.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/body.o: ../../../external/box2d_v3/src/body.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/mover.o: ../../../external/box2d_v3/src/mover.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/broad_phase.o: ../../../external/box2d_v3/src/broad_phase.c

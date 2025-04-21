@@ -117,6 +117,7 @@ class PhysicsWorld
 
 		int GetWorkerCount() const { return fWorkerCount; }
 		void SetWorkerCount( int newValue );
+		int GetNumHardwareThreads() const { return enki::GetNumHardwareThreads(); }
 
 	private:
 		void StepEvents();

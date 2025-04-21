@@ -432,6 +432,7 @@
 		41B9AAE52C5A446A000F59B1 /* world.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA532C5A4468000F59B1 /* world.h */; };
 		41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */; };
 		41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */; };
+		41FC45D52DB5EAE500383E06 /* mover.c in Sources */ = {isa = PBXBuildFile; fileRef = 41FC45D42DB5EAE500383E06 /* mover.c */; };
 		4C111FCB1B2A41B200DF8BE8 /* Rtt_KeyName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */; };
 		5019605B186145FC0092E97E /* b2Separator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50196059186145FC0092E97E /* b2Separator.cpp */; };
 		5019605C186145FC0092E97E /* b2Separator.h in Headers */ = {isa = PBXBuildFile; fileRef = 5019605A186145FC0092E97E /* b2Separator.h */; };
@@ -2866,6 +2867,7 @@
 		41B9AA532C5A4468000F59B1 /* world.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = world.h; sourceTree = "<group>"; };
 		41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
 		41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
+		41FC45D42DB5EAE500383E06 /* mover.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover.c; sourceTree = "<group>"; };
 		4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_KeyName.cpp; sourceTree = "<group>"; };
 		4C111FCA1B2A41B200DF8BE8 /* Rtt_KeyName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_KeyName.h; sourceTree = "<group>"; };
 		50196059186145FC0092E97E /* b2Separator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2Separator.cpp; path = "../../external/b2Separator-cpp/b2Separator.cpp"; sourceTree = "<group>"; };
@@ -4608,6 +4610,7 @@
 		41B9AA542C5A4468000F59B1 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				41FC45D42DB5EAE500383E06 /* mover.c */,
 				414D6B692D8D3D51008B70EF /* arena_allocator.h */,
 				414D6B6A2D8D3D51008B70EF /* arena_allocator.c */,
 				414D6B6B2D8D3D51008B70EF /* atomic.h */,
@@ -7256,6 +7259,7 @@
 				41B9AACA2C5A446A000F59B1 /* id_pool.c in Sources */,
 				41B9AAD02C5A446A000F59B1 /* manifold.c in Sources */,
 				41B9AAE02C5A446A000F59B1 /* timer.c in Sources */,
+				41FC45D52DB5EAE500383E06 /* mover.c in Sources */,
 				41B9AAE22C5A446A000F59B1 /* weld_joint.c in Sources */,
 				4155A63A2C6B64CA002F8BBD /* voronoi_diagram.cpp in Sources */,
 				41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */,
@@ -8372,7 +8376,6 @@
 					LUA_USE_APICHECK,
 					NDEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -8923,7 +8926,6 @@
 					LUA_USE_APICHECK,
 					DEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
@@ -9002,7 +9004,6 @@
 					LUA_USE_APICHECK,
 					NDEBUG,
 					ALMIXER_COMPILE_WITHOUT_SDL,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;

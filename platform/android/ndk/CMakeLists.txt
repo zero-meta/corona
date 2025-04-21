@@ -13,8 +13,8 @@ add_definitions(
 	-DLUA_USE_POSIX
 )
 
-if(ANDROID_ABI MATCHES "arm64")
-	add_definitions(-DBOX2D_ENABLE_SIMD)
+if(ANDROID_ABI MATCHES "armeabi")
+	add_definitions(-DBOX2D_DISABLE_SIMD)
 endif()
 
 include_directories (
@@ -741,6 +741,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/box2d_v3/src/array.c
 		${CORONA_ROOT}/external/box2d_v3/src/bitset.c
 		${CORONA_ROOT}/external/box2d_v3/src/body.c
+		${CORONA_ROOT}/external/box2d_v3/src/mover.c
 		${CORONA_ROOT}/external/box2d_v3/src/broad_phase.c
 		${CORONA_ROOT}/external/box2d_v3/src/constraint_graph.c
 		${CORONA_ROOT}/external/box2d_v3/src/contact.c

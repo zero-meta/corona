@@ -27,7 +27,7 @@ ifeq ($(config),Debug)
   DEFINES   += -DRtt_DEBUG -DLUA_USE_APICHECK
   INCLUDES += -I../../../external/enkiTS/src
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -g -pthread -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS)
@@ -50,7 +50,7 @@ ifeq ($(config),Release)
   DEFINES   += -DNDEBUG
   INCLUDES += -I../../../external/enkiTS/src
   ALL_CPPFLAGS  += $(CPPFLAGS) -MMD -MP $(DEFINES) $(INCLUDES)
-  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2
+  ALL_CFLAGS    += $(CFLAGS) $(ALL_CPPFLAGS) $(ARCH) -O2 -pthread -s USE_PTHREADS=1 -s ALLOW_MEMORY_GROWTH
   ALL_CXXFLAGS  += $(CXXFLAGS) $(ALL_CFLAGS) -fno-exceptions -fno-rtti
   ALL_RESFLAGS  += $(RESFLAGS) $(DEFINES) $(INCLUDES)
   ALL_LDFLAGS   += $(LDFLAGS) -Wl,-x
@@ -68,7 +68,7 @@ endif
 
 OBJECTS := \
 	$(OBJDIR)/TaskScheduler.o \
-	$(OBJDIR)/TaskScheduler_c.o \
+# 	$(OBJDIR)/TaskScheduler_c.o \
 
 RESOURCES := \
 
@@ -86,7 +86,7 @@ all: $(TARGETDIR) $(OBJDIR) prebuild prelink $(TARGET)
 	@:
 
 $(TARGET): $(GCH) $(OBJECTS) $(LDDEPS) $(RESOURCES)
-	@echo Linking Box2D
+	@echo Linking enkiTS
 	$(SILENT) $(LINKCMD)
 	$(POSTBUILDCMDS)
 
@@ -131,9 +131,9 @@ endif
 $(OBJDIR)/TaskScheduler.o: ../../../external/enkiTS/src/TaskScheduler.cpp
 	@echo $(notdir $<)
 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
-$(OBJDIR)/TaskScheduler_c.o: ../../../external/enkiTS/src/TaskScheduler_c.cpp
-	@echo $(notdir $<)
-	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+# $(OBJDIR)/TaskScheduler_c.o: ../../../external/enkiTS/src/TaskScheduler_c.cpp
+# 	@echo $(notdir $<)
+# 	$(SILENT) $(CXX) $(ALL_CXXFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 
 -include $(OBJECTS:%.o=%.d)
 ifneq (,$(PCH))

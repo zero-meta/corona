@@ -1198,7 +1198,8 @@ QueryCircle( lua_State *L )
 			}
 			lua_pop( L, 1 );
 		}
-		b2World_OverlapCircle ( physics.GetWorldId(), &circle, b2Transform_identity, filter, query_callback, &context );
+		b2ShapeProxy proxy = b2MakeProxy( &circle.center, 1, circle.radius );
+		b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
 
 		return ( top_index_before_query != lua_gettop( L ) );
 	}
@@ -1264,19 +1265,26 @@ QueryBody( lua_State *L )
 					case b2_capsuleShape:
 					{
 						b2Capsule capsule = b2Shape_GetCapsule( shapeArray[ i ] );
-						b2World_OverlapCapsule( physics.GetWorldId(), &capsule, transform, filter, query_callback, &context );
+						capsule.center1 = b2TransformPoint( transform, capsule.center1 );
+						capsule.center2 = b2TransformPoint( transform, capsule.center1 );
+						b2ShapeProxy proxy = b2MakeProxy( &capsule.center1, 2, capsule.radius );
+						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
 						break;
 					}
 					case b2_circleShape:
 					{
 						b2Circle circle = b2Shape_GetCircle( shapeArray[ i ] );
-						b2World_OverlapCircle( physics.GetWorldId(), &circle, transform, filter, query_callback, &context );
+						circle.center = b2TransformPoint( transform, circle.center );
+						b2ShapeProxy proxy = b2MakeProxy( &circle.center, 1, circle.radius );
+						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
 						break;
 					}
 					case b2_polygonShape:
 					{
 						b2Polygon polygon = b2Shape_GetPolygon( shapeArray[ i ] );
-						b2World_OverlapPolygon( physics.GetWorldId(), &polygon, transform, filter, query_callback, &context );
+						polygon = b2TransformPolygon( transform, &polygon );
+						b2ShapeProxy proxy = b2MakeProxy( polygon.vertices, polygon.count, polygon.radius );
+						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
 						break;
 					}
 					default:
@@ -1394,8 +1402,8 @@ InitializeShapePhysicsDefaults(b2ShapeDef &outShapeDef)
 	// Set sensible defaults
 	// IMPORTANT: These defaults are overridden by InitializeShapeFromLua().
 	outShapeDef.density = 0.01f; // previous default was zero, but that did odd things in Box2D dynamic bodies (contrary to documentation?)
-	outShapeDef.friction = 0.3f;
-	outShapeDef.restitution = 0.5f;
+	outShapeDef.material.friction = 0.3f;
+	outShapeDef.material.restitution = 0.5f;
 	outShapeDef.isSensor = false;
 }
 
@@ -1442,7 +1450,7 @@ InitializeShapeFromLua( lua_State *L,
 	float friction = (float) lua_tonumber( L, -1 );
 	if (friction >= 0.0f )
 	{
-		outShapeDef.friction = friction;
+		outShapeDef.material.friction = friction;
 	}
 	lua_pop( L, 1 );
 
@@ -1451,13 +1459,40 @@ InitializeShapeFromLua( lua_State *L,
 	float restitution = (float) lua_tonumber( L, -1 );
 	if (restitution >= 0.0f )
 	{
-		outShapeDef.restitution = restitution;
+		outShapeDef.material.restitution = restitution;
 	}
 	lua_pop( L, 1 );
 
 	// If not supplied, we assume a default of false
 	lua_getfield( L, lua_arg_index, "isSensor" );
 	outShapeDef.isSensor = (bool)lua_toboolean( L, -1 );
+	lua_pop( L, 1 );
+
+	if ( outShapeDef.isSensor )
+	{
+		outShapeDef.enableSensorEvents = true;
+	}
+	else
+	{
+		lua_getfield( L, lua_arg_index, "enableContactEvents" );
+		if ( lua_isboolean( L, -1 ) ) { outShapeDef.enableContactEvents = (bool)lua_toboolean( L, -1 ); }
+		lua_pop( L, 1 );
+
+		lua_getfield( L, lua_arg_index, "enableHitEvents" );
+		if ( lua_isboolean( L, -1 ) ) { outShapeDef.enableHitEvents = (bool)lua_toboolean( L, -1 ); }
+		lua_pop( L, 1 );
+
+		lua_getfield( L, lua_arg_index, "enablePreSolveEvents" );
+		if ( lua_isboolean( L, -1 ) ) { outShapeDef.enablePreSolveEvents = (bool)lua_toboolean( L, -1 ); }
+		lua_pop( L, 1 );
+	}
+
+	lua_getfield( L, lua_arg_index, "enableSensorEvents" );
+	if ( lua_isboolean( L, -1 ) ) { outShapeDef.enableSensorEvents = (bool)lua_toboolean( L, -1 ); }
+	lua_pop( L, 1 );
+
+	lua_getfield( L, lua_arg_index, "invokeContactCreation" );
+	if ( lua_isboolean( L, -1 ) ) { outShapeDef.invokeContactCreation = (bool)lua_toboolean( L, -1 ); }
 	lua_pop( L, 1 );
 
 	lua_getfield( L, lua_arg_index, "filter" );
@@ -1827,11 +1862,11 @@ newJoint( lua_State *L )
 			b2BodyId body1 = e1->GetBody();
 			b2BodyId body2 = e2->GetBody();
 
-			b2NullJointDef jointDef = b2DefaultNullJointDef();
+			b2FilterJointDef jointDef = b2DefaultFilterJointDef();
 			jointDef.bodyIdA = body1;
 			jointDef.bodyIdB = body2;
 
-			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateNullJoint( physics.GetWorldId(), &jointDef ) );
+			result = CreateAndPushJoint( luaStateHandle, physics, b2CreateFilterJoint( physics.GetWorldId(), &jointDef ) );
 		}
 
 		else if ( strcmp( kWheelJointType, jointType ) == 0 )
@@ -2298,16 +2333,16 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 		// b2ChainShape chainDef;
 		// chainDef.CreateChain( &vertexList[ 0 ],
 		// 						(int)vertexList.size() );
-		b2SurfaceMaterial material = {};
+		b2SurfaceMaterial material = shapeDef.material;
 		b2ChainDef chainDef = b2DefaultChainDef();
-		material.friction = shapeDef.friction;
-		material.restitution = shapeDef.restitution;
 		chainDef.filter = shapeDef.filter;
 		chainDef.materials = &material;
 		chainDef.materialCount = 1;
 		chainDef.points = &vertexList[ 0 ];
 		chainDef.count = (int)vertexList.size();
 		chainDef.isLoop = false;
+		chainDef.isSensor = shapeDef.isSensor;
+		chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
 
 		_ChainCreator(bodyId,
 						&chainDef,
@@ -2366,16 +2401,16 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 			// b2ChainShape chainDef;
 			// chainDef.CreateLoop( &vertexList[ 0 ],
 			// 						(int)vertexList.size() );
-			b2SurfaceMaterial material = {};
+			b2SurfaceMaterial material = shapeDef.material;
 			b2ChainDef chainDef = b2DefaultChainDef();
-			material.friction = shapeDef.friction;
-			material.restitution = shapeDef.restitution;
 			chainDef.materials = &material;
 			chainDef.materialCount = 1;
 			chainDef.filter = shapeDef.filter;
 			chainDef.points = &vertexList[ 0 ];
 			chainDef.count = (int)vertexList.size();
 			chainDef.isLoop = true;
+			chainDef.isSensor = shapeDef.isSensor;
+			chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
 
 			_ChainCreator(bodyId,
 							&chainDef,
@@ -2713,15 +2748,15 @@ InitializeFixtureUsing_Chain( lua_State *L,
 			if( vertexList.size() >= 3 )
 			{
 				b2ChainDef chainDef = b2DefaultChainDef();
-				b2SurfaceMaterial material = {};
-				material.friction = shapeDef.friction;
-				material.restitution = shapeDef.restitution;
+				b2SurfaceMaterial material = shapeDef.material;
 				chainDef.materials = &material;
 				chainDef.materialCount = 1;
 				chainDef.filter = shapeDef.filter;
 				chainDef.points = &vertexList[ 0 ];
 				chainDef.count = (int32_t)vertexList.size();
 				chainDef.isLoop = true;
+				chainDef.isSensor = shapeDef.isSensor;
+				chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
 				_ChainCreator( bodyId,
 									&chainDef,
 									fixtureIndex );
@@ -2756,13 +2791,13 @@ InitializeFixtureUsing_Chain( lua_State *L,
 						chainDef.points = &vertexList[ 0 ];
 						chainDef.count = (int32_t)vertexList.size();
 					}
-					b2SurfaceMaterial material = {};
-					material.friction = shapeDef.friction;
-					material.restitution = shapeDef.restitution;
+					b2SurfaceMaterial material = shapeDef.material;
 					chainDef.materials = &material;
 					chainDef.materialCount = 1;
 					chainDef.filter = shapeDef.filter;
 					chainDef.isLoop = false;
+					chainDef.isSensor = shapeDef.isSensor;
+					chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
 					_ChainCreator( bodyId,
 										&chainDef,
 										fixtureIndex );
@@ -3772,6 +3807,15 @@ GetWorkerCount( lua_State *L )
 	return 1;
 }
 
+// physics.getNumHardwareThreads( )
+// Returns num hardware threads.
+static int
+GetNumHardwareThreads( lua_State *L )
+{
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushinteger(L, physics.GetNumHardwareThreads());
+	return 1;
+}
 
 int
 LuaLibPhysics::Open( lua_State *L )
@@ -3820,6 +3864,7 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "setContactTuning", SetContactTuning },
 		{ "setWorkerCount", SetWorkerCount },
 		{ "getWorkerCount", GetWorkerCount },
+		{ "getNumHardwareThreads", GetNumHardwareThreads },
 		{ "setSubSteps", SetSubSteps },
 		{ "getSubSteps", GetSubSteps },
 

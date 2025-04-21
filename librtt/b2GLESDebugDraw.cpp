@@ -171,23 +171,23 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 
 		b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
 		fDebugDraw = {};
-		fDebugDraw.DrawPolygon = DrawPolygonFcn;
-		fDebugDraw.DrawSolidPolygon = DrawSolidPolygonFcn;
-		fDebugDraw.DrawCircle = DrawCircleFcn;
-		fDebugDraw.DrawSolidCircle = DrawSolidCircleFcn;
-		fDebugDraw.DrawSolidCapsule = DrawSolidCapsuleFcn;
-		fDebugDraw.DrawSegment = DrawSegmentFcn;
-		fDebugDraw.DrawTransform = DrawTransformFcn;
-		fDebugDraw.DrawPoint = DrawPointFcn;
-		fDebugDraw.DrawString = DrawStringFcn;
-		fDebugDraw.GetBodyTransform = GetBodyTransformFcn;
+		fDebugDraw.DrawPolygonFcn = DrawPolygonFcn;
+		fDebugDraw.DrawSolidPolygonFcn = DrawSolidPolygonFcn;
+		fDebugDraw.DrawCircleFcn = DrawCircleFcn;
+		fDebugDraw.DrawSolidCircleFcn = DrawSolidCircleFcn;
+		fDebugDraw.DrawSolidCapsuleFcn = DrawSolidCapsuleFcn;
+		fDebugDraw.DrawSegmentFcn = DrawSegmentFcn;
+		fDebugDraw.DrawTransformFcn = DrawTransformFcn;
+		fDebugDraw.DrawPointFcn = DrawPointFcn;
+		fDebugDraw.DrawStringFcn = DrawStringFcn;
+		fDebugDraw.GetBodyTransformFcn = GetBodyTransformFcn;
 		fDebugDraw.drawingBounds = bounds;
 
 		fDebugDraw.useDrawingBounds = false;
 		fDebugDraw.drawShapes = true;
 		fDebugDraw.drawJoints = true;
 		fDebugDraw.drawJointExtras = false;
-		fDebugDraw.drawAABBs = false;
+		fDebugDraw.drawBounds = false;
 		fDebugDraw.drawMass = true;
 		fDebugDraw.drawBodyNames = false;
 		fDebugDraw.drawContacts = false;

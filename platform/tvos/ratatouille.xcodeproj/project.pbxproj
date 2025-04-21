@@ -75,6 +75,7 @@
 		41DC1C0C2C9C2D94000E52D2 /* world.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA82C9C2D94000E52D2 /* world.c */; };
 		41DC1C512C9C2E52000E52D2 /* TaskScheduler_c.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1C322C9C2E52000E52D2 /* TaskScheduler_c.cpp */; };
 		41DC1C522C9C2E52000E52D2 /* TaskScheduler.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1C342C9C2E52000E52D2 /* TaskScheduler.cpp */; };
+		41FC45E52DB5FB6000383E06 /* mover.c in Sources */ = {isa = PBXBuildFile; fileRef = 41FC45E42DB5FB6000383E06 /* mover.c */; };
 		A40A90531BD984AD001D2038 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A40A90521BD984AD001D2038 /* CoreText.framework */; };
 		A4384F521BAA1F49005750A3 /* b2GLESDebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4384F491BAA1F49005750A3 /* b2GLESDebugDraw.cpp */; };
 		A4384F531BAA1F49005750A3 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = A4384F4C1BAA1F49005750A3 /* Reachability.m */; };
@@ -1681,6 +1682,7 @@
 		41DC1C332C9C2E52000E52D2 /* TaskScheduler_c.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler_c.h; sourceTree = "<group>"; };
 		41DC1C342C9C2E52000E52D2 /* TaskScheduler.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TaskScheduler.cpp; sourceTree = "<group>"; };
 		41DC1C352C9C2E52000E52D2 /* TaskScheduler.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TaskScheduler.h; sourceTree = "<group>"; };
+		41FC45E42DB5FB6000383E06 /* mover.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover.c; sourceTree = "<group>"; };
 		A40A90521BD984AD001D2038 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		A4124B7C1BB2070F001421F5 /* CoronaDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CoronaDelegate.h; path = ../iphone/Corona/CoronaDelegate.h; sourceTree = "<group>"; };
 		A4384F491BAA1F49005750A3 /* b2GLESDebugDraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2GLESDebugDraw.cpp; path = ../../librtt/b2GLESDebugDraw.cpp; sourceTree = "<group>"; };
@@ -2869,6 +2871,7 @@
 		41DC1BAA2C9C2D94000E52D2 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				41FC45E42DB5FB6000383E06 /* mover.c */,
 				414D6BBD2D8D53CC008B70EF /* arena_allocator.h */,
 				414D6BBE2D8D53CC008B70EF /* arena_allocator.c */,
 				414D6BBF2D8D53CC008B70EF /* atomic.h */,
@@ -5638,6 +5641,7 @@
 				41DC1C042C9C2D94000E52D2 /* solver_set.c in Sources */,
 				41DC1BD32C9C2D94000E52D2 /* tracked_block.cpp in Sources */,
 				41DC1BF22C9C2D94000E52D2 /* contact_solver.c in Sources */,
+				41FC45E52DB5FB6000383E06 /* mover.c in Sources */,
 				41DC1C0B2C9C2D94000E52D2 /* wheel_joint.c in Sources */,
 				41DC1BCC2C9C2D94000E52D2 /* liquid_stack_allocator.cpp in Sources */,
 				41DC1BF92C9C2D94000E52D2 /* hull.c in Sources */,
@@ -6543,7 +6547,6 @@
 				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					BOX2D_ENABLE_SIMD,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -6565,7 +6568,6 @@
 				EXECUTABLE_PREFIX = "";
 				GCC_C_LANGUAGE_STANDARD = c11;
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					BOX2D_ENABLE_SIMD,
 					"$(inherited)",
 				);
 				HEADER_SEARCH_PATHS = (
@@ -6775,7 +6777,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				EXECUTABLE_PREFIX = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					BOX2D_ENABLE_SIMD,
 					ENABLE_ALMIXER_THREADS,
 					ALMIXER_COMPILE_WITHOUT_SDL,
 					"$(inherited)",
@@ -6799,7 +6800,6 @@
 			buildSettings = {
 				EXECUTABLE_PREFIX = "";
 				GCC_PREPROCESSOR_DEFINITIONS = (
-					BOX2D_ENABLE_SIMD,
 					ENABLE_ALMIXER_THREADS,
 					ALMIXER_COMPILE_WITHOUT_SDL,
 					"$(inherited)",

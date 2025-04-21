@@ -84,6 +84,7 @@
     <ClCompile Include="..\..\..\external\box2d_v3\src\array.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\bitset.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\broad_phase.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\constraint_graph.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\contact.c" />

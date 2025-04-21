@@ -441,6 +441,8 @@
 		41B9ADDF2C5B9B62000F59B1 /* world.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AD4D2C5B9B5C000F59B1 /* world.h */; };
 		41DC1A632C9ADC18000E52D2 /* liquid_callbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 41DC1A612C9ADC18000E52D2 /* liquid_callbacks.h */; };
 		41DC1A642C9ADC18000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1A622C9ADC18000E52D2 /* liquid_callbacks.cpp */; };
+		41FC45E22DB5FA1200383E06 /* mover.c in Sources */ = {isa = PBXBuildFile; fileRef = 41FC45E12DB5FA1200383E06 /* mover.c */; };
+		41FC46332DB601F800383E06 /* Rtt_ObjectHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = 41FC46322DB601F800383E06 /* Rtt_ObjectHandle.h */; };
 		5009C120186239480075E34C /* Rtt_PhysicsTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 5009C11F186239480075E34C /* Rtt_PhysicsTypes.h */; };
 		5009C125186239780075E34C /* b2Separator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 5009C123186239780075E34C /* b2Separator.cpp */; };
 		5009C126186239780075E34C /* b2Separator.h in Headers */ = {isa = PBXBuildFile; fileRef = 5009C124186239780075E34C /* b2Separator.h */; };
@@ -720,12 +722,9 @@
 		AA2ED7D72708264E00CEE021 /* CoronaObjects.h in Headers */ = {isa = PBXBuildFile; fileRef = AA2ED7D42708264E00CEE021 /* CoronaObjects.h */; };
 		AA2ED7D82708264E00CEE021 /* CoronaObjects.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA2ED7D52708264E00CEE021 /* CoronaObjects.cpp */; };
 		AA2ED7D92708264E00CEE021 /* CoronaPublicTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = AA2ED7D62708264E00CEE021 /* CoronaPublicTypes.h */; };
-		AA2C6AB6291C37320093B0BE /* CoronaMemory.h in Headers */ = {isa = PBXBuildFile; fileRef = AA2C6AB4291C37320093B0BE /* CoronaMemory.h */; };
-		AA2C6AB7291C37320093B0BE /* CoronaMemory.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AA2C6AB5291C37320093B0BE /* CoronaMemory.cpp */; };
+		AAD3E2062B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD3E2042B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp */; };
 		AAF349AB29EFC53300076706 /* Rtt_Profiling.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAF349A929EFC53300076706 /* Rtt_Profiling.cpp */; };
 		AAF349AC29EFC53300076706 /* Rtt_Profiling.h in Headers */ = {isa = PBXBuildFile; fileRef = AAF349AA29EFC53300076706 /* Rtt_Profiling.h */; };
-		AAD3E2052B0BEC3A000A4D45 /* Rtt_ObjectHandle.h in Headers */ = {isa = PBXBuildFile; fileRef = AAD3E2032B0BEC3A000A4D45 /* Rtt_ObjectHandle.h */; };
-		AAD3E2062B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAD3E2042B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp */; };
 		AAF34A9229F9DF3600076706 /* Rtt_TextureResourceCaptureAdapter.h in Headers */ = {isa = PBXBuildFile; fileRef = AAF34A8E29F9DF3600076706 /* Rtt_TextureResourceCaptureAdapter.h */; };
 		AAF34A9329F9DF3600076706 /* Rtt_TextureResourceCapture.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AAF34A8F29F9DF3600076706 /* Rtt_TextureResourceCapture.cpp */; };
 		AAF34A9429F9DF3600076706 /* Rtt_TextureResourceCapture.h in Headers */ = {isa = PBXBuildFile; fileRef = AAF34A9029F9DF3600076706 /* Rtt_TextureResourceCapture.h */; };
@@ -1365,6 +1364,8 @@
 		41B9AD5E2C5B9B5C000F59B1 /* CMakeLists.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = CMakeLists.txt; sourceTree = "<group>"; };
 		41DC1A612C9ADC18000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
 		41DC1A622C9ADC18000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
+		41FC45E12DB5FA1200383E06 /* mover.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover.c; sourceTree = "<group>"; };
+		41FC46322DB601F800383E06 /* Rtt_ObjectHandle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_ObjectHandle.h; path = Display/Rtt_ObjectHandle.h; sourceTree = "<group>"; };
 		5009C11F186239480075E34C /* Rtt_PhysicsTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_PhysicsTypes.h; sourceTree = "<group>"; };
 		5009C123186239780075E34C /* b2Separator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2Separator.cpp; path = "../../external/b2Separator-cpp/b2Separator.cpp"; sourceTree = "<group>"; };
 		5009C124186239780075E34C /* b2Separator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = b2Separator.h; path = "../../external/b2Separator-cpp/b2Separator.h"; sourceTree = "<group>"; };
@@ -1645,9 +1646,6 @@
 		AA2ED7D52708264E00CEE021 /* CoronaObjects.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CoronaObjects.cpp; path = Corona/CoronaObjects.cpp; sourceTree = "<group>"; };
 		AA2ED7D62708264E00CEE021 /* CoronaPublicTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CoronaPublicTypes.h; path = Corona/CoronaPublicTypes.h; sourceTree = "<group>"; };
 		AAD3E2042B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Rtt_ObjectHandle.cpp; path = Display/Rtt_ObjectHandle.cpp; sourceTree = "<group>"; };
-		AAA5812A270D393F002A51A7 /* Rtt_ObjectBoxList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rtt_ObjectBoxList.h; path = Display/Rtt_ObjectBoxList.h; sourceTree = "<group>"; };
-		AA2C6AB4291C37320093B0BE /* CoronaMemory.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = CoronaMemory.h; path = Corona/CoronaMemory.h; sourceTree = "<group>"; };
-		AA2C6AB5291C37320093B0BE /* CoronaMemory.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = CoronaMemory.cpp; path = Corona/CoronaMemory.cpp; sourceTree = "<group>"; };
 		AAF349A929EFC53300076706 /* Rtt_Profiling.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_Profiling.cpp; sourceTree = "<group>"; };
 		AAF349AA29EFC53300076706 /* Rtt_Profiling.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_Profiling.h; sourceTree = "<group>"; };
 		AAF34A8E29F9DF3600076706 /* Rtt_TextureResourceCaptureAdapter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Rtt_TextureResourceCaptureAdapter.h; path = Display/Rtt_TextureResourceCaptureAdapter.h; sourceTree = "<group>"; };
@@ -2511,6 +2509,7 @@
 		41B9AD4E2C5B9B5C000F59B1 /* src */ = {
 			isa = PBXGroup;
 			children = (
+				41FC45E12DB5FA1200383E06 /* mover.c */,
 				414D6BCA2D8D54A2008B70EF /* arena_allocator.h */,
 				414D6BCB2D8D54A2008B70EF /* arena_allocator.c */,
 				414D6BCC2D8D54A2008B70EF /* atomic.h */,
@@ -2622,6 +2621,7 @@
 		A474283C17694E2600C63853 /* Display */ = {
 			isa = PBXGroup;
 			children = (
+				41FC46322DB601F800383E06 /* Rtt_ObjectHandle.h */,
 				A474283D17694EB000C63853 /* Rtt_BitmapMask.cpp */,
 				A474283E17694EB000C63853 /* Rtt_BitmapMask.h */,
 				A474283F17694EB000C63853 /* Rtt_BitmapPaint.cpp */,
@@ -2683,7 +2683,6 @@
 				A474286617694EB000C63853 /* Rtt_MDisplayDelegate.h */,
 				A474286717694EB000C63853 /* Rtt_MDrawable.h */,
 				AAD3E2042B0BEC3A000A4D45 /* Rtt_ObjectHandle.cpp */,
-				AAD3E2032B0BEC3A000A4D45 /* Rtt_ObjectHandle.h */,
 				A474286817694EB000C63853 /* Rtt_OpenPath.cpp */,
 				A474286917694EB000C63853 /* Rtt_OpenPath.h */,
 				A474286A17694EB000C63853 /* Rtt_Paint.cpp */,
@@ -3077,7 +3076,6 @@
 				000DCB7C12B05F3E00042A5E /* Rtt_Build.h in Headers */,
 				000DCB7D12B05F3E00042A5E /* Rtt_Config.h in Headers */,
 				000DCB7E12B05F3E00042A5E /* Rtt_Data.h in Headers */,
-				AAD3E2052B0BEC3A000A4D45 /* Rtt_ObjectHandle.h in Headers */,
 				000DCB7F12B05F3E00042A5E /* Rtt_Finalizer.h in Headers */,
 				AAF34A9429F9DF3600076706 /* Rtt_TextureResourceCapture.h in Headers */,
 				000DCB8112B05F3E00042A5E /* Rtt_Fixed.h in Headers */,
@@ -3155,6 +3153,7 @@
 				000DCC2012B05F3E00042A5E /* Rtt_PlatformOpenALPlayer.h in Headers */,
 				000DCC2212B05F3E00042A5E /* Rtt_PlatformSurface.h in Headers */,
 				03D1C5211D70C13300DB02EE /* Rtt_SharedStringPtr.h in Headers */,
+				41FC46332DB601F800383E06 /* Rtt_ObjectHandle.h in Headers */,
 				000DCC2412B05F3E00042A5E /* Rtt_PlatformTimer.h in Headers */,
 				000DCC2612B05F3E00042A5E /* Rtt_PlatformVideoPlayer.h in Headers */,
 				000DCC2812B05F3E00042A5E /* Rtt_PlatformWebPopup.h in Headers */,
@@ -3606,6 +3605,7 @@
 				41B9ADBC2C5B9B61000F59B1 /* core.c in Sources */,
 				41B9ADC32C5B9B61000F59B1 /* hull.c in Sources */,
 				41B9ADC22C5B9B61000F59B1 /* geometry.c in Sources */,
+				41FC45E22DB5FA1200383E06 /* mover.c in Sources */,
 				41B9ADCE2C5B9B61000F59B1 /* prismatic_joint.c in Sources */,
 				41B9ADC12C5B9B61000F59B1 /* dynamic_tree.c in Sources */,
 				41B9ADC42C5B9B61000F59B1 /* id_pool.c in Sources */,
@@ -4052,7 +4052,6 @@
 					Rtt_IPHONE_ENV,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4119,7 +4118,6 @@
 					Rtt_TRIAL,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4429,7 +4427,6 @@
 					Rtt_DEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
 					LUA_USE_APICHECK,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
@@ -4497,7 +4494,6 @@
 					Rtt_IPHONE_ENV,
 					NDEBUG,
 					LUA_USE_OBJC_EXCEPTIONS,
-					BOX2D_ENABLE_SIMD,
 				);
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;

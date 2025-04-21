@@ -126,6 +126,9 @@ PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 	fNumSteps(1)
 {
 	fWorkerCount = b2MinInt( 8, b2MaxInt((int)enki::GetNumHardwareThreads() / 2, 1) );
+#if defined ( Rtt_APPLE_ENV )
+	if ( fWorkerCount == 1 ) { fWorkerCount = 2; }
+#endif
 	// fScheduler.Initialize( fWorkerCount );
 	fTaskCount = 0;
 }
@@ -507,7 +510,7 @@ PhysicsWorld::StepWorld( double elapsedMS )
 						// b2Vec2 position = body->GetPosition();
 						// Rtt_ASSERT(position.IsValid());
 						b2Vec2 position = event->transform.p;
-						Rtt_ASSERT(b2Vec2_IsValid(position));
+						Rtt_ASSERT(b2IsValidVec2(position));
 						// b2Vec2 position2 = b2Body_GetPosition(event->bodyId);
 						// Rtt_Log( "PhysicsWorld::StepWorld1, index = %d, position = (%f, %f), scale = %f", i, position.x, position.y, scale);
 						// Rtt_Log( "PhysicsWorld::StepWorld2, index = %d, position2 = (%f, %f)", i, position2.x, position2.y);
@@ -595,7 +598,7 @@ PhysicsWorld::StepEvents() {
 
 void PhysicsWorld::SetWorkerCount( int newValue )
 {
-	fWorkerCount = b2ClampInt( newValue, 1, enki::GetNumHardwareThreads() );
+	fWorkerCount = b2MaxInt( newValue, 1 );
 }
 // ----------------------------------------------------------------------------
 

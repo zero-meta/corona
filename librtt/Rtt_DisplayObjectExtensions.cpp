@@ -441,14 +441,45 @@ DisplayObjectExtensions::setHitEventsEnabled( lua_State* L )
 int
 DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
 {
-	return setBodyStateWithShapeIndex( L, b2Shape_EnableContactEvents );
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		bool state = lua_toboolean( L, 2 );
+		int count = b2Body_GetShapeCount( bodyId );
+		int shapeIndexStart = 0;
+		int shapeIndexEnd = count;
+		if ( lua_isnumber( L, 3 ) )
+		{
+			shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+		}
+		if ( lua_isnumber( L, 4 ) )
+		{
+			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+		}
+		std::vector<b2ShapeId> shapeArray;
+		shapeArray.resize( count );
+		b2Body_GetShapes( bodyId, shapeArray.data(), count );
+		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
+			b2Shape_EnableContactEvents( shapeArray[ i ], state );
+			if (state) { b2Shape_EnableSensorEvents( shapeArray[ i ], state ); }
+		}
+
+		return 0;
+	}
+
+	return 0;
 }
 
-// int
-// DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
-// {
-// 	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
-// }
+int
+DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableSensorEvents );
+}
 
 int
 DisplayObjectExtensions::setPreSolveEventsEnabled( lua_State* L )
@@ -724,7 +755,7 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 27:
 			{
-				// lua_pushcfunction( L, Self::setSensorEventsEnabled );
+				lua_pushcfunction( L, Self::setSensorEventsEnabled );
 			}
 			break;
 		case 28:
@@ -891,14 +922,22 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 						{
 							b2ShapeDef shapeDef = b2DefaultShapeDef();
 							shapeDef.userData = b2Shape_GetUserData( shapeId );
-							shapeDef.friction = b2Shape_GetFriction( shapeId );
-							shapeDef.restitution = b2Shape_GetRestitution( shapeId );
+							shapeDef.material.friction = b2Shape_GetFriction( shapeId );
+							shapeDef.material.restitution = b2Shape_GetRestitution( shapeId );
 							shapeDef.density = b2Shape_GetDensity( shapeId );
 							shapeDef.filter = b2Shape_GetFilter( shapeId );
 							shapeDef.isSensor = sensorState;
 							shapeDef.enableContactEvents = b2Shape_AreContactEventsEnabled( shapeId );
 							shapeDef.enableHitEvents = b2Shape_AreHitEventsEnabled( shapeId );
 							shapeDef.enablePreSolveEvents = b2Shape_ArePreSolveEventsEnabled( shapeId );
+							if (sensorState)
+							{
+								shapeDef.enableSensorEvents = true;
+							}
+							else
+							{
+								shapeDef.enableSensorEvents =  b2Shape_AreSensorEventsEnabled( shapeId );;
+							}
 
 							switch ( type )
 							{
@@ -989,7 +1028,7 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 							}
 
 							b2ChainDef chainDef = b2DefaultChainDef();
-							b2SurfaceMaterial material = {};
+							b2SurfaceMaterial material = b2DefaultSurfaceMaterial();
 							material.friction = b2Chain_GetFriction( chainId );
 							material.restitution = b2Chain_GetRestitution( chainId );;
 							chainDef.materials = &material;
@@ -1000,6 +1039,14 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 							chainDef.count = points.size();
 							chainDef.isSensor = sensorState;
 							chainDef.isLoop = isLoop;
+							if (sensorState)
+							{
+								chainDef.enableSensorEvents = true;
+							}
+							else
+							{
+								chainDef.enableSensorEvents =  b2Shape_AreSensorEventsEnabled( segmentArray[0] );;
+							}
 
 							b2DestroyChain( chainId );
 
