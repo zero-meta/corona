@@ -125,9 +125,8 @@ PhysicsWorld::PhysicsWorld( Rtt_Allocator& allocator )
 	fTimeRemainder( 0.0f ),
 	fNumSteps(1)
 {
-	fWorkerCount = b2MinInt( 8, b2MaxInt((int)enki::GetNumHardwareThreads() / 4, 1) );
-	// fWorkerCount = 1;
-	fScheduler.Initialize( fWorkerCount );
+	fWorkerCount = b2MinInt( 8, b2MaxInt((int)enki::GetNumHardwareThreads() / 2, 1) );
+	// fScheduler.Initialize( fWorkerCount );
 	fTaskCount = 0;
 }
 
@@ -184,6 +183,9 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		// fWorld->SetDestructionListener( fWorldDestructionListener );
 		b2WorldDef worldDef = b2DefaultWorldDef();
 		// Rtt_Log("PhysicsWorld::StartWorld, workerCount = %d", fWorkerCount);
+		fScheduler.Initialize( fWorkerCount );
+		fTaskCount = 0;
+
 		if ( fWorkerCount > 1 ) {
 			worldDef.workerCount = fWorkerCount;
 			worldDef.enqueueTask = EnqueueTask;
@@ -591,6 +593,10 @@ PhysicsWorld::StepEvents() {
 	}
 }
 
+void PhysicsWorld::SetWorkerCount( int newValue )
+{
+	fWorkerCount = b2ClampInt( newValue, 1, enki::GetNumHardwareThreads() );
+}
 // ----------------------------------------------------------------------------
 
 } // namespace Rtt

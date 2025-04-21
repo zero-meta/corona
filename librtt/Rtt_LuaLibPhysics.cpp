@@ -3744,6 +3744,34 @@ SetContactTuning( lua_State *L )
 	return 0;
 }
 
+// physics.setWorkerCount( workerCount )
+// Set workerCount for multithreading physics sumulation.
+static int
+SetWorkerCount( lua_State *L )
+{
+	if ( lua_isnumber( L, 1 ) )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		physics.SetWorkerCount( lua_tointeger( L, 1 ) );
+	}
+	else
+	{
+		CoronaLuaError(L, "physics.setWorkerCount() requires 1 parameter (number)");
+	}
+
+	return 0;
+}
+
+// physics.getWorkerCount( )
+// Returns current workerCount.
+static int
+GetWorkerCount( lua_State *L )
+{
+	PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushinteger(L, physics.GetWorkerCount());
+	return 1;
+}
+
 
 int
 LuaLibPhysics::Open( lua_State *L )
@@ -3790,6 +3818,8 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "getNumSteps", getNumSteps },
 		{ "explode", Explode },
 		{ "setContactTuning", SetContactTuning },
+		{ "setWorkerCount", SetWorkerCount },
+		{ "getWorkerCount", GetWorkerCount },
 		{ "setSubSteps", SetSubSteps },
 		{ "getSubSteps", GetSubSteps },
 

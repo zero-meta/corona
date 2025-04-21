@@ -115,6 +115,9 @@ class PhysicsWorld
 		int GetSubSteps() const { return fSubStepCount; }
 		void SetSubSteps( S32 newValue ) { fSubStepCount = newValue; }
 
+		int GetWorkerCount() const { return fWorkerCount; }
+		void SetWorkerCount( int newValue );
+
 	private:
 		void StepEvents();
 
