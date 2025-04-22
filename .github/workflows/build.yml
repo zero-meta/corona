@@ -107,7 +107,7 @@ jobs:
   collect-ios-templates:
     needs:
       - Xcode-template-matrix-15
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: (! failure() && ! cancelled())
     steps:
       - run: CDR="$(basename "$(pwd)")" ; cd .. ; rm -rf "$CDR" ; mkdir -p "$CDR" ; cd "$CDR"
@@ -166,7 +166,7 @@ jobs:
 
   CoronaCards-Android:
     needs: native
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     steps:
       - run: CDR="$(basename "$(pwd)")" ; cd .. ; rm -rf "$CDR" ; mkdir -p "$CDR" ; cd "$CDR"
       - uses: actions/checkout@v4
@@ -405,7 +405,7 @@ jobs:
     if: startsWith(github.ref, 'refs/tags')
     permissions:
       contents: write
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     needs:
       - Windows-Simulator
       - macOS-Simulator
