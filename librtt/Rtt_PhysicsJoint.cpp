@@ -820,7 +820,7 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
 					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetReferenceAngle(baseJoint) ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2Joint_GetReferenceAngle(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "jointAngle", key ) )  // read-only
@@ -1150,7 +1150,7 @@ PhysicsJoint::ValueForKey( lua_State *L )
 
 				if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2WeldJoint_GetReferenceAngle( baseJoint ) ) );
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2Joint_GetReferenceAngle( baseJoint ) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
@@ -1607,7 +1607,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
-					b2WeldJoint_SetReferenceAngle( baseJoint, Rtt_RealToFloat( valueRadians ) );
+					b2Joint_SetReferenceAngle( baseJoint, Rtt_RealToFloat( valueRadians ) );
 				}
 			}
 			else if ( 0 == strcmp( "frequency", key ) )
