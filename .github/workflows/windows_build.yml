@@ -1,0 +1,97 @@
+name: Windows build
+
+on:
+  workflow_dispatch:
+    inputs:
+      buildNumber:
+        description: 'Build Number'
+        required: true
+        default: '9999'
+      buildYear:
+        description: 'Build Year'
+        required: true
+        default: '2100'
+
+env:
+  WORKSPACE: ${{ github.workspace }}
+  DEVELOPER_DIR: /Applications/Xcode_15.4.app/Contents/Developer
+  BUILD_NUMBER: ${{ github.event.inputs.buildNumber }}
+  YEAR: ${{ github.event.inputs.buildYear }}
+
+jobs:
+  source-code:
+    name: Check out and process source code
+    runs-on: macos-14
+    steps:
+      - run: CDR="$(basename "$(pwd)")" ; cd .. ; rm -rf "$CDR" ; mkdir -p "$CDR" ; cd "$CDR"
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - run: ./tools/GHAction/daily_env.sh
+      - name: Set daily build
+        run: ./tools/GHAction/process_sources.sh
+      - name: Upload Source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: SourceCode
+          path: ./output
+
+  Windows-Simulator:
+    needs:
+      - source-code
+    runs-on: windows-2022
+    steps:
+      - name: Get processed code
+        uses: actions/download-artifact@v4
+        with:
+          name: SourceCode
+          path: SourceCode
+      - name: Unpack source code
+        run: |
+          7z x SourceCode/corona.tgz
+          7z x corona.tar
+      - run: ./tools/GHAction/daily_env.sh
+        shell: bash
+      - run: mkdir -f docs
+      - name: Get Sample Code
+        uses: actions/checkout@v4
+        with:
+          repository: coronalabs/samples-coronasdk
+          path: docs/SampleCode
+      - name: Clean-up docs
+        run: rm -rf docs/SampleCode/.git docs/SampleCode/.gitignore
+        shell: bash
+      - name: Move docs outside the directory
+        run: mv docs ../docs
+      - name: Put JRE in place
+        shell: bash
+        run: |
+          curl -sL https://github.com/coronalabs/binary-data/releases/download/1.0/jre.win32.7z -o jre.win32.7z
+          7z x jre.win32.7z -o"platform/windows/Bin" -y
+      - name: Put redistributables in place
+        shell: bash
+        run: |
+          curl -sL https://github.com/coronalabs/binary-data/releases/download/1.0/redist.win32.7z -o redist.win32.7z
+          7z x redist.win32.7z -o"platform/windows/Bin/redist" -y
+      - name: Build Corona Simulator
+        shell: cmd
+        run: |
+          cd platform\windows
+          call UpdateFileVersions.bat %BUILD_NUMBER%
+          call Build.Tools\VSVars.bat
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+          devenv "Corona.SDK.sln" /rebuild "Release|x86"
+        env:
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      - name: Copy Simulator
+        run: |
+          mkdir output
+          cp -v ./platform/windows/Bin/Corona.SDK.Installer/Corona.msi output/Corona-$BUILD.msi
+        shell: bash
+      - name: Upload Widnows Corona artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Simulator-Windows
+          path: ./output
