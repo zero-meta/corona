@@ -80,6 +80,9 @@ class DisplayDefaults
         
         bool ShouldPreloadTextures() const { return fPreloadTextures; }
         void SetPreloadTextures( bool newValue ) { fPreloadTextures = newValue; }
+
+        bool IsImageFullResolution() const { return fIsImageFullResolution; }
+        void SetImageFullResolution( bool newValue ) { fIsImageFullResolution = newValue; }
     
         bool IsNativeTextFieldFontSizeScaled() const { return fIsNativeTextFieldFontSizeScaled; }
         void SetIsNativeTextFieldFontSizeScaled( bool value ) { fIsNativeTextFieldFontSizeScaled = value; }
@@ -137,6 +140,7 @@ class DisplayDefaults
 		U8 fEmitterMapping;
         bool fV1Compatibility;
         bool fPreloadTextures;
+        bool fIsImageFullResolution;
         bool fIsNativeTextFieldFontSizeScaled;
         bool fIsNativeTextBoxFontSizeScaled;
         bool fShaderCompilerVerbose;

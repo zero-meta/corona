@@ -14,6 +14,7 @@
 
 // ----------------------------------------------------------------------------
 
+
 namespace Rtt
 {
 
@@ -45,6 +46,7 @@ DisplayDefaults::DisplayDefaults()
 	fEmitterMapping( 0 ),
 	fV1Compatibility( false ),
 	fPreloadTextures( true ),
+	fIsImageFullResolution( false ),
 	fIsNativeTextFieldFontSizeScaled( true ),
 	fIsNativeTextBoxFontSizeScaled( true ),
 	fShaderCompilerVerbose( kShaderCompilerVerboseDefault ),
@@ -93,4 +95,3 @@ void DisplayDefaults::SetTimeTransform( const TimeTransform *transform )
 } // namespace Rtt
 
 // ----------------------------------------------------------------------------
-

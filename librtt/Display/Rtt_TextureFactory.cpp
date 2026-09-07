@@ -245,6 +245,13 @@ TextureFactory::FindOrCreate(
 		return Find(filename);
 	}
 
+	bool useImageFullResolutionDefault = 0 == ( flags & kIgnoreImageFullResolutionDefault );
+	flags &= ~kIgnoreImageFullResolutionDefault;
+	if ( useImageFullResolutionDefault && fDisplay.GetDefaults().IsImageFullResolution() )
+	{
+		flags |= PlatformBitmap::kIsBitsFullResolution;
+	}
+
 	bool isRetina = false;
 
 	// Check for a higher resolution image file using Corona's special suffix notation.
@@ -724,4 +731,3 @@ void TextureFactory::UpdateTextures(Renderer &renderer)
 } // namespace Rtt
 
 // ----------------------------------------------------------------------------
-
