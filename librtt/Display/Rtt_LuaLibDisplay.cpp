@@ -1137,9 +1137,16 @@ DisplayLibrary::newImage( lua_State *L )
         U32 flags = 0;
 
         // [,isFullResolution]
-        if ( lua_isboolean( L, nextArg ) && lua_toboolean( L, nextArg ) )
+        if ( lua_isboolean( L, nextArg ) )
         {
-            flags |= PlatformBitmap::kIsBitsFullResolution;
+            if ( lua_toboolean( L, nextArg ) )
+            {
+                flags |= PlatformBitmap::kIsBitsFullResolution;
+            }
+            else
+            {
+                flags |= TextureFactory::kIgnoreImageFullResolutionDefault;
+            }
         }
 
         Runtime& runtime = library->GetDisplay().GetRuntime();
@@ -1959,6 +1966,11 @@ DisplayLibrary::getDefault( lua_State *L )
         bool value = defaults.IsShaderCompilerVerbose();
         lua_pushboolean( L, value ? 1 : 0 );
     }
+    else if ( Rtt_StringCompare( key, "isImageFullResolution" ) == 0 )
+    {
+        bool value = defaults.IsImageFullResolution();
+        lua_pushboolean( L, value ? 1 : 0 );
+    }
     else if ( Rtt_StringCompare( key, "triangleListBatchingEnabled" ) == 0 )
     {
         bool value = display.GetRenderer().GetTriangleListBatchingEnabled();
@@ -2155,6 +2167,11 @@ DisplayLibrary::setDefault( lua_State *L )
     {
         bool value = lua_toboolean( L, index ) ? true : false;
         defaults.SetShaderCompilerVerbose( value );
+    }
+    else if ( Rtt_StringCompare( key, "isImageFullResolution" ) == 0 )
+    {
+        bool value = lua_toboolean( L, index ) ? true : false;
+        defaults.SetImageFullResolution( value );
     }
     else if ( Rtt_StringCompare( key, "triangleListBatchingEnabled" ) == 0 )
     {
@@ -3483,7 +3500,7 @@ LuaLibDisplay::LuaNewColor( lua_State *L, int index, bool isBytes )
     return p;
 }
 
-// { type="image", baseDir=, filename= }
+// { type="image", baseDir=, filename=, isFullResolution= }
 static BitmapPaint *
 NewBitmapPaintFromFile( lua_State *L, int paramsIndex )
 {
@@ -3500,6 +3517,21 @@ NewBitmapPaintFromFile( lua_State *L, int paramsIndex )
 
         Runtime *runtime = LuaContext::GetRuntime( L );
         U32 flags = PlatformBitmap::kIsNearestAvailablePixelDensity;
+
+        lua_getfield( L, paramsIndex, "isFullResolution" );
+        if ( lua_isboolean( L, -1 ) )
+        {
+            if ( lua_toboolean( L, -1 ) )
+            {
+                flags |= PlatformBitmap::kIsBitsFullResolution;
+            }
+            else
+            {
+                flags |= TextureFactory::kIgnoreImageFullResolutionDefault;
+            }
+        }
+        lua_pop( L, 1 );
+
         paint = BitmapPaint::NewBitmap( *runtime, imageName, baseDir, flags );
         if ( paint && paint->GetBitmap() && paint->GetBitmap()->NumBytes() == 0 )
         {

@@ -38,6 +38,13 @@ class TextureResource;
 class TextureFactory
 {
 	public:
+		typedef enum _BitmapCreationFlag
+		{
+			// Internal request flag. This is consumed before PlatformBitmap creation.
+			kIgnoreImageFullResolutionDefault = 0x10000
+		}
+		BitmapCreationFlag;
+
 		TextureFactory( Display& display );
 		~TextureFactory();
 
