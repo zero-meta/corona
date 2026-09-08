@@ -130,8 +130,8 @@ Transform::SetProperty( GeometricProperty p, Real newValue )
 
 	if ( dstValue )
 	{
-		// Do not modify unless newValue differs.
-		if ( ! Rtt_RealEqual( * dstValue, newValue ) )
+		// Absolute assignment must preserve every representable change.
+		if ( * dstValue != newValue )
 		{
 			* dstValue = newValue;
 			Invalidate();

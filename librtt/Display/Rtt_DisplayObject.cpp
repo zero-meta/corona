@@ -10,6 +10,7 @@
 #include "Core/Rtt_Build.h"
 
 #include "Display/Rtt_DisplayObject.h"
+#include "Display/Rtt_AbsoluteTransform.h"
 #include "Display/Rtt_Display.h"
 #include "Display/Rtt_DisplayDefaults.h"
 
@@ -43,6 +44,8 @@
 
 namespace Rtt
 {
+
+thread_local AbsoluteTransformScope *AbsoluteTransformScope::sCurrent = NULL;
 
 // ----------------------------------------------------------------------------
 
@@ -515,7 +518,10 @@ DisplayObject::Prepare( const Display& display )
 void
 DisplayObject::Translate( Real dx, Real dy )
 {
-    if( Rtt_RealIsZero( dx ) && Rtt_RealIsZero( dy ) )
+    GeometricProperty property;
+    Real value;
+    const bool isNewValue = AbsoluteTransformScope::Take( this, false, property, value );
+    if( ! isNewValue && Rtt_RealIsZero( dx ) && Rtt_RealIsZero( dy ) )
     {
         // Nothing to do.
         return;
@@ -523,7 +529,14 @@ DisplayObject::Translate( Real dx, Real dy )
 
 //    if ( ! IsProperty( kIsTransformLocked ) )
     {
-        fTransform.Translate( dx, dy );
+        if ( isNewValue )
+        {
+            fTransform.SetProperty( property, value );
+        }
+        else
+        {
+            fTransform.Translate( dx, dy );
+        }
 
 #ifdef Rtt_PHYSICS
         if ( fExtensions && ! IsProperty( kIsExtensionsLocked ) )
@@ -600,10 +613,20 @@ DisplayObject::Scale( Real sx, Real sy, bool isNewValue )
 void
 DisplayObject::Rotate( Real deltaTheta )
 {
-    // No-op unless deltaTheta is non-zero
-    if ( ! Rtt_RealIsZero( deltaTheta ) )
+    GeometricProperty property;
+    Real value;
+    const bool isNewValue = AbsoluteTransformScope::Take( this, true, property, value );
+    // Relative rotation retains its existing near-zero no-op behavior.
+    if ( isNewValue || ! Rtt_RealIsZero( deltaTheta ) )
     {
-        fTransform.Rotate( deltaTheta );
+        if ( isNewValue )
+        {
+            fTransform.SetProperty( property, value );
+        }
+        else
+        {
+            fTransform.Rotate( deltaTheta );
+        }
 
 #ifdef Rtt_PHYSICS
         if ( fExtensions && ! IsProperty( kIsExtensionsLocked ) )
@@ -1521,10 +1544,15 @@ DisplayObject::SetGeometricProperty( enum GeometricProperty p, Real newValue )
                     switch( p )
                     {
                         case kOriginX:
-                            Translate( newValue - currentValue, Rtt_REAL_0 );
-                            break;
                         case kOriginY:
-                            Translate( Rtt_REAL_0, newValue - currentValue );
+                        case kRotation:
+                            {
+                                AbsoluteTransformScope assignment( this, p, newValue );
+                                // Preserve the existing virtual/plugin callback entry points.
+                                if ( p == kRotation ) { Rotate( newValue - currentValue ); }
+                                else if ( p == kOriginX ) { Translate( newValue - currentValue, Rtt_REAL_0 ); }
+                                else { Translate( Rtt_REAL_0, newValue - currentValue ); }
+                            }
                             break;
                         case kScaleX:
                         case kScaleY:
@@ -1534,9 +1562,6 @@ DisplayObject::SetGeometricProperty( enum GeometricProperty p, Real newValue )
                                     ( kScaleY == p ? 'y' : 'x' ) ) );
                             fTransform.SetProperty( p, newValue );
                             Invalidate( kGeometryFlag | kTransformFlag | kMaskFlag );
-                            break;
-                        case kRotation:
-                            Rotate( newValue - currentValue );
                             break;
                         default:
                             Rtt_ASSERT_NOT_IMPLEMENTED();

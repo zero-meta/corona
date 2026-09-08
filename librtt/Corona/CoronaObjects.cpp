@@ -19,6 +19,7 @@
 #include "Rtt_Runtime.h"
 
 #include "Display/Rtt_ObjectHandle.h"
+#include "Display/Rtt_AbsoluteTransform.h"
 
 #include "Display/Rtt_ContainerObject.h"
 #include "Display/Rtt_Display.h"
@@ -545,6 +546,7 @@ using FPtr = void (*)();
     {                                               \
         OBJECT_HANDLE_SUBSCOPE( params );           \
         STORE_OBJECTS( params.separateScopes );     \
+        Rtt::AbsoluteTransformScope::Suspend suspendedAssignment; \
         params.WHEN( __VA_ARGS__ );                 \
     }
 
