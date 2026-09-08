@@ -36,6 +36,7 @@ static constexpr int32_t estimateMaxMouseBodies = 32;
 
 class PhysicsWorld
 {
+	friend class FixedStepScheduler;
 	public:
 		enum
 		{

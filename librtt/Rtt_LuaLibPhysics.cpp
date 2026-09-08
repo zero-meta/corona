@@ -34,6 +34,7 @@
 #include "Rtt_PhysicsJoint.h"
 #include "Rtt_PhysicsTypes.h"
 #include "Rtt_PhysicsWorld.h"
+#include "Rtt_FixedStepScheduler.h"
 #include "Rtt_Runtime.h"
 // #include "b2Separator.h"
 // #include "b2GLESDebugDraw.h"
@@ -4695,6 +4696,10 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "getMKS", getMKS },
 		{ "toMKS", toMKS },
 		{ "fromMKS", fromMKS },
+		{ "setFixedStepMode", FixedStepScheduler::Configure },
+		{ "setSimulationSpeed", FixedStepScheduler::SetSpeed },
+		{ "setStepListener", FixedStepScheduler::SetListener },
+		{ "getFixedStepState", FixedStepScheduler::GetState },
 		{ "setTimeStep", SetTimeStep },
 		{ "getTimeStep", GetTimeStep },
 		{ "setTimeScale", SetTimeScale },

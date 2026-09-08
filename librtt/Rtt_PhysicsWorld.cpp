@@ -10,6 +10,12 @@
 #include "Core/Rtt_Build.h"
 
 #include "Rtt_PhysicsWorld.h"
+#include "Rtt_FixedStepScheduler.h"
+#include "Rtt_LuaContext.h"
+#include <map>
+#include <mutex>
+#include <string>
+#include <cmath>
 
 #include "b2GLESDebugDraw.h"
 
@@ -37,6 +43,339 @@ namespace Rtt
 {
 
 // ----------------------------------------------------------------------------
+
+namespace
+{
+// Side storage preserves PhysicsWorld's existing object layout and vtable.
+// Physics/display APIs and this scheduler run on the Runtime's owning thread.
+struct FixedStepState
+{
+    bool enabled = false;
+    bool executing = false;
+    bool faulted = false;
+    float dt = 1.0f / 60.0f;
+    int subSteps = 8;
+    int maxSteps = 8;
+    double speed = 1.0;
+    double budget = 0.0;
+    unsigned long long index = 0;
+    unsigned long long generation = 0;
+    unsigned long long interruption = 0;
+    Runtime *runtime = NULL;
+    int listener = LUA_NOREF;
+    std::string error;
+};
+std::map<PhysicsWorld *, FixedStepState> sFixedSteps;
+std::mutex sFixedStepsMutex;
+
+FixedStepState *FindFixedStep( PhysicsWorld& physics )
+{
+    std::lock_guard<std::mutex> lock( sFixedStepsMutex );
+    auto it = sFixedSteps.find( &physics );
+    return it == sFixedSteps.end() ? NULL : &it->second;
+}
+
+FixedStepState& GetFixedStep( PhysicsWorld& physics )
+{
+    std::lock_guard<std::mutex> lock( sFixedStepsMutex );
+    return sFixedSteps[&physics];
+}
+
+PhysicsWorld& FixedPhysics( lua_State *L )
+{
+    return LuaContext::GetRuntime( L )->GetPhysicsWorld();
+}
+
+double FixedOption( lua_State *L, const char *key, double fallback )
+{
+    lua_getfield( L, 1, key );
+    double value = fallback;
+    if ( ! lua_isnil( L, -1 ) ) { value = luaL_checknumber( L, -1 ); }
+    lua_pop( L, 1 );
+    return value;
+}
+
+void FixedNumber( lua_State *L, const char *key, double value )
+{
+    lua_pushnumber( L, value );
+    lua_setfield( L, -2, key );
+}
+
+bool FixedCallback( PhysicsWorld& physics, FixedStepState& state, const char *phase,
+                    unsigned long long index )
+{
+    if ( state.listener == LUA_NOREF ) { return true; }
+    lua_State *L = state.runtime->VMContext().L();
+    RuntimeGuard guard( *state.runtime );
+    const int top = lua_gettop( L );
+    const unsigned long long generation = state.generation;
+    lua_rawgeti( L, LUA_REGISTRYINDEX, state.listener );
+    lua_createtable( L, 0, 5 );
+    lua_pushliteral( L, "physicsStep" ); lua_setfield( L, -2, "name" );
+    lua_pushstring( L, phase ); lua_setfield( L, -2, "phase" );
+    FixedNumber( L, "stepIndex", (double)index );
+    FixedNumber( L, "dt", state.dt );
+    // Before: time at the start of the proposed step. After: completed time.
+    FixedNumber( L, "simulationTime", (double)(index - (phase[0] == 'b' ? 1 : 0)) * state.dt );
+    // Catch locally so an error cannot unwind through Box2D or retry partial commands.
+    const int status = lua_pcall( L, 1, 0, 0 );
+    if ( status != 0 )
+    {
+        const char *message = lua_tostring( L, -1 );
+        Rtt_Log( "physics step listener error (%s): %s\n", phase, message ? message : "non-string error" );
+        // A callback may have stopped and created a different world before failing.
+        // Never mark that new timeline as having executed the old step.
+        state.error = message ? message : "non-string error";
+        state.faulted = true;
+        physics.PauseWorld();
+    }
+    lua_settop( L, top );
+    return status == 0 && state.generation == generation;
+}
+}
+
+int FixedStepScheduler::Configure( lua_State *L )
+{
+    PhysicsWorld& physics = FixedPhysics( L );
+    FixedStepState *previous = FindFixedStep( physics );
+    if ( previous && previous->executing )
+    { return luaL_error( L, "setFixedStepMode cannot change mode during a physics step" ); }
+    if ( physics.IsWorldValid() && physics.GetWorld()->IsLocked() )
+    { return luaL_error( L, "setFixedStepMode cannot run while the world is locked" ); }
+    if ( lua_isnil( L, 1 ) || (lua_isboolean( L, 1 ) && !lua_toboolean( L, 1 )) )
+    {
+        if ( previous ) { previous->enabled = false; Reset( physics ); }
+        // Legacy wall-clock mode must not catch up time spent in the opt-in mode.
+        physics.fTimePrevious = -1.f;
+        physics.fTimeRemainder = 0.f;
+        return 0;
+    }
+    luaL_checktype( L, 1, LUA_TTABLE );
+    if ( previous && previous->faulted && physics.IsWorldValid() )
+    { return luaL_error( L, "stop the faulted world before reconfiguring fixed step mode" ); }
+    const double dt = FixedOption( L, "timeStep", 1.0 / 60.0 );
+    const double subSteps = FixedOption( L, "subSteps", physics.GetSubSteps() );
+    const double speed = FixedOption( L, "speed", 1 );
+    const double maxSteps = FixedOption( L, "maxStepsPerFrame", 8 );
+    if ( !std::isfinite(dt) || dt <= 0 || dt > 1 || (float)dt <= 0 ||
+         !std::isfinite(subSteps) || subSteps < 1 || subSteps > 128 || floor(subSteps) != subSteps ||
+         !std::isfinite(speed) || speed <= 0 || speed > 64 ||
+         !std::isfinite(maxSteps) || maxSteps < 1 || maxSteps > 1024 || floor(maxSteps) != maxSteps )
+    { return luaL_error( L, "invalid fixed step options: timeStep (0,1], subSteps [1,128], speed (0,64], maxStepsPerFrame [1,1024]" ); }
+    FixedStepState& state = GetFixedStep( physics );
+    state.runtime = LuaContext::GetRuntime( L );
+    state.dt = (float)dt;
+    state.subSteps = (int)subSteps;
+    state.speed = speed;
+    state.maxSteps = (int)maxSteps;
+    state.enabled = true;
+    Reset( physics );
+    return 0;
+}
+
+int FixedStepScheduler::SetSpeed( lua_State *L )
+{
+    const double speed = luaL_checknumber( L, 1 );
+    FixedStepState *state = FindFixedStep( FixedPhysics( L ) );
+    if ( !state || !state->enabled ) { return luaL_error( L, "setSimulationSpeed requires fixed step mode" ); }
+    if ( !std::isfinite(speed) || speed <= 0 || speed > 64 )
+    { return luaL_error( L, "simulation speed must be finite and in (0,64]" ); }
+    state->speed = speed;
+    return 0;
+}
+
+int FixedStepScheduler::SetListener( lua_State *L )
+{
+    if ( !lua_isnil( L, 1 ) ) { luaL_checktype( L, 1, LUA_TFUNCTION ); }
+    PhysicsWorld& physics = FixedPhysics( L );
+    FixedStepState& state = GetFixedStep( physics );
+    state.runtime = LuaContext::GetRuntime( L );
+    if ( state.listener != LUA_NOREF ) { luaL_unref( L, LUA_REGISTRYINDEX, state.listener ); }
+    state.listener = LUA_NOREF;
+    if ( !lua_isnil( L, 1 ) )
+    {
+        lua_pushvalue( L, 1 );
+        state.listener = luaL_ref( L, LUA_REGISTRYINDEX );
+    }
+    return 0;
+}
+
+int FixedStepScheduler::GetState( lua_State *L )
+{
+    PhysicsWorld& physics = FixedPhysics( L );
+    FixedStepState *state = FindFixedStep( physics );
+    lua_createtable( L, 0, 11 );
+    lua_pushboolean( L, state && state->enabled ); lua_setfield( L, -2, "enabled" );
+    lua_pushboolean( L, state && state->faulted ); lua_setfield( L, -2, "faulted" );
+    lua_pushboolean( L, physics.IsProperty( PhysicsWorld::kIsWorldRunning ) ); lua_setfield( L, -2, "running" );
+    FixedNumber( L, "stepIndex", state ? (double)state->index : 0 );
+    FixedNumber( L, "simulationTime", state ? (double)state->index * state->dt : 0 );
+    FixedNumber( L, "pendingSteps", state ? state->budget : 0 );
+    if ( state )
+    {
+        FixedNumber( L, "timeStep", state->dt );
+        FixedNumber( L, "subSteps", state->subSteps );
+        FixedNumber( L, "speed", state->speed );
+        FixedNumber( L, "maxStepsPerFrame", state->maxSteps );
+        if ( state->faulted ) { lua_pushstring( L, state->error.c_str() ); lua_setfield( L, -2, "error" ); }
+    }
+    return 1;
+}
+
+void FixedStepScheduler::Reset( PhysicsWorld& physics )
+{
+    FixedStepState *state = FindFixedStep( physics );
+    if ( !state ) { return; }
+    ++state->generation;
+    ++state->interruption;
+    state->index = 0;
+    state->budget = 0;
+    state->faulted = false;
+    state->error.clear();
+    // Do not clear executing: stop/start inside a callback must not reenter Step.
+}
+
+void FixedStepScheduler::Interrupt( PhysicsWorld& physics )
+{
+    FixedStepState *state = FindFixedStep( physics );
+    if ( state ) { ++state->interruption; }
+}
+
+void FixedStepScheduler::Forget( PhysicsWorld& physics )
+{
+    // Registry references belong to the Runtime VM and are released at VM teardown.
+    // Its lifetime may already have ended when PhysicsWorld is destroyed.
+    std::lock_guard<std::mutex> lock( sFixedStepsMutex );
+    sFixedSteps.erase( &physics );
+}
+
+void FixedStepScheduler::SyncDisplay( PhysicsWorld& physics )
+{
+    const b2BodyEvents events = b2World_GetBodyEvents( physics.GetWorldId() );
+    std::vector<b2BodyMoveEvent> moves;
+    if ( events.moveCount ) { moves.assign( events.moveEvents, events.moveEvents + events.moveCount ); }
+    for ( const auto& event : moves )
+    {
+        if ( !b2Body_IsValid( event.bodyId ) ) { continue; }
+        // A preSolve/particle callback may have removed a display object. Do not
+        // dereference the cached event.userData; fetch the surviving body's value.
+        void *data = b2Body_GetUserData( event.bodyId );
+        if ( !data ) { physics.DestroyPhysicsBody( event.bodyId ); continue; }
+        if ( data == LuaLibPhysics::GetGroundBodyUserdata() ) { continue; }
+        DisplayObject *object = static_cast<DisplayObject *>(data);
+        if ( object->IsOrphan() ) { continue; }
+        b2Vec2 position = event.transform.p;
+        position *= physics.GetPixelsPerMeter();
+        Real angle = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2Rot_GetAngle(event.transform.q) ) );
+        object->SetExtensionsLocked( true );
+        object->SetGeometricProperty( kOriginX, position.x );
+        object->SetGeometricProperty( kOriginY, position.y );
+        object->SetGeometricProperty( kRotation, angle );
+        object->SetExtensionsLocked( false );
+    }
+    physics.FlushDeferredBodyDestructions();
+}
+
+bool FixedStepScheduler::DispatchEvents( PhysicsWorld& physics, unsigned long long generation )
+{
+    // Copy ALL arrays before dispatch: existing (unlocked) post-step collision
+    // callbacks can remove bodies, stop, or replace the world. Preserve that API.
+    const b2ContactEvents contacts = b2World_GetContactEvents( physics.GetWorldId() );
+    const b2SensorEvents sensors = b2World_GetSensorEvents( physics.GetWorldId() );
+    std::vector<b2ContactBeginTouchEvent> begins;
+    std::vector<b2ContactEndTouchEvent> ends;
+    std::vector<b2ContactHitEvent> hits;
+    std::vector<b2SensorBeginTouchEvent> sensorBegins;
+    std::vector<b2SensorEndTouchEvent> sensorEnds;
+    if (contacts.beginCount) begins.assign(contacts.beginEvents, contacts.beginEvents + contacts.beginCount);
+    if (contacts.endCount) ends.assign(contacts.endEvents, contacts.endEvents + contacts.endCount);
+    if (contacts.hitCount) hits.assign(contacts.hitEvents, contacts.hitEvents + contacts.hitCount);
+    if (sensors.beginCount) sensorBegins.assign(sensors.beginEvents, sensors.beginEvents + sensors.beginCount);
+    if (sensors.endCount) sensorEnds.assign(sensors.endEvents, sensors.endEvents + sensors.endCount);
+    auto alive = [&]() { return FindFixedStep(physics)->generation == generation && physics.IsWorldValid(); };
+    for (const auto& e : begins)
+    {
+        if (b2Contact_IsValid(e.contactId) && b2Shape_IsValid(e.shapeIdA) && b2Shape_IsValid(e.shapeIdB))
+            physics.fWorldContactListener->BeginContact(e.shapeIdA, e.shapeIdB, e.contactId);
+        if (!alive()) return false;
+    }
+    for (const auto& e : ends)
+    {
+        if (b2Shape_IsValid(e.shapeIdA) && b2Shape_IsValid(e.shapeIdB))
+            physics.fWorldContactListener->EndContact(e.shapeIdA, e.shapeIdB);
+        if (!alive()) return false;
+    }
+    for (auto& e : hits)
+    {
+        if (b2Shape_IsValid(e.shapeIdA) && b2Shape_IsValid(e.shapeIdB))
+            physics.fWorldContactListener->BeginContactHit(&e);
+        if (!alive()) return false;
+    }
+    for (const auto& e : sensorBegins)
+    {
+        if (b2Shape_IsValid(e.sensorShapeId) && b2Shape_IsValid(e.visitorShapeId))
+            physics.fWorldContactListener->BeginContact(e.sensorShapeId, e.visitorShapeId, b2_nullContactId);
+        if (!alive()) return false;
+    }
+    for (const auto& e : sensorEnds)
+    {
+        if (b2Shape_IsValid(e.sensorShapeId) && b2Shape_IsValid(e.visitorShapeId))
+            physics.fWorldContactListener->EndContact(e.sensorShapeId, e.visitorShapeId);
+        if (!alive()) return false;
+    }
+    return true;
+}
+
+bool FixedStepScheduler::Step( PhysicsWorld& physics, float frameInterval )
+{
+    FixedStepState *state = FindFixedStep( physics );
+    if ( !state || !state->enabled ) { return false; }
+    if ( state->executing || state->faulted || !physics.IsWorldValid() ||
+         !physics.IsProperty( PhysicsWorld::kIsWorldRunning ) ) { return true; }
+    struct ExecutionScope
+    {
+        FixedStepState& state;
+        ExecutionScope(FixedStepState& s) : state(s) { state.executing = true; }
+        ~ExecutionScope() { state.executing = false; }
+    } execution(*state);
+    const auto generation = state->generation;
+    const auto interruption = state->interruption;
+    // Render-budget policy: no wall-clock catch-up, fractional and capped whole
+    // steps remain pending. Speed changes in callbacks affect the next frame grant.
+    const double budget = state->budget + (double)frameInterval / state->dt * state->speed;
+    if ( !std::isfinite(budget) || budget > 9007199254740991.0 )
+    {
+        state->faulted = true;
+        state->error = "pendingSteps exceeds the exact integer range";
+        physics.PauseWorld();
+        return true;
+    }
+    state->budget = budget;
+    for ( int count = 0; count < state->maxSteps && state->budget >= 1.0; ++count )
+    {
+        if ( state->index >= 9007199254740991ULL )
+        {
+            state->faulted = true;
+            state->error = "stepIndex exceeds Lua's exact integer range";
+            physics.PauseWorld();
+            break;
+        }
+        const auto next = state->index + 1;
+        if ( !FixedCallback( physics, *state, "before", next ) ) { break; }
+        if ( state->generation != generation || !physics.IsWorldValid() ) { break; }
+        // A pause in before finishes this already-prepared step (no duplicate
+        // force application on resume). A stop cancels it by changing generation.
+        physics.GetWorld()->Step( state->dt, state->subSteps );
+        state->budget -= 1.0;
+        state->index = next;
+        SyncDisplay( physics );
+        if ( !DispatchEvents( physics, generation ) ) { break; }
+        if ( !FixedCallback( physics, *state, "after", next ) ) { break; }
+        if ( state->generation != generation || state->interruption != interruption ||
+             !physics.IsProperty( PhysicsWorld::kIsWorldRunning ) ) { break; }
+    }
+    return true;
+}
 
 // These iterations are reasonable default values. See http://www.box2d.org/forum/viewtopic.php?f=8&t=4396 for discussion.
 const S32 kSubStepCount = 4;
@@ -256,6 +595,7 @@ PhysicsWorld::~PhysicsWorld()
 	// }
 
 	StopWorld();
+	FixedStepScheduler::Forget( *this );
 }
 
 void
@@ -295,6 +635,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		SetTimeStep( -1.f ); // Set time step equal to frame interval
 		fTimePrevious = -1.f;
 		fTimeRemainder = 0.f;
+		FixedStepScheduler::Reset( *this );
 
 		// fWorld = Rtt_NEW( Allocator(), b2World( gravity ) );
 		// fWorldDestructionListener = Rtt_NEW( Allocator(), PhysicsDestructionListener );
@@ -366,6 +707,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 void
 PhysicsWorld::PauseWorld()
 {
+	FixedStepScheduler::Interrupt( *this );
 	if ( fWorld )
 	{
 		SetProperty( kIsWorldRunning, false );
@@ -394,6 +736,7 @@ PhysicsWorld::onResumed()
 void
 PhysicsWorld::StopWorld()
 {
+	FixedStepScheduler::Reset( *this );
 	if ( fWorld )
 	{
 		SetProperty( kIsWorldRunning, false );
@@ -865,6 +1208,7 @@ PhysicsWorld::DebugDraw( Renderer &renderer ) const
 void
 PhysicsWorld::StepWorld( double elapsedMS )
 {
+	if ( FixedStepScheduler::Step( *this, fFrameInterval ) ) { return; }
 	if ( fWorld && IsProperty( kIsWorldRunning ) )
 	// if ( b2World_IsValid( fWorldId ) && IsProperty( kIsWorldRunning ) )
 	{
