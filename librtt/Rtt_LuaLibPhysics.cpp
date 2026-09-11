@@ -1680,6 +1680,7 @@ newJoint( lua_State *L )
 
 		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
+		float drawScale = 30.0f / scale;
 
 		Runtime& runtime = * LuaContext::GetRuntime( L );
 		const ResourceHandle< lua_State >& luaStateHandle = runtime.VMContext().LuaState();
@@ -1744,6 +1745,7 @@ newJoint( lua_State *L )
 			b2Vec2 point1 = { px, py };
 			b2Vec2 point2 = { qx, qy };
 
+			jointDef.base.drawScale = drawScale;
 			jointDef.enableSpring = true;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
@@ -1772,7 +1774,7 @@ newJoint( lua_State *L )
 
 			b2Vec2 point1 = { px, py };
 
-			// jointDef.Initialize( body1, body2, point1 );
+			jointDef.base.drawScale = drawScale;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
 			jointDef.base.localFrameA.p = b2Body_GetLocalPoint(body1, point1);
@@ -1796,7 +1798,7 @@ newJoint( lua_State *L )
 
 			b2MotorJointDef jointDef = b2DefaultMotorJointDef();
 
-			// jointDef.Initialize( body1, body2 );
+			jointDef.base.drawScale = drawScale;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
 
@@ -1831,7 +1833,7 @@ newJoint( lua_State *L )
 			b2Vec2 anchor = { px, py };
 			b2Vec2 axis = b2Normalize({ axisX, axisY });
 
-			// jointDef.Initialize( body1, body2, anchor, axis );
+			jointDef.base.drawScale = drawScale;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
 			b2Rot axisRot = b2MakeRotFromUnitVector( axis );
@@ -1886,7 +1888,7 @@ newJoint( lua_State *L )
 
 			b2Vec2 point1 = { px, py };
 
-			// jointDef.Initialize( body1, body2, point1 );
+			jointDef.base.drawScale = drawScale;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
 			jointDef.base.localFrameA.p = b2Body_GetLocalPoint( body1, point1 );
@@ -1933,7 +1935,7 @@ newJoint( lua_State *L )
 			b2Vec2 point = { px, py };
 			b2Vec2 axis = b2Normalize( { qx, qy } );
 
-			// jointDef.Initialize( body1, body2, point, axis );
+			jointDef.base.drawScale = drawScale;
 			jointDef.enableSpring = true;
 			jointDef.base.bodyIdA = body1;
 			jointDef.base.bodyIdB = body2;
@@ -2004,6 +2006,7 @@ newJoint( lua_State *L )
 
 			b2BodyId body = e1->GetBody();
 
+			jointDef.base.drawScale = drawScale;
 			jointDef.base.bodyIdA = physics.FetchUsableMouseBodyId();
 			jointDef.base.bodyIdB = body;
 			// jointDef.base.localFrameA.p = b2Body_GetLocalPoint( jointDef.base.bodyIdA, targetPoint );

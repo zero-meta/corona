@@ -958,7 +958,7 @@ void b2GLESDebugDraw::DrawTransform(const b2Transform& xf)
 	b2Vec2 p1 = ApplyParentTransform( this, xf.p );
 	b2Vec2 p2;
 	// const float k_axisScale = 0.4f;
-	const float k_axisScale = 24.0f * fMetersPerPixel * 0.5f * ( scale.x + scale.y );
+	const float k_axisScale = 24.0f * fMetersPerPixel * ( scale.x + scale.y ) * 30.0f / fPixelsPerMeter;
 
 	// p2 = p1 + k_axisScale * xf.q.GetXAxis();
 	p2 = p1 + k_axisScale * b2Rot_GetXAxis( xf.q );
