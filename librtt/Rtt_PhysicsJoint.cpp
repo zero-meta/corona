@@ -24,12 +24,28 @@
 
 #include "box2d/box2d.h"
 
+#include <cfloat>
+#include <cmath>
+
 // ----------------------------------------------------------------------------
 
 namespace Rtt
 {
 
 // ----------------------------------------------------------------------------
+
+namespace
+{
+void
+CheckJointPropertyUnlocked( lua_State *L )
+{
+	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	if ( physics.GetWorld()->IsLocked() )
+	{
+		luaL_error( L, "joint spring and reference angle properties cannot be accessed while the physics world is locked" );
+	}
+}
+}
 
 const char PhysicsJoint::kMetatableName[] = "physics.joint"; // unique identifier for this userdata type
 
@@ -811,7 +827,27 @@ PhysicsJoint::ValueForKey( lua_State *L )
 
 				// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
 
-				if ( 0 == strcmp( "isMotorEnabled", key ) )
+				if ( 0 == strcmp( "isSpringEnabled", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushboolean( L, b2RevoluteJoint_IsSpringEnabled( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springFrequency", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, b2RevoluteJoint_GetSpringHertz( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springDampingRatio", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, b2RevoluteJoint_GetSpringDampingRatio( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springTargetAngle", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetTargetAngle( baseJoint ) ) ) );
+				}
+				else if ( 0 == strcmp( "isMotorEnabled", key ) )
 				{
 					lua_pushboolean( L, b2RevoluteJoint_IsMotorEnabled(baseJoint) );
 				}
@@ -833,9 +869,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					// lua_pushnumber( L, valueDegrees );
-					lua_pushnumber( L, 0.0f );
+					CheckJointPropertyUnlocked( L );
+					// jointAngle = bodyAngleB - bodyAngleA - referenceAngle.
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "jointAngle", key ) )  // read-only
 				{
@@ -967,8 +1005,10 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2PrismaticJoint_ ) );
-					lua_pushnumber( L, 0.0f );
+					CheckJointPropertyUnlocked( L );
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "jointTranslation", key ) )  // read-only
 				{
@@ -1190,11 +1230,12 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				//////////////////////////////////////////////////////////////////////////////
 				// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
 
-				if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
+				if ( 0 == strcmp( "referenceAngle", key ) )
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2Joint_GetReferenceAngle( baseJoint ) ) );
-					// lua_pushnumber( L, valueDegrees );
-					lua_pushnumber( L, 0.0f );
+					CheckJointPropertyUnlocked( L );
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
@@ -1419,7 +1460,58 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 
 			// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
 
-			if ( 0 == strcmp( "isMotorEnabled", key ) )
+			if ( 0 == strcmp( "isSpringEnabled", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				luaL_checktype( L, 3, LUA_TBOOLEAN );
+				b2RevoluteJoint_EnableSpring( baseJoint, lua_toboolean( L, 3 ) );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springFrequency", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) || value < 0.0 || value > FLT_MAX )
+				{
+					return luaL_error( L, "%s must be a finite non-negative float", key );
+				}
+				b2RevoluteJoint_SetSpringHertz( baseJoint, (float)value );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springDampingRatio", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) || value < 0.0 || value > FLT_MAX )
+				{
+					return luaL_error( L, "%s must be a finite non-negative float", key );
+				}
+				b2RevoluteJoint_SetSpringDampingRatio( baseJoint, (float)value );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springTargetAngle", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) )
+				{
+					return luaL_error( L, "%s must be finite", key );
+				}
+				// Match the periodic spring error without changing the reference or limits.
+				value = std::fmod( value, 360.0 );
+				if ( value > 180.0 )
+				{
+					value -= 360.0;
+				}
+				if ( value < -180.0 )
+				{
+					value += 360.0;
+				}
+				Rtt_Real valueRadians = Rtt_RealDegreesToRadians( Rtt_FloatToReal( value ) );
+				b2RevoluteJoint_SetTargetAngle( baseJoint, Rtt_RealToFloat( valueRadians ) );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "isMotorEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
@@ -1706,7 +1798,7 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			//////////////////////////////////////////////////////////////////////////////
 			// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
 
-			if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
+			if ( 0 == strcmp( "referenceAngle", key ) )
 			{
 				// No-op for read-only property
 				if ( lua_isnumber( L, 3 ) )
