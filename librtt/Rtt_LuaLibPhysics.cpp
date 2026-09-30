@@ -4518,6 +4518,37 @@ GetCompoundInternalEdgeSuppressionEnabled( lua_State *L )
 	return 1;
 }
 
+// physics.setSeamContactFilterEnabled(enabled)
+// Discard short approaching two point contacts at flush seams (ghost collisions). Disabled by default.
+// The setting belongs to the current world, so it is reset after physics.stop() destroys the world.
+static int
+SetSeamContactFilterEnabled( lua_State *L )
+{
+	if ( ! lua_isboolean( L, 1 ) )
+	{
+		CoronaLuaError( L, "physics.setSeamContactFilterEnabled() requires 1 parameter (boolean)" );
+		return 0;
+	}
+
+	bool result = ! LuaLibPhysics::IsWorldLocked( L, "physics.setSeamContactFilterEnabled()" );
+	if ( result )
+	{
+		PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		b2World_EnableSeamContactFilter( physics.GetWorldId(), lua_toboolean( L, 1 ) );
+	}
+
+	return 0;
+}
+
+// physics.getSeamContactFilterEnabled()
+static int
+GetSeamContactFilterEnabled( lua_State *L )
+{
+	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	lua_pushboolean( L, physics.IsWorldValid() && b2World_IsSeamContactFilterEnabled( physics.GetWorldId() ) );
+	return 1;
+}
+
 // physics.setRestitutionThreshold(value)
 // Adjust the restitution threshold. It is recommended not to make this value very small
 // because it will prevent bodies from sleeping. Usually in meters per second.
@@ -4717,6 +4748,8 @@ LuaLibPhysics::Open( lua_State *L )
 		{ "getSpeculativeCornerPassThroughEnabled", GetSpeculativeCornerPassThroughEnabled },
 		{ "setCompoundInternalEdgeSuppressionEnabled", SetCompoundInternalEdgeSuppressionEnabled },
 		{ "getCompoundInternalEdgeSuppressionEnabled", GetCompoundInternalEdgeSuppressionEnabled },
+		{ "setSeamContactFilterEnabled", SetSeamContactFilterEnabled },
+		{ "getSeamContactFilterEnabled", GetSeamContactFilterEnabled },
 		{ "setMaximumLinearSpeed", SetMaximumLinearSpeed },
 		{ "getMaximumLinearSpeed", GetMaximumLinearSpeed },
 		{ "setRestitutionThreshold", SetRestitutionThreshold },

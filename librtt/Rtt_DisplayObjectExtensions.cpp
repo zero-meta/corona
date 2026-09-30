@@ -659,9 +659,10 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			"shapeCount",                       // 34
 			"jointCount",                       // 35
 			"isContactRecycling",               // 36
+			"isSeamContactFilterEnabled",       // 37
 		};
 		static const int numKeys = sizeof( keys ) / sizeof( const char * );
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 37, 31, 14, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 38, 31, 14, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -864,6 +865,11 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 				lua_pushboolean( L, b2Body_IsContactRecyclingEnabled(fBodyId) );
 			}
 			break;
+		case 37:
+			{
+				lua_pushboolean( L, b2Body_IsSeamContactFilterEnabled(fBodyId) );
+			}
+			break;
 		default:
 			{
 				result = 0;
@@ -913,8 +919,9 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			"gravityScale",				// 10
 			"allowFastRotation",        // 11
 			"isContactRecycling",       // 12
+			"isSeamContactFilterEnabled", // 13
 		};
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 13, 31, 3, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 14, 32, 3, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -1172,6 +1179,11 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 		case 12:
 			{
 				b2Body_EnableContactRecycling( fBodyId, lua_toboolean( L, valueIndex ) );
+			}
+			break;
+		case 13:
+			{
+				b2Body_EnableSeamContactFilter( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		default:
