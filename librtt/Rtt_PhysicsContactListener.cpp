@@ -276,7 +276,11 @@ void PhysicsContactListener::BeginContactHit( b2ContactHitEvent *hitEvent )
 	if ( object1 && ! object1->IsOrphan()
 		 && object2 && ! object2->IsOrphan() )
 	{
-		HitCollisionEvent e( * object1, * object2, hitEvent->point.x, hitEvent->point.y, (int) fixtureIndex1, (int) fixtureIndex2,
+		// Meters to pixels, like the collision and preCollision positions.
+		b2Vec2 position = hitEvent->point;
+		position *= physics.GetPixelsPerMeter();
+
+		HitCollisionEvent e( * object1, * object2, position.x, position.y, (int) fixtureIndex1, (int) fixtureIndex2,
 			hitEvent->approachSpeed, hitEvent->normal.x, hitEvent->normal.y );
 		e.SetContact( NULL );
 
