@@ -100,12 +100,15 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2C
 			// b2WorldManifold worldManifold;
 			// contact->GetWorldManifold( &worldManifold );
 
+			// anchorA is relative to bodyA's center of mass in world space.
+			b2Vec2 centerA = b2Body_GetWorldCenter( b2Shape_GetBody( data.shapeIdA ) );
+
 			// Sum.
 			for ( int32 i = 0;
 					i < point_count;
 					++i )
 			{
-				position += data.manifold.points[ i ].clipPoint;
+				position += centerA + data.manifold.points[ i ].anchorA;
 				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
 				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}

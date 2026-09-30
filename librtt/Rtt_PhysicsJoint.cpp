@@ -675,7 +675,8 @@ PhysicsJoint::removeSelf( lua_State *L )
 		// destroyed after the world step (similar to body destruction cycle)
 		// baseJoint->SetUserData( UserdataWrapper::GetFinalizedValue() );
 		b2Joint_SetUserData( baseJoint, JointUserdataWrapper::GetFinalizedValue() );
-		b2DestroyJoint(baseJoint, true);
+		// Box2D always wakes the attached bodies (previously wakeAttached = true).
+		b2DestroyJoint(baseJoint);
 	}
 
 	return 0;

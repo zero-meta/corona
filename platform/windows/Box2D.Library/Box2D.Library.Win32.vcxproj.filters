@@ -16,6 +16,12 @@
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_functions.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\config.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_types.h">
+      <Filter>include</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\types.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -43,7 +49,7 @@
     <ClInclude Include="..\..\..\external\box2d_v3\src\joint.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\external\box2d_v3\src\ctz.h">
+    <ClInclude Include="..\..\..\external\box2d_v3\src\simd.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\external\box2d_v3\src\shape.h">
@@ -68,6 +74,21 @@
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver_set.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\src\dynamic_tree.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\src\qsort.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\src\recording.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\src\replay.h">
+      <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\external\box2d_v3\src\snapshot.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\external\box2d_v3\src\constraint_graph.h">
@@ -139,7 +160,7 @@
     <ClInclude Include="..\..\..\external\box2d_v3\src\arena_allocator.h">
       <Filter>src</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\external\box2d_v3\src\atomic.h">
+    <ClInclude Include="..\..\..\external\box2d_v3\src\platform.h">
       <Filter>src</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\external\box2d_v3\src\container.h">
@@ -246,6 +267,21 @@
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\external\box2d_v3\src\mover.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover_joint.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\pogo_joint.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\recording.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\replay.c">
+      <Filter>src</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\external\box2d_v3\src\snapshot.c">
       <Filter>src</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\external\box2d_v3\src\island.c">

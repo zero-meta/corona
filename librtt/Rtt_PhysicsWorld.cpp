@@ -409,11 +409,39 @@ const S32 kPositionIterations = 3;
 // }
 
 // ----------------------------------------------------------------------------
-static bool PreSolveCallbackFunction( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point, b2Vec2 normal, float separation,
-								  void* context )
+// Box2D passes the manifold; report its deepest point to the listener as before and
+// disable the contact for this step when the listener returns false.
+static void PreSolveCallbackFunction( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Manifold* manifold, void* context )
+{
+	if ( manifold->pointCount == 0 )
+	{
+		return;
+	}
+
+	// The anchors are relative to bodyA's origin during pre-solve.
+	b2Vec2 originA = b2Body_GetPosition( b2Shape_GetBody( shapeIdA ) );
+	int deepest = 0;
+	for ( int i = 1; i < manifold->pointCount; ++i )
+	{
+		if ( manifold->points[i].separation < manifold->points[deepest].separation )
+		{
+			deepest = i;
+		}
+	}
+
+	const b2ManifoldPoint& mp = manifold->points[deepest];
+	PhysicsContactListener* contactListener = (PhysicsContactListener*) context;
+	if ( ! contactListener->PreSolve( shapeIdA, shapeIdB, originA + mp.anchorA, manifold->normal, mp.separation ) )
+	{
+		manifold->pointCount = 0;
+	}
+}
+
+// Continuous collision time of impact: there is no manifold, the separation is zero.
+static bool PreContinuousCallbackFunction( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point, b2Vec2 normal, void* context )
 {
 	PhysicsContactListener* contactListener = (PhysicsContactListener*) context;
-	return contactListener->PreSolve( shapeIdA, shapeIdB, point, normal, separation );
+	return contactListener->PreSolve( shapeIdA, shapeIdB, point, normal, 0.0f );
 }
 
 // Core count used as the fallback when the big.LITTLE split can't be
@@ -698,7 +726,7 @@ PhysicsWorld::StartWorld( Runtime& runtime, bool noSleep )
 		// b2Segment segment = { {-20.0f, 0.0f}, {20.0f, 0.0f} };
 		// b2CreateSegmentShape( fMouseBodyId, &shapeDef, &segment );
 
-		b2World_SetPreSolveCallback( fWorld->GetWorldId(), PreSolveCallbackFunction, fWorldContactListener );
+		b2World_SetPreSolveCallback( fWorld->GetWorldId(), PreSolveCallbackFunction, PreContinuousCallbackFunction, fWorldContactListener );
 	}
 
 	SetProperty( kIsWorldRunning, true );

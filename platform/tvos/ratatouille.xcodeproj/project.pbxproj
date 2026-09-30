@@ -74,6 +74,11 @@
 		41DC1C0B2C9C2D94000E52D2 /* wheel_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA72C9C2D94000E52D2 /* wheel_joint.c */; };
 		41DC1C0C2C9C2D94000E52D2 /* physics_world.c in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1BA82C9C2D94000E52D2 /* physics_world.c */; };
 		41FC45E52DB5FB6000383E06 /* mover.c in Sources */ = {isa = PBXBuildFile; fileRef = 41FC45E42DB5FB6000383E06 /* mover.c */; };
+		3AC224885C6F0F2EF4BF5F08 /* mover_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 4E9355B25757B12AB26E6C63 /* mover_joint.c */; };
+		D4DF59865BA0AD8A09573B5F /* pogo_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 7778EDD0F0C743093740321D /* pogo_joint.c */; };
+		BED844B6D9E76FABE3C48C8F /* recording.c in Sources */ = {isa = PBXBuildFile; fileRef = 45B409783A82DC5F56924899 /* recording.c */; };
+		A2505F3D2EA57C2045262749 /* replay.c in Sources */ = {isa = PBXBuildFile; fileRef = E32A88979FFD46F98C93644C /* replay.c */; };
+		9751D95933D79F8072DC7767 /* snapshot.c in Sources */ = {isa = PBXBuildFile; fileRef = 59C97EAE34B6CABAABE6589B /* snapshot.c */; };
 		A40A90531BD984AD001D2038 /* CoreText.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A40A90521BD984AD001D2038 /* CoreText.framework */; };
 		A4384F521BAA1F49005750A3 /* b2GLESDebugDraw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A4384F491BAA1F49005750A3 /* b2GLESDebugDraw.cpp */; };
 		A4384F531BAA1F49005750A3 /* Reachability.m in Sources */ = {isa = PBXBuildFile; fileRef = A4384F4C1BAA1F49005750A3 /* Reachability.m */; };
@@ -1584,7 +1589,6 @@
 		03D1C53D1D70CBB400DB02EE /* Rtt_PreferenceValue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Rtt_PreferenceValue.h; path = ../../librtt/Rtt_PreferenceValue.h; sourceTree = "<group>"; };
 		414D6BBD2D8D53CC008B70EF /* arena_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arena_allocator.h; sourceTree = "<group>"; };
 		414D6BBE2D8D53CC008B70EF /* arena_allocator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arena_allocator.c; sourceTree = "<group>"; };
-		414D6BBF2D8D53CC008B70EF /* atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
 		414D6BC12D8D53CC008B70EF /* sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensor.h; sourceTree = "<group>"; };
 		414D6BC22D8D53CC008B70EF /* sensor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sensor.c; sourceTree = "<group>"; };
 		41617A002FCFEE110084DB15 /* constants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = constants.h; sourceTree = "<group>"; };
@@ -1648,7 +1652,6 @@
 		41DC1B852C9C2D94000E52D2 /* contact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = contact.h; sourceTree = "<group>"; };
 		41DC1B862C9C2D94000E52D2 /* core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = core.c; sourceTree = "<group>"; };
 		41DC1B872C9C2D94000E52D2 /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = core.h; sourceTree = "<group>"; };
-		41DC1B882C9C2D94000E52D2 /* ctz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ctz.h; sourceTree = "<group>"; };
 		41DC1B892C9C2D94000E52D2 /* distance_joint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = distance_joint.c; sourceTree = "<group>"; };
 		41DC1B8A2C9C2D94000E52D2 /* distance.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = distance.c; sourceTree = "<group>"; };
 		41DC1B8B2C9C2D94000E52D2 /* dynamic_tree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dynamic_tree.c; sourceTree = "<group>"; };
@@ -1680,6 +1683,11 @@
 		41DC1BA82C9C2D94000E52D2 /* physics_world.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = physics_world.c; sourceTree = "<group>"; };
 		41DC1BA92C9C2D94000E52D2 /* physics_world.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = physics_world.h; sourceTree = "<group>"; };
 		41FC45E42DB5FB6000383E06 /* mover.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover.c; sourceTree = "<group>"; };
+		4E9355B25757B12AB26E6C63 /* mover_joint.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover_joint.c; sourceTree = "<group>"; };
+		7778EDD0F0C743093740321D /* pogo_joint.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pogo_joint.c; sourceTree = "<group>"; };
+		45B409783A82DC5F56924899 /* recording.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = recording.c; sourceTree = "<group>"; };
+		E32A88979FFD46F98C93644C /* replay.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = replay.c; sourceTree = "<group>"; };
+		59C97EAE34B6CABAABE6589B /* snapshot.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = snapshot.c; sourceTree = "<group>"; };
 		A40A90521BD984AD001D2038 /* CoreText.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreText.framework; path = System/Library/Frameworks/CoreText.framework; sourceTree = SDKROOT; };
 		A4124B7C1BB2070F001421F5 /* CoronaDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = CoronaDelegate.h; path = ../iphone/Corona/CoronaDelegate.h; sourceTree = "<group>"; };
 		A4384F491BAA1F49005750A3 /* b2GLESDebugDraw.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2GLESDebugDraw.cpp; path = ../../librtt/b2GLESDebugDraw.cpp; sourceTree = "<group>"; };
@@ -2877,9 +2885,13 @@
 				41617A042FCFEE250084DB15 /* scheduler.h */,
 				41617A052FCFEE250084DB15 /* scheduler.c */,
 				41FC45E42DB5FB6000383E06 /* mover.c */,
+				4E9355B25757B12AB26E6C63 /* mover_joint.c */,
+				7778EDD0F0C743093740321D /* pogo_joint.c */,
+				45B409783A82DC5F56924899 /* recording.c */,
+				E32A88979FFD46F98C93644C /* replay.c */,
+				59C97EAE34B6CABAABE6589B /* snapshot.c */,
 				414D6BBD2D8D53CC008B70EF /* arena_allocator.h */,
 				414D6BBE2D8D53CC008B70EF /* arena_allocator.c */,
-				414D6BBF2D8D53CC008B70EF /* atomic.h */,
 				414D6BC12D8D53CC008B70EF /* sensor.h */,
 				414D6BC22D8D53CC008B70EF /* sensor.c */,
 				41DC1B702C9C2D94000E52D2 /* aabb.c */,
@@ -2900,7 +2912,6 @@
 				41DC1B852C9C2D94000E52D2 /* contact.h */,
 				41DC1B862C9C2D94000E52D2 /* core.c */,
 				41DC1B872C9C2D94000E52D2 /* core.h */,
-				41DC1B882C9C2D94000E52D2 /* ctz.h */,
 				41DC1B892C9C2D94000E52D2 /* distance_joint.c */,
 				41DC1B8A2C9C2D94000E52D2 /* distance.c */,
 				41DC1B8B2C9C2D94000E52D2 /* dynamic_tree.c */,
@@ -5621,6 +5632,11 @@
 				41DC1BD32C9C2D94000E52D2 /* tracked_block.cpp in Sources */,
 				41DC1BF22C9C2D94000E52D2 /* contact_solver.c in Sources */,
 				41FC45E52DB5FB6000383E06 /* mover.c in Sources */,
+				3AC224885C6F0F2EF4BF5F08 /* mover_joint.c in Sources */,
+				D4DF59865BA0AD8A09573B5F /* pogo_joint.c in Sources */,
+				BED844B6D9E76FABE3C48C8F /* recording.c in Sources */,
+				A2505F3D2EA57C2045262749 /* replay.c in Sources */,
+				9751D95933D79F8072DC7767 /* snapshot.c in Sources */,
 				41DC1C0B2C9C2D94000E52D2 /* wheel_joint.c in Sources */,
 				41DC1BCC2C9C2D94000E52D2 /* liquid_stack_allocator.cpp in Sources */,
 				41DC1BF92C9C2D94000E52D2 /* hull.c in Sources */,

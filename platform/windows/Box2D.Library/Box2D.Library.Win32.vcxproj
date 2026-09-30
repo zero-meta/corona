@@ -38,11 +38,13 @@
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\collision.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\id.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_functions.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\config.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_types.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\types.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\constants.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\aabb.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\arena_allocator.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\atomic.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\platform.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\bitset.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\body.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\broad_phase.h" />
@@ -51,7 +53,7 @@
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact_solver.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\core.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\ctz.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\simd.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\id_pool.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\island.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\joint.h" />
@@ -59,6 +61,11 @@
     <ClInclude Include="..\..\..\external\box2d_v3\src\shape.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver_set.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\dynamic_tree.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\qsort.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\recording.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\replay.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\snapshot.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\table.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\scheduler.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\parallel_for.h" />
@@ -83,6 +90,11 @@
     <ClCompile Include="..\..\..\external\box2d_v3\src\bitset.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\mover.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\pogo_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\recording.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\replay.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\snapshot.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\broad_phase.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\constraint_graph.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\contact.c" />

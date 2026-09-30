@@ -334,7 +334,6 @@
 		1F34F53D21115FB2006EE117 /* Rtt_LinuxAppPackager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F53321115FB1006EE117 /* Rtt_LinuxAppPackager.cpp */; };
 		1F34F54021116446006EE117 /* LinuxAppBuild.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1F34F53E21116445006EE117 /* LinuxAppBuild.xib */; };
 		1F34F5432111661E006EE117 /* LinuxAppBuildController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1F34F5412111661E006EE117 /* LinuxAppBuildController.mm */; };
-		414D6B6F2D8D3D51008B70EF /* atomic.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B6B2D8D3D51008B70EF /* atomic.h */; };
 		414D6B712D8D3D51008B70EF /* arena_allocator.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B692D8D3D51008B70EF /* arena_allocator.h */; };
 		414D6B722D8D3D51008B70EF /* sensor.h in Headers */ = {isa = PBXBuildFile; fileRef = 414D6B6D2D8D3D51008B70EF /* sensor.h */; };
 		414D6B732D8D3D51008B70EF /* arena_allocator.c in Sources */ = {isa = PBXBuildFile; fileRef = 414D6B6A2D8D3D51008B70EF /* arena_allocator.c */; };
@@ -396,7 +395,6 @@
 		41B9AAC12C5A4469000F59B1 /* contact.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA2F2C5A4468000F59B1 /* contact.h */; };
 		41B9AAC22C5A4469000F59B1 /* core.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA302C5A4468000F59B1 /* core.c */; };
 		41B9AAC32C5A4469000F59B1 /* core.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA312C5A4468000F59B1 /* core.h */; };
-		41B9AAC42C5A4469000F59B1 /* ctz.h in Headers */ = {isa = PBXBuildFile; fileRef = 41B9AA322C5A4468000F59B1 /* ctz.h */; };
 		41B9AAC52C5A446A000F59B1 /* distance_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA332C5A4468000F59B1 /* distance_joint.c */; };
 		41B9AAC62C5A446A000F59B1 /* distance.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA342C5A4468000F59B1 /* distance.c */; };
 		41B9AAC72C5A446A000F59B1 /* dynamic_tree.c in Sources */ = {isa = PBXBuildFile; fileRef = 41B9AA352C5A4468000F59B1 /* dynamic_tree.c */; };
@@ -430,6 +428,11 @@
 		41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */; };
 		41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */ = {isa = PBXBuildFile; fileRef = 41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */; };
 		41FC45D52DB5EAE500383E06 /* mover.c in Sources */ = {isa = PBXBuildFile; fileRef = 41FC45D42DB5EAE500383E06 /* mover.c */; };
+		B2B1A0000000000000000011 /* recording.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A0000000000000000001 /* recording.c */; };
+		B2B1A0000000000000000012 /* replay.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A0000000000000000002 /* replay.c */; };
+		B2B1A0000000000000000013 /* snapshot.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A0000000000000000003 /* snapshot.c */; };
+		B2B1A0000000000000000014 /* mover_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A0000000000000000004 /* mover_joint.c */; };
+		B2B1A0000000000000000015 /* pogo_joint.c in Sources */ = {isa = PBXBuildFile; fileRef = B2B1A0000000000000000005 /* pogo_joint.c */; };
 		4C111FCB1B2A41B200DF8BE8 /* Rtt_KeyName.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */; };
 		5019605B186145FC0092E97E /* b2Separator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 50196059186145FC0092E97E /* b2Separator.cpp */; };
 		5019605C186145FC0092E97E /* b2Separator.h in Headers */ = {isa = PBXBuildFile; fileRef = 5019605A186145FC0092E97E /* b2Separator.h */; };
@@ -2766,7 +2769,6 @@
 		1F46A96521136B51009CC875 /* linuxPackageApp.lua */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = linuxPackageApp.lua; path = ../platform/resources/linuxPackageApp.lua; sourceTree = "<group>"; };
 		414D6B692D8D3D51008B70EF /* arena_allocator.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = arena_allocator.h; sourceTree = "<group>"; };
 		414D6B6A2D8D3D51008B70EF /* arena_allocator.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = arena_allocator.c; sourceTree = "<group>"; };
-		414D6B6B2D8D3D51008B70EF /* atomic.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = atomic.h; sourceTree = "<group>"; };
 		414D6B6D2D8D3D51008B70EF /* sensor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = sensor.h; sourceTree = "<group>"; };
 		414D6B6E2D8D3D51008B70EF /* sensor.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = sensor.c; sourceTree = "<group>"; };
 		4155A5FB2C6B64CA002F8BBD /* block_allocator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = block_allocator.cpp; sourceTree = "<group>"; };
@@ -2828,7 +2830,6 @@
 		41B9AA2F2C5A4468000F59B1 /* contact.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = contact.h; sourceTree = "<group>"; };
 		41B9AA302C5A4468000F59B1 /* core.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = core.c; sourceTree = "<group>"; };
 		41B9AA312C5A4468000F59B1 /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = core.h; sourceTree = "<group>"; };
-		41B9AA322C5A4468000F59B1 /* ctz.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ctz.h; sourceTree = "<group>"; };
 		41B9AA332C5A4468000F59B1 /* distance_joint.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = distance_joint.c; sourceTree = "<group>"; };
 		41B9AA342C5A4468000F59B1 /* distance.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = distance.c; sourceTree = "<group>"; };
 		41B9AA352C5A4468000F59B1 /* dynamic_tree.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = dynamic_tree.c; sourceTree = "<group>"; };
@@ -2862,6 +2863,11 @@
 		41DC1A522C9ADBBE000E52D2 /* liquid_callbacks.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = liquid_callbacks.cpp; sourceTree = "<group>"; };
 		41DC1A592C9ADBBE000E52D2 /* liquid_callbacks.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = liquid_callbacks.h; sourceTree = "<group>"; };
 		41FC45D42DB5EAE500383E06 /* mover.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover.c; sourceTree = "<group>"; };
+		B2B1A0000000000000000001 /* recording.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = recording.c; sourceTree = "<group>"; };
+		B2B1A0000000000000000002 /* replay.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = replay.c; sourceTree = "<group>"; };
+		B2B1A0000000000000000003 /* snapshot.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = snapshot.c; sourceTree = "<group>"; };
+		B2B1A0000000000000000004 /* mover_joint.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = mover_joint.c; sourceTree = "<group>"; };
+		B2B1A0000000000000000005 /* pogo_joint.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = pogo_joint.c; sourceTree = "<group>"; };
 		4C111FC91B2A41B200DF8BE8 /* Rtt_KeyName.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Rtt_KeyName.cpp; sourceTree = "<group>"; };
 		4C111FCA1B2A41B200DF8BE8 /* Rtt_KeyName.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Rtt_KeyName.h; sourceTree = "<group>"; };
 		50196059186145FC0092E97E /* b2Separator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = b2Separator.cpp; path = "../../external/b2Separator-cpp/b2Separator.cpp"; sourceTree = "<group>"; };
@@ -4589,9 +4595,13 @@
 				416179872FCED6960084DB15 /* scheduler.h */,
 				416179882FCED6960084DB15 /* scheduler.c */,
 				41FC45D42DB5EAE500383E06 /* mover.c */,
+				B2B1A0000000000000000001 /* recording.c */,
+				B2B1A0000000000000000002 /* replay.c */,
+				B2B1A0000000000000000003 /* snapshot.c */,
+				B2B1A0000000000000000004 /* mover_joint.c */,
+				B2B1A0000000000000000005 /* pogo_joint.c */,
 				414D6B692D8D3D51008B70EF /* arena_allocator.h */,
 				414D6B6A2D8D3D51008B70EF /* arena_allocator.c */,
-				414D6B6B2D8D3D51008B70EF /* atomic.h */,
 				414D6B6D2D8D3D51008B70EF /* sensor.h */,
 				414D6B6E2D8D3D51008B70EF /* sensor.c */,
 				41B9AA1A2C5A4468000F59B1 /* aabb.c */,
@@ -4612,7 +4622,6 @@
 				41B9AA2F2C5A4468000F59B1 /* contact.h */,
 				41B9AA302C5A4468000F59B1 /* core.c */,
 				41B9AA312C5A4468000F59B1 /* core.h */,
-				41B9AA322C5A4468000F59B1 /* ctz.h */,
 				41B9AA332C5A4468000F59B1 /* distance_joint.c */,
 				41B9AA342C5A4468000F59B1 /* distance.c */,
 				41B9AA352C5A4468000F59B1 /* dynamic_tree.c */,
@@ -5711,7 +5720,6 @@
 				4155A6222C6B64CA002F8BBD /* free_list.h in Headers */,
 				41B9AABD2C5A4469000F59B1 /* constraint_graph.h in Headers */,
 				4155A6342C6B64CA002F8BBD /* settings.h in Headers */,
-				41B9AAC42C5A4469000F59B1 /* ctz.h in Headers */,
 				41B9AACD2C5A446A000F59B1 /* island.h in Headers */,
 				4155A6392C6B64CA002F8BBD /* tracked_block.h in Headers */,
 				41B9AACF2C5A446A000F59B1 /* joint.h in Headers */,
@@ -5732,7 +5740,6 @@
 				41B9AA912C5A4469000F59B1 /* types.h in Headers */,
 				41DC1A5B2C9ADBBE000E52D2 /* liquid_callbacks.h in Headers */,
 				41B9AA8C2C5A4469000F59B1 /* base.h in Headers */,
-				414D6B6F2D8D3D51008B70EF /* atomic.h in Headers */,
 				416179832FCED6760084DB15 /* constants.h in Headers */,
 				414D6B712D8D3D51008B70EF /* arena_allocator.h in Headers */,
 				414D6B722D8D3D51008B70EF /* sensor.h in Headers */,
@@ -7292,6 +7299,11 @@
 				41B9AAD02C5A446A000F59B1 /* manifold.c in Sources */,
 				41B9AAE02C5A446A000F59B1 /* timer.c in Sources */,
 				41FC45D52DB5EAE500383E06 /* mover.c in Sources */,
+				B2B1A0000000000000000011 /* recording.c in Sources */,
+				B2B1A0000000000000000012 /* replay.c in Sources */,
+				B2B1A0000000000000000013 /* snapshot.c in Sources */,
+				B2B1A0000000000000000014 /* mover_joint.c in Sources */,
+				B2B1A0000000000000000015 /* pogo_joint.c in Sources */,
 				41B9AAE22C5A446A000F59B1 /* weld_joint.c in Sources */,
 				4155A63A2C6B64CA002F8BBD /* voronoi_diagram.cpp in Sources */,
 				41DC1A5A2C9ADBBE000E52D2 /* liquid_callbacks.cpp in Sources */,

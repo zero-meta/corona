@@ -105,9 +105,17 @@ SetVertex( Geometry::Vertex &v, float x, float y, const Box2dDebugColor &color, 
 	v.as = (U8)( alpha * 255.0f );
 }
 
-void DrawPolygonFcn(const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
+void DrawPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon( vertices, vertexCount, MakeRGBA(color) );
+	// Box2D passes local vertices with their transform; draw them in world space as before.
+	b2Vec2 points[ B2_MAX_POLYGON_VERTICES ];
+	vertexCount = b2MinInt( vertexCount, B2_MAX_POLYGON_VERTICES );
+	for( int i = 0; i < vertexCount; ++i )
+	{
+		points[ i ] = b2TransformPoint( transform, vertices[ i ] );
+	}
+
+	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon( points, vertexCount, MakeRGBA(color) );
 }
 
 void DrawSolidPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
@@ -140,15 +148,15 @@ void DrawCircleFcn(b2Vec2 center, float radius, b2HexColor color, void* context)
 	debugDraw->DrawCircle( c, radius * s, MakeRGBA(color) );
 }
 
-void DrawSolidCircleFcn(b2Transform transform, float radius, b2HexColor color, void* context)
+void DrawSolidCircleFcn(b2Transform transform, b2Vec2 localCenter, float radius, b2HexColor color, void* context)
 {
 	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
 	b2Vec2 scale = debugDraw->GetParentScale();
 
-	// transform.p is the circle center in world space; apply the shared
-	// display transform. A circle under non-uniform scale is visually an
-	// ellipse; approximate it with the average scale.
-	b2Vec2 center = ApplyParentTransform( debugDraw, transform.p );
+	// The circle center is local to transform; move it to world space, then
+	// apply the shared display transform. A circle under non-uniform scale is
+	// visually an ellipse; approximate it with the average scale.
+	b2Vec2 center = ApplyParentTransform( debugDraw, b2TransformPoint( transform, localCenter ) );
 
 	float s = 0.5f * ( scale.x + scale.y );
 	debugDraw->DrawSolidCircle( transform, center, radius * s, MakeRGBA(color) );

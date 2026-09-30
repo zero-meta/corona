@@ -13,16 +13,10 @@ add_definitions(
 	-DLUA_USE_POSIX
 )
 
-# box2d_v3 selects B2_SIMD_NEON on any ARM CPU (see external/box2d_v3/src/core.h).
-# contact_solver.c is the only TU that includes <arm_neon.h>. NDK 18 defaults
-# armeabi-v7a to -mfpu=vfpv3-d16 (no NEON), so arm_neon.h errors out. Enable NEON
-# for that one file on armeabi-v7a (arm64-v8a already has NEON unconditionally).
-if(ANDROID_ABI STREQUAL "armeabi-v7a")
-	set_source_files_properties(
-		${CORONA_ROOT}/external/box2d_v3/src/contact_solver.c
-		PROPERTIES COMPILE_OPTIONS "-mfpu=neon"
-	)
-endif()
+# box2d_v3 uses NEON only on arm64 and scalar math on 32-bit ARM (see external/box2d_v3/src/core.h),
+# so armeabi-v7a needs no -mfpu=neon. If a box2d update selects NEON on arm32 again, every file that
+# includes <arm_neon.h> (contact_solver.c, simd.h users) needs -mfpu=neon here: NDK 18 defaults
+# armeabi-v7a to -mfpu=vfpv3-d16.
 
 include_directories (
 	jni
@@ -778,6 +772,11 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/box2d_v3/src/physics_world.c
 		${CORONA_ROOT}/external/box2d_v3/src/parallel_for.c
 		${CORONA_ROOT}/external/box2d_v3/src/scheduler.c
+		${CORONA_ROOT}/external/box2d_v3/src/mover_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/pogo_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/recording.c
+		${CORONA_ROOT}/external/box2d_v3/src/replay.c
+		${CORONA_ROOT}/external/box2d_v3/src/snapshot.c
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/block_allocator.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/free_list.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_shape.cpp

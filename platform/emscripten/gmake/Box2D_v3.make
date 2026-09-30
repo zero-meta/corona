@@ -88,6 +88,11 @@ OBJECTS := \
 	$(OBJDIR)/bitset.o \
 	$(OBJDIR)/body.o \
 	$(OBJDIR)/mover.o \
+	$(OBJDIR)/mover_joint.o \
+	$(OBJDIR)/pogo_joint.o \
+	$(OBJDIR)/recording.o \
+	$(OBJDIR)/replay.o \
+	$(OBJDIR)/snapshot.o \
 	$(OBJDIR)/broad_phase.o \
 	$(OBJDIR)/constraint_graph.o \
 	$(OBJDIR)/contact.o \
@@ -233,6 +238,21 @@ $(OBJDIR)/body.o: ../../../external/box2d_v3/src/body.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/mover.o: ../../../external/box2d_v3/src/mover.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/mover_joint.o: ../../../external/box2d_v3/src/mover_joint.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/pogo_joint.o: ../../../external/box2d_v3/src/pogo_joint.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/recording.o: ../../../external/box2d_v3/src/recording.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/replay.o: ../../../external/box2d_v3/src/replay.c
+	@echo $(notdir $<)
+	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
+$(OBJDIR)/snapshot.o: ../../../external/box2d_v3/src/snapshot.c
 	@echo $(notdir $<)
 	$(SILENT) $(CC) $(ALL_CFLAGS) $(FORCE_INCLUDE) -o "$@" -MF "$(@:%.o=%.d)" -c "$<"
 $(OBJDIR)/broad_phase.o: ../../../external/box2d_v3/src/broad_phase.c

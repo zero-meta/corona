@@ -1133,7 +1133,7 @@ QueryRegion( lua_State *L )
 			}
 			lua_pop( L, 1 );
 		}
-		b2World_OverlapAABB( physics.GetWorldId(), aabb, filter, query_callback, &context );
+		b2World_OverlapAABB( physics.GetWorldId(), b2Pos_zero, aabb, filter, query_callback, &context );
 
 		// Any hits returned by QueryAABB() are pushed into a table that's
 		// on the stack. We want to return true if we're returning a result.
@@ -1197,7 +1197,7 @@ QueryCircle( lua_State *L )
 			lua_pop( L, 1 );
 		}
 		b2ShapeProxy proxy = b2MakeProxy( &circle.center, 1, circle.radius );
-		b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
+		b2World_OverlapShape( physics.GetWorldId(), b2Pos_zero, &proxy, filter, query_callback, &context );
 
 		return ( top_index_before_query != lua_gettop( L ) );
 	}
@@ -1285,7 +1285,7 @@ QueryBody( lua_State *L )
 						capsule.center1 = b2TransformPoint( transform, capsule.center1 );
 						capsule.center2 = b2TransformPoint( transform, capsule.center1 );
 						b2ShapeProxy proxy = b2MakeProxy( &capsule.center1, 2, capsule.radius );
-						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
+						b2World_OverlapShape( physics.GetWorldId(), b2Pos_zero, &proxy, filter, query_callback, &context );
 						break;
 					}
 					case b2_circleShape:
@@ -1293,7 +1293,7 @@ QueryBody( lua_State *L )
 						b2Circle circle = b2Shape_GetCircle( shapeArray[ i ] );
 						circle.center = b2TransformPoint( transform, circle.center );
 						b2ShapeProxy proxy = b2MakeProxy( &circle.center, 1, circle.radius );
-						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
+						b2World_OverlapShape( physics.GetWorldId(), b2Pos_zero, &proxy, filter, query_callback, &context );
 						break;
 					}
 					case b2_polygonShape:
@@ -1301,7 +1301,7 @@ QueryBody( lua_State *L )
 						b2Polygon polygon = b2Shape_GetPolygon( shapeArray[ i ] );
 						polygon = b2TransformPolygon( transform, &polygon );
 						b2ShapeProxy proxy = b2MakeProxy( polygon.vertices, polygon.count, polygon.radius );
-						b2World_OverlapShape( physics.GetWorldId(), &proxy, filter, query_callback, &context );
+						b2World_OverlapShape( physics.GetWorldId(), b2Pos_zero, &proxy, filter, query_callback, &context );
 						break;
 					}
 					default:
@@ -2162,6 +2162,25 @@ static void _ChainCreator( b2BodyId bodyId,
 	b2CreateChain( bodyId, chainDef );
 }
 
+// Open chains used to pass the ghost points as the first and last points. Box2D now takes
+// them separately: the first and last entries of the list become ghost1/ghost2 and only the
+// inner points form segments (list.size() - 3 segments, as before).
+// Returns false when the list has fewer than 4 points, which never formed a segment.
+static bool _SetOpenChainPointsWithGhosts( b2ChainDef *chainDef,
+											const b2Vec2Vector &list )
+{
+	if ( list.size() < 4 )
+	{
+		return false;
+	}
+
+	chainDef->ghost1 = list.front();
+	chainDef->points = &list[ 1 ];
+	chainDef->pointCount = (int)list.size() - 2;
+	chainDef->ghost2 = list.back();
+	return true;
+}
+
 static void _SegmentsShapeCreator( b2BodyId bodyId,
 									b2ShapeDef *shapeDef,
 									const b2Vec2 *points,
@@ -2395,15 +2414,22 @@ InitializeFixtureUsing_StaticLine( lua_State *L,
 		chainDef.filter = shapeDef.filter;
 		chainDef.materials = &material;
 		chainDef.materialCount = 1;
-		chainDef.points = &vertexList[ 0 ];
-		chainDef.count = (int)vertexList.size();
 		chainDef.isLoop = false;
 		chainDef.isSensor = shapeDef.isSensor;
 		chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
 
-		_ChainCreator(bodyId,
-						&chainDef,
-						fixtureIndex );
+		// The first and last line points stay ghost points, as before. A line with fewer than
+		// 4 points has no segment; only the fixture index is consumed.
+		if ( _SetOpenChainPointsWithGhosts( &chainDef, vertexList ) )
+		{
+			_ChainCreator(bodyId,
+							&chainDef,
+							fixtureIndex );
+		}
+		else
+		{
+			++fixtureIndex;
+		}
 
 		return true;
 	}
@@ -2465,7 +2491,7 @@ InitializeFixtureUsing_ArbitraryPolygonalShape( lua_State *L,
 			chainDef.materialCount = 1;
 			chainDef.filter = shapeDef.filter;
 			chainDef.points = &vertexList[ 0 ];
-			chainDef.count = (int)vertexList.size();
+			chainDef.pointCount = (int)vertexList.size();
 			chainDef.isLoop = true;
 			chainDef.isSensor = shapeDef.isSensor;
 			chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
@@ -2814,7 +2840,7 @@ InitializeFixtureUsing_Chain( lua_State *L,
 				chainDef.materialCount = 1;
 				chainDef.filter = shapeDef.filter;
 				chainDef.points = &vertexList[ 0 ];
-				chainDef.count = (int32_t)vertexList.size();
+				chainDef.pointCount = (int32_t)vertexList.size();
 				chainDef.isLoop = true;
 				chainDef.isSensor = shapeDef.isSensor;
 				chainDef.enableSensorEvents = shapeDef.enableSensorEvents;
@@ -2841,16 +2867,15 @@ InitializeFixtureUsing_Chain( lua_State *L,
 				{
 					b2Vec2Vector newVertexList;
 					b2ChainDef chainDef = b2DefaultChainDef();
+					// Without autoGenerateGhostVertices the first and last points are the ghost points.
 					if (autoGenerateGhostVertices)
 					{
 						_GenerateGhostVerticesForSmoothChain( vertexList, newVertexList );
-						chainDef.points = &newVertexList[ 0 ];
-						chainDef.count = (int32_t)newVertexList.size();
+						_SetOpenChainPointsWithGhosts( &chainDef, newVertexList );
 					}
 					else
 					{
-						chainDef.points = &vertexList[ 0 ];
-						chainDef.count = (int32_t)vertexList.size();
+						_SetOpenChainPointsWithGhosts( &chainDef, vertexList );
 					}
 					b2SurfaceMaterial material = shapeDef.material;
 					chainDef.materials = &material;
@@ -4096,12 +4121,12 @@ SolveCharacterMove( lua_State *L )
 			mover.center2 = b2TransformPoint( transform, center2 );
 			mover.radius = radius;
 
-			b2World_CollideMover( physics.GetWorldId(), &mover, collideFilter, plane_result_fcn, &context );
+			b2World_CollideMover( physics.GetWorldId(), b2Pos_zero, &mover, collideFilter, plane_result_fcn, &context );
 			b2PlaneSolverResult result = b2SolvePlanes( target - transform.p, context.fPlanes, context.fPlaneCount );
 
-			float fraction = b2World_CastMover( physics.GetWorldId(), &mover, result.translation, castFilter );
+			float fraction = b2World_CastMover( physics.GetWorldId(), b2Pos_zero, &mover, result.delta, castFilter );
 
-			b2Vec2 delta = fraction * result.translation;
+			b2Vec2 delta = fraction * result.delta;
 			transform.p += delta;
 			if ( b2LengthSquared( delta ) < tolerance * tolerance )
 			{
@@ -4191,7 +4216,7 @@ common_shape_cast( lua_State *L, const b2ShapeProxy *proxy )
 			LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
 		};
 
-		b2World_CastShape(physics.GetWorldId(), proxy, translation, castFilter, ray_cast_any_callback, &context);
+		b2World_CastShape(physics.GetWorldId(), b2Pos_zero, proxy, translation, castFilter, ray_cast_any_callback, &context);
 
 		return ( top_index_before_RayCast != lua_gettop( L ) );
 	}
@@ -4202,7 +4227,7 @@ common_shape_cast( lua_State *L, const b2ShapeProxy *proxy )
 			LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
 		};
 
-		b2World_CastShape(physics.GetWorldId(), proxy, translation, castFilter, ray_cast_multiple_callback, &context);
+		b2World_CastShape(physics.GetWorldId(), b2Pos_zero, proxy, translation, castFilter, ray_cast_multiple_callback, &context);
 		return ( top_index_before_RayCast != lua_gettop( L ) );
 	}
 	else if( ! Rtt_StringCompare( "sorted", behavior ) )
@@ -4213,7 +4238,7 @@ common_shape_cast( lua_State *L, const b2ShapeProxy *proxy )
 			ListHit()
 		};
 
-		b2World_CastShape(physics.GetWorldId(), proxy, translation, castFilter, ray_cast_sorted_callback, &context);
+		b2World_CastShape(physics.GetWorldId(), b2Pos_zero, proxy, translation, castFilter, ray_cast_sorted_callback, &context);
 
 		return push_results_to_lua(&context);
 	}
@@ -4223,7 +4248,7 @@ common_shape_cast( lua_State *L, const b2ShapeProxy *proxy )
 			0, L, lua_gettop( L ),
 			LuaContext::GetRuntime( L )->GetPhysicsWorld().GetPixelsPerMeter()
 		};
-		b2World_CastShape(physics.GetWorldId(), proxy, translation, castFilter, ray_cast_closest_callback, &context);
+		b2World_CastShape(physics.GetWorldId(), b2Pos_zero, proxy, translation, castFilter, ray_cast_closest_callback, &context);
 		return ( top_index_before_RayCast != lua_gettop( L ) );
 	}
 }

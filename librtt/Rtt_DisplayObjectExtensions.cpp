@@ -121,7 +121,7 @@ DisplayObjectExtensions::getMassWorldCenter( lua_State *L )
 
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Vec2 massWorldCenterInPixels = ( b2Body_GetWorldCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
+		b2Vec2 massWorldCenterInPixels = ( b2Body_GetWorldCenter(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massWorldCenterInPixels.x );
 		lua_pushnumber( L, massWorldCenterInPixels.y );
@@ -143,7 +143,7 @@ DisplayObjectExtensions::getMassLocalCenter( lua_State *L )
 
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Vec2 massLocalCenterInPixels = ( b2Body_GetLocalCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
+		b2Vec2 massLocalCenterInPixels = ( b2Body_GetLocalCenter(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massLocalCenterInPixels.x );
 		lua_pushnumber( L, massLocalCenterInPixels.y );
@@ -257,7 +257,7 @@ DisplayObjectExtensions::resetMassData( lua_State *L )
 	{
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Body_ApplyMassFromShapes(bodyId);
+		b2Body_UpdateMassFromShapes(bodyId);
 	}
 
 	return 0;
@@ -341,7 +341,7 @@ DisplayObjectExtensions::getLinearVelocityFromWorldPoint(lua_State* L)
 
 		// b2Vec2 velocity = fBody->GetLinearVelocityFromWorldPoint(worldPoint);
 		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
-		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), worldPoint - b2Body_GetWorldCenterOfMass(bodyId));
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), worldPoint - b2Body_GetWorldCenter(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
@@ -374,7 +374,7 @@ DisplayObjectExtensions::getLinearVelocityFromLocalPoint(lua_State* L)
 
 		// b2Vec2 velocity = fBody->GetLinearVelocityFromLocalPoint(localPoint);
 		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
-		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), b2Body_GetWorldPoint(bodyId, localPoint) - b2Body_GetWorldCenterOfMass(bodyId));
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), b2Body_GetWorldPoint(bodyId, localPoint) - b2Body_GetWorldCenter(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
@@ -1124,24 +1124,26 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 							}
 							else
 							{
-								points.resize( numSegments);
+								// Segment points; the ghost points are passed separately
+								points.resize( numSegments );
 								for ( int j = 0; j < numSegments; j++ )
 								{
-									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).ghost1;
+									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).segment.point1;
 								}
-								points.push_back( b.segment.point1 );
 								points.push_back( b.segment.point2 );
-								points.push_back( b.ghost2 );
 							}
 
 							b2ChainDef chainDef = b2DefaultChainDef();
-							b2SurfaceMaterial material = b2Chain_GetSurfaceMaterial( chainId, 1 );
+							// Materials are per segment
+							b2SurfaceMaterial material = b2Chain_GetSurfaceMaterial( chainId, 0 );
 							chainDef.materials = &material;
 							chainDef.materialCount = 1;
 							chainDef.userData = b2Shape_GetUserData( segmentArray[0] );
 							chainDef.filter = b2Shape_GetFilter( segmentArray[0] );
 							chainDef.points = points.data();
-							chainDef.count = points.size();
+							chainDef.pointCount = (int)points.size();
+							chainDef.ghost1 = a.ghost1;
+							chainDef.ghost2 = b.ghost2;
 							chainDef.isSensor = sensorState;
 							chainDef.isLoop = isLoop;
 							if (sensorState)
@@ -1161,7 +1163,7 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 				}
 				if (destroyCount > 0)
 				{
-					b2Body_ApplyMassFromShapes( fBodyId );
+					b2Body_UpdateMassFromShapes( fBodyId );
 					physics.RefreshCompoundInternalEdges( fBodyId );
 				}
 			}
