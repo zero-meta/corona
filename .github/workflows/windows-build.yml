@@ -1,0 +1,39 @@
+name: Windows Compile Check
+
+# Build the Windows runtime and its dependencies without the Simulator or SDK installer.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  windows-build:
+    name: Compile Windows runtime (Release Win32)
+    runs-on: windows-2022
+    steps:
+      - name: Check out source code
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Compile and link Windows runtime
+        shell: cmd
+        working-directory: platform/windows
+        run: |
+          call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars32.bat"
+          if errorlevel 1 exit /b 1
+
+          REM Disable post-build signing and distribution copies for this check.
+          REM Build Lua tools first: engine sources are generated using lua.exe and luac.exe.
+          msbuild Corona.Shell.sln /m /t:Lua_Console;Lua_Compiler /p:Configuration=Release /p:Platform=Win32 /p:PostBuildEventUseInBuild=false
+          if errorlevel 1 exit /b 1
+
+          REM Lua's post-build copy is disabled too; its DLL is needed to run the tools.
+          copy /y "Lua.Library\Release\Win32\Lua.Library.Win32\lua.dll" "Bin\Lua\lua.dll"
+          if errorlevel 1 exit /b 1
+
+          REM Solution mappings select Release.App for the runtime and Release for dependencies.
+          REM Select only the runtime target, excluding Shell, app templates, and the Simulator.
+          msbuild Corona.Shell.sln /m /t:Corona_Native_Library_Win32 /p:Configuration=Release /p:Platform=Win32 /p:PostBuildEventUseInBuild=false
+          if errorlevel 1 exit /b 1
