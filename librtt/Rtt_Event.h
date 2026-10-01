@@ -584,7 +584,6 @@ class BaseCollisionEvent : public VirtualEvent
 	public:
 		virtual int Push( lua_State *L ) const;
 		virtual void Dispatch( lua_State *L, Runtime& runtime ) const;
-		virtual bool DispatchWithResult( lua_State *L, Runtime& runtime ) const;
 		
 	private:
 		DisplayObject& fObject1;
@@ -1312,6 +1311,27 @@ class UrlRequestEvent : public VirtualEvent
 		Type fType;
 		const char *fErrorMsg;
 		S32 fErrorCode;
+};
+
+// ----------------------------------------------------------------------------
+
+// Common event
+class CommonEvent : public VirtualEvent
+{
+	public:
+		typedef VirtualEvent Super;
+		typedef CommonEvent Self;
+
+	public:
+		CommonEvent( const char *fEventName, const char *fData );
+
+	public:
+		virtual const char* Name() const;
+		virtual int Push( lua_State *L ) const;
+
+	private:
+		const char *fEventName;
+		const char *fData;
 };
 
 // ----------------------------------------------------------------------------

@@ -27,6 +27,7 @@
 #include "Core/Rtt_Geometry.h"
 #include "Display/Rtt_Display.h"
 #include "Display/Rtt_DisplayObject.h"
+#include "Display/Rtt_GroupObject.h"
 #include "Display/Rtt_Shader.h"
 #include "Display/Rtt_ShaderFactory.h"
 #include "Renderer/Rtt_Geometry_Renderer.h"
@@ -61,40 +62,128 @@ static inline Box2dDebugColor MakeRGBA( b2HexColor c )
 	return { ((c >> 16) & 0xFF) * invColorBase, ((c >> 8) & 0xFF) * invColorBase, uint8_t(c & 0xFF) * invColorBase };
 }
 
-void DrawPolygonFcn(const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
+// The physics world lives in the work-group's local space (meters), so the
+// visual position of a world-space point is: p' = origin + p * scale.
+static inline b2Vec2
+ApplyParentTransform( const b2GLESDebugDraw *debugDraw, b2Vec2 p )
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon( vertices, vertexCount, MakeRGBA(color) );
+	b2Vec2 scale = debugDraw->GetParentScale();
+	b2Vec2 origin = debugDraw->GetParentOrigin();
+	return { origin.x + p.x * scale.x, origin.y + p.y * scale.y };
+}
+
+// Precomputed unit-circle directions (16 segments, i.e. a 2*PI/16 step).
+// Circles and capsule arcs index into this table instead of calling
+// cosf/sinf per vertex.
+static inline const b2Vec2 *
+UnitCircle()
+{
+	static b2Vec2 s[ 16 ];
+	static bool sInitialized = false;
+
+	if ( ! sInitialized )
+	{
+		for( int i = 0; i < 16; ++i )
+		{
+			float theta = ( 2.0f * B2_PI * (float)i ) / 16.0f;
+			s[ i ] = { cosf( theta ), sinf( theta ) };
+		}
+		sInitialized = true;
+	}
+
+	return s;
+}
+
+static inline void
+SetVertex( Geometry::Vertex &v, float x, float y, const Box2dDebugColor &color, float alpha )
+{
+	v.Zero();
+	v.SetPos( x, y );
+	v.rs = (U8)( color.r * 255.0f );
+	v.gs = (U8)( color.g * 255.0f );
+	v.bs = (U8)( color.b * 255.0f );
+	v.as = (U8)( alpha * 255.0f );
+}
+
+void DrawPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, b2HexColor color, void* context)
+{
+	// Box2D passes local vertices with their transform; draw them in world space as before.
+	b2Vec2 points[ B2_MAX_POLYGON_VERTICES ];
+	vertexCount = b2MinInt( vertexCount, B2_MAX_POLYGON_VERTICES );
+	for( int i = 0; i < vertexCount; ++i )
+	{
+		points[ i ] = b2TransformPoint( transform, vertices[ i ] );
+	}
+
+	static_cast<b2GLESDebugDraw*>(context)->DrawPolygon( points, vertexCount, MakeRGBA(color) );
 }
 
 void DrawSolidPolygonFcn(b2Transform transform, const b2Vec2* vertices, int vertexCount, float radius, b2HexColor color,
 						 void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSolidPolygon( transform, vertices, vertexCount, radius, MakeRGBA(color) );
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	b2Vec2 scale = debugDraw->GetParentScale();
+
+	// Transform the body-local vertices to world space, then apply the shared
+	// display transform.
+	b2Vec2 scaled[ B2_MAX_POLYGON_VERTICES ];
+	for( int i = 0; i < vertexCount; ++i )
+	{
+		b2Vec2 p = b2TransformPoint( transform, vertices[ i ] );
+		scaled[ i ] = ApplyParentTransform( debugDraw, p );
+	}
+
+	float s = 0.5f * ( scale.x + scale.y );
+	debugDraw->DrawSolidPolygon( b2Transform_identity, scaled, vertexCount, radius * s, MakeRGBA(color) );
 }
 
 void DrawCircleFcn(b2Vec2 center, float radius, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawCircle( center, radius, MakeRGBA(color) );
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	b2Vec2 scale = debugDraw->GetParentScale();
+
+	b2Vec2 c = ApplyParentTransform( debugDraw, center );
+	float s = 0.5f * ( scale.x + scale.y );
+
+	debugDraw->DrawCircle( c, radius * s, MakeRGBA(color) );
 }
 
-void DrawSolidCircleFcn(b2Transform transform, float radius, b2HexColor color, void* context)
+void DrawSolidCircleFcn(b2Transform transform, b2Vec2 localCenter, float radius, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSolidCircle( transform, transform.p, radius, MakeRGBA(color) );
-}
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	b2Vec2 scale = debugDraw->GetParentScale();
 
-void DrawCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
-{
-	// static_cast<b2GLESDebugDraw*>(context)->DrawCapsule(p1, p2, radius, color);
+	// The circle center is local to transform; move it to world space, then
+	// apply the shared display transform. A circle under non-uniform scale is
+	// visually an ellipse; approximate it with the average scale.
+	b2Vec2 center = ApplyParentTransform( debugDraw, b2TransformPoint( transform, localCenter ) );
+
+	float s = 0.5f * ( scale.x + scale.y );
+	debugDraw->DrawSolidCircle( transform, center, radius * s, MakeRGBA(color) );
 }
 
 void DrawSolidCapsuleFcn(b2Vec2 p1, b2Vec2 p2, float radius, b2HexColor color, void* context)
 {
-	// static_cast<b2GLESDebugDraw*>(context)->DrawSolidCapsule(p1, p2, radius, color);
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	b2Vec2 scale = debugDraw->GetParentScale();
+
+	// p1/p2 are in world space; apply the shared display transform.
+	b2Vec2 v1 = ApplyParentTransform( debugDraw, p1 );
+	b2Vec2 v2 = ApplyParentTransform( debugDraw, p2 );
+
+	float s = 0.5f * ( scale.x + scale.y );
+	debugDraw->DrawSolidCapsule( v1, v2, radius * s, MakeRGBA(color) );
 }
 
 void DrawSegmentFcn(b2Vec2 p1, b2Vec2 p2, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawSegment( p1, p2, MakeRGBA(color) );
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+
+	// The endpoints are in world space; apply the shared display transform.
+	b2Vec2 v1 = ApplyParentTransform( debugDraw, p1 );
+	b2Vec2 v2 = ApplyParentTransform( debugDraw, p2 );
+
+	debugDraw->DrawSegment( v1, v2, MakeRGBA(color) );
 }
 
 void DrawTransformFcn(b2Transform transform, void* context)
@@ -104,10 +193,17 @@ void DrawTransformFcn(b2Transform transform, void* context)
 
 void DrawPointFcn(b2Vec2 p, float size, b2HexColor color, void* context)
 {
-	static_cast<b2GLESDebugDraw*>(context)->DrawPoint( p, size, MakeRGBA(color) );
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	b2Vec2 scale = debugDraw->GetParentScale();
+
+	// Apply the shared display transform to the point's position and size.
+	b2Vec2 v = ApplyParentTransform( debugDraw, p );
+	float s = 0.5f * ( scale.x + scale.y );
+
+	debugDraw->DrawPoint( v, size * s, MakeRGBA(color) );
 }
 
-void DrawStringFcn(b2Vec2 p, const char* s, void* context)
+void DrawStringFcn(b2Vec2 p, const char* s, b2HexColor color, void* context)
 {
 	// static_cast<b2GLESDebugDraw*>(context)->DrawString(p, s);
 }
@@ -115,24 +211,73 @@ void DrawStringFcn(b2Vec2 p, const char* s, void* context)
 void GetBodyTransformFcn( b2Transform* transform, void* bodyUserData, void* context )
 {
 	DisplayObject *o = static_cast<DisplayObject*>(bodyUserData);
-	b2Transform xf;
 
-	float metersPerPixel = static_cast<b2GLESDebugDraw*>(context)->GetMetersPerPixel();
+	b2GLESDebugDraw *debugDraw = static_cast<b2GLESDebugDraw*>(context);
+	float metersPerPixel = debugDraw->GetMetersPerPixel();
+
+	// b2World_Draw calls this once per shape of a body; the cached parent
+	// transform is still valid for repeated calls on the same body.
+	if ( bodyUserData == debugDraw->GetLastBodyUserData() )
+	{
+		return;
+	}
+	debugDraw->SetLastBodyUserData( bodyUserData );
+
+	// Bodies without user data (or the ground body) draw in physical
+	// coordinates.
+	debugDraw->SetParentScale( { 1.0f, 1.0f } );
+	debugDraw->SetParentOrigin( { 0.0f, 0.0f } );
+
 	if ( o && LuaLibPhysics::GetGroundBodyUserdata() != o )
 	{
-		Vertex2 v = { 0.0f, 0.0f };
-		if( o->ShouldOffsetWithAnchor() )
+		// All bodies live in one display group chain (subgroups stay at the
+		// origin, unscaled), so the parent chain's transform is the single
+		// display transform shared by every body. The physics world lives in
+		// the work-group's local space, so cache the chain's translation and
+		// scale and apply them to every draw callback: p' = origin + p * scale.
+		// The transform passed in is left untouched.
+		//
+		// The chain's matrix is composed explicitly instead of transforming
+		// unit axes through LocalToContent: subtracting large translations
+		// (e.g. ~8000px) from ~1px axis differences in float loses too much
+		// precision.
+		DisplayObject *chain[ 8 ];
+		int chainCount = 0;
+		for ( GroupObject *node = o->GetParent();
+			  node && chainCount < (int)B2_ARRAY_COUNT( chain );
+			  node = node->GetParent() )
 		{
-			Vertex2 offset = o->GetAnchorOffset();
-			v.x -= offset.x;
-			v.y -= offset.y;
+			chain[ chainCount++ ] = node;
 		}
-		o->LocalToContent( v );
 
-		b2Vec2 p = { v.x, v.y };
-		p *= metersPerPixel;
+		// LocalToContent applies the node's own matrix first, then each
+		// ancestor's, i.e. M = M_ancestor * ... * M_parent.
+		Matrix m;
+		m.SetIdentity();
+		for ( int i = chainCount - 1; i >= 0; --i )
+		{
+			m.Concat( chain[ i ]->GetMatrix() );
+		}
 
-		transform->p = p;
+		if ( ! m.IsIdentity() )
+		{
+			Real a = m.Row0()[ 0 ];
+			Real b = m.Row0()[ 1 ];
+			Real c = m.Row1()[ 0 ];
+			Real d = m.Row1()[ 1 ];
+
+			float scaleX = sqrtf( Rtt_RealToFloat( a*a + c*c ) );
+			float scaleY = sqrtf( Rtt_RealToFloat( b*b + d*d ) );
+
+			// DEBUG_PRINT( "scaleX=%f, scaleY=%f, origin.x=%f, origin.y=%f", scaleX, scaleY, m.Tx(), m.Ty() );
+			debugDraw->SetParentScale( { scaleX, scaleY } );
+			debugDraw->SetParentOrigin( { Rtt_RealToFloat( m.Tx() ) * metersPerPixel,
+										  Rtt_RealToFloat( m.Ty() ) * metersPerPixel } );
+
+			// TODO: Disabled for now. The physical rotation is kept; the
+			// parent-chain rotation is not applied to the shapes.
+			// transform->q = b2MakeRot( b2Atan2( Rtt_RealToFloat( c ), Rtt_RealToFloat( a ) ) );
+		}
 	}
 }
 
@@ -142,65 +287,88 @@ b2GLESDebugDraw::b2GLESDebugDraw( Display &display )
 :	fRenderer( NULL ),
 	fPixelsPerMeter( Rtt_REAL_1 ),
 	fMetersPerPixel( Rtt_REAL_1 ),
-	fData(),
+	fFillData(),
+	fLineData(),
+	fParentScale({ 1.0f, 1.0f }),
+	fParentOrigin({ 0.0f, 0.0f }),
+	fLastBodyUserData( NULL ),
 	fDebugDraw({})
 {
-	// Init fData.
+	// Init the two accumulation buffers: one for filled triangles, one for
+	// line segments. Both are flushed once per frame.
 	{
 		/**/ //BAD: THIS MEMORY IS LEAKED!!!!!!!!
-		fData.fGeometry = Rtt_NEW( display.GetAllocator(),
-									Rtt::Geometry( display.GetAllocator(),
-													Geometry::kTriangleFan,
-													0, // Vertex count.
-													0, // Index count.
-													false ) ); // Store on GPU.
+		fFillData.fGeometry = Rtt_NEW( display.GetAllocator(),
+										Rtt::Geometry( display.GetAllocator(),
+														Geometry::kTriangles,
+														256, // Vertex count.
+														0, // Index count.
+														false ) ); // Store on GPU.
+
+		fLineData.fGeometry = Rtt_NEW( display.GetAllocator(),
+										Rtt::Geometry( display.GetAllocator(),
+														Geometry::kLines,
+														512, // Vertex count.
+														0, // Index count.
+														false ) ); // Store on GPU.
 
 		ShaderFactory &factory = display.GetShaderFactory();
 		fShader = factory.FindOrLoad( ShaderTypes::kCategoryFilter, "color" );
-		fShader->Prepare( fData, 0, 0, ShaderResource::kDefault );
+		fShader->Prepare( fFillData, 0, 0, ShaderResource::kDefault );
+		fShader->Prepare( fLineData, 0, 0, ShaderResource::kDefault );
 
-		fData.fFillTexture0 = NULL;
-		fData.fFillTexture1 = NULL;
-		fData.fMaskTexture = NULL;
-		fData.fMaskUniform = NULL;
+		RenderData *datas[ 2 ] = { &fFillData, &fLineData };
+		for( int i = 0; i < 2; ++i )
+		{
+			RenderData &data = *datas[ i ];
 
-		fData.fUserUniform0 = NULL;
-		fData.fUserUniform1 = NULL;
-		fData.fUserUniform2 = NULL;
-		fData.fUserUniform3 = NULL;
+			data.fFillTexture0 = NULL;
+			data.fFillTexture1 = NULL;
+			data.fMaskTexture = NULL;
+			data.fMaskUniform = NULL;
+
+			data.fUserUniform0 = NULL;
+			data.fUserUniform1 = NULL;
+			data.fUserUniform2 = NULL;
+			data.fUserUniform3 = NULL;
+		}
 
 		b2AABB bounds = {{-FLT_MAX, -FLT_MAX}, {FLT_MAX, FLT_MAX}};
-		fDebugDraw = {
-						DrawPolygonFcn,
-						DrawSolidPolygonFcn,
-						DrawCircleFcn,
-						DrawSolidCircleFcn,
-						DrawSolidCapsuleFcn,
-						DrawSegmentFcn,
-						DrawTransformFcn,
-						DrawPointFcn,
-						DrawStringFcn,
-						GetBodyTransformFcn,
-						bounds,
-						false, // drawUsingBounds
-						true,  // shapes
-						true,  // joints
-						false, // joint extras
-						false, // aabbs
-						true, // mass
-						false, // contacts
-						false, // colors
-						false, // normals
-						false, // impulse
-						false, // friction
-						this
-					};
+		fDebugDraw = {};
+		fDebugDraw.DrawPolygonFcn = DrawPolygonFcn;
+		fDebugDraw.DrawSolidPolygonFcn = DrawSolidPolygonFcn;
+		fDebugDraw.DrawCircleFcn = DrawCircleFcn;
+		fDebugDraw.DrawSolidCircleFcn = DrawSolidCircleFcn;
+		fDebugDraw.DrawSolidCapsuleFcn = DrawSolidCapsuleFcn;
+		fDebugDraw.DrawLineFcn = DrawSegmentFcn;
+		fDebugDraw.DrawTransformFcn = DrawTransformFcn;
+		fDebugDraw.DrawPointFcn = DrawPointFcn;
+		fDebugDraw.DrawStringFcn = DrawStringFcn;
+		fDebugDraw.GetBodyTransformFcn = GetBodyTransformFcn;
+		fDebugDraw.drawingBounds = bounds;
+
+		fDebugDraw.forceScale = 1.0f;
+		fDebugDraw.jointScale = 1.0f;
+		fDebugDraw.drawShapes = true;
+		fDebugDraw.drawJoints = true;
+		fDebugDraw.drawJointExtras = false;
+		fDebugDraw.drawBounds = false;
+		fDebugDraw.drawMass = true;
+		fDebugDraw.drawBodyNames = false;
+		fDebugDraw.drawGraphColors = false;
+		fDebugDraw.drawContactNormals = false;
+
+		fDebugDraw.context = this;
 	}
 }
 
 b2GLESDebugDraw::~b2GLESDebugDraw()
 {
-	/**/ //WE MUST QUEUE fData.fGeometry FOR RELEASE HERE!!!!!!!!
+	Rtt_DELETE( fFillData.fGeometry );
+	fFillData.fGeometry = NULL;
+
+	Rtt_DELETE( fLineData.fGeometry );
+	fLineData.fGeometry = NULL;
 }
 
 static b2Transform
@@ -250,10 +418,30 @@ void b2GLESDebugDraw::Begin( const PhysicsWorld& physics, Renderer &renderer )
 	fRenderer = & renderer;
 	fPixelsPerMeter = Rtt_RealToFloat( physics.GetPixelsPerMeter() );
 	fMetersPerPixel = Rtt_RealToFloat( physics.GetMetersPerPixel() );
+	fParentScale = { 1.0f, 1.0f };
+	fParentOrigin = { 0.0f, 0.0f };
+	fLastBodyUserData = NULL;
+
+	// Reset the accumulation buffers. Their storage is reused across frames.
+	fFillData.fGeometry->SetVerticesUsed( 0 );
+	fLineData.fGeometry->SetVerticesUsed( 0 );
 }
 
 void b2GLESDebugDraw::End()
 {
+	// Flush the accumulation buffers: two draw calls for the whole frame.
+	if ( fFillData.fGeometry->GetVerticesUsed() > 0 )
+	{
+		fFillData.fGeometry->SetPrimitiveType( Geometry::kTriangles );
+		fRenderer->Insert( &fFillData );
+	}
+
+	if ( fLineData.fGeometry->GetVerticesUsed() > 0 )
+	{
+		fLineData.fGeometry->SetPrimitiveType( Geometry::kLines );
+		fRenderer->Insert( &fLineData );
+	}
+
 	fRenderer = NULL;
 	fPixelsPerMeter = Rtt_REAL_1;
 	fMetersPerPixel = Rtt_REAL_1;
@@ -515,14 +703,63 @@ void b2GLESDebugDraw::DrawParticleSystem( const b2ParticleSystem& system )
 	}
 }
 
-void b2GLESDebugDraw::_SetVerticesUsed( int vertexCount )
+void b2GLESDebugDraw::_AppendFillFan( const b2Vec2 *vertices, int vertexCount, Box2dDebugColor color )
 {
-	if( vertexCount > (int)fData.fGeometry->GetVerticesAllocated() )
+	// Expand the triangle fan into an explicit triangle list. vertices[0] is
+	// the fan's common vertex.
+	const int triangleCount = vertexCount - 2;
+	const int extra = 3 * triangleCount;
+
+	// Match the legacy look: the fill is the outline color darkened by half,
+	// at 0.5 alpha.
+	Box2dDebugColor fillColor = { 0.5f * color.r, 0.5f * color.g, 0.5f * color.b };
+
+	Geometry *geometry = fFillData.fGeometry;
+	U32 used = geometry->GetVerticesUsed();
+	if ( used + extra > geometry->GetVerticesAllocated() )
 	{
-		fData.fGeometry->Resize( vertexCount, false );
+		U32 newSize = Max<U32>( used + extra, 2 * geometry->GetVerticesAllocated() );
+		geometry->Resize( newSize, 0, true );
 	}
 
-	fData.fGeometry->SetVerticesUsed( vertexCount );
+	Geometry::Vertex *out = geometry->GetVertexData() + used;
+	for( int i = 1; i < vertexCount - 1; ++i )
+	{
+		Geometry::Vertex *tri = out + 3 * ( i - 1 );
+
+		SetVertex( tri[ 0 ], vertices[ 0 ].x * fPixelsPerMeter, vertices[ 0 ].y * fPixelsPerMeter, fillColor, 0.5f );
+		SetVertex( tri[ 1 ], vertices[ i ].x * fPixelsPerMeter, vertices[ i ].y * fPixelsPerMeter, fillColor, 0.5f );
+		SetVertex( tri[ 2 ], vertices[ i + 1 ].x * fPixelsPerMeter, vertices[ i + 1 ].y * fPixelsPerMeter, fillColor, 0.5f );
+	}
+
+	geometry->SetVerticesUsed( used + extra );
+}
+
+void b2GLESDebugDraw::_AppendLineSegment( const b2Vec2 &p1, const b2Vec2 &p2, Box2dDebugColor color )
+{
+	Geometry *geometry = fLineData.fGeometry;
+	U32 used = geometry->GetVerticesUsed();
+	if ( used + 2 > geometry->GetVerticesAllocated() )
+	{
+		U32 newSize = Max<U32>( used + 2, 2 * geometry->GetVerticesAllocated() );
+		geometry->Resize( newSize, 0, true );
+	}
+
+	Geometry::Vertex *out = geometry->GetVertexData() + used;
+	SetVertex( out[ 0 ], p1.x * fPixelsPerMeter, p1.y * fPixelsPerMeter, color, 1.0f );
+	SetVertex( out[ 1 ], p2.x * fPixelsPerMeter, p2.y * fPixelsPerMeter, color, 1.0f );
+
+	geometry->SetVerticesUsed( used + 2 );
+}
+
+void b2GLESDebugDraw::_AppendLineLoop( const b2Vec2 *vertices, int vertexCount, Box2dDebugColor color )
+{
+	_AppendLineSegment( vertices[ vertexCount - 1 ], vertices[ 0 ], color );
+
+	for( int i = 0; i < vertexCount - 1; ++i )
+	{
+		_AppendLineSegment( vertices[ i ], vertices[ i + 1 ], color );
+	}
 }
 
 void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
@@ -531,55 +768,19 @@ void b2GLESDebugDraw::_DrawPolygon( bool fill_body,
 									int vertexCount,
 									Box2dDebugColor color )
 {
-	_SetVerticesUsed( vertexCount );
-
-	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
-
-	// Copy the vertices from Box2D to our own rendering format.
-	for( int i = 0;
-			i < vertexCount;
-			++i )
+	// Transform the vertices to world space, then accumulate them.
+	b2Vec2 transformed[ B2_MAX_POLYGON_VERTICES ];
+	for( int i = 0; i < vertexCount; ++i )
 	{
-		const b2Vec2 &input_vert = vertices[ i ];
-		b2Vec2 p = b2TransformPoint( transform, input_vert );
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
-
-		output_vert.Zero();
-		output_vert.SetPos( ( p.x * fPixelsPerMeter ),
-							( p.y * fPixelsPerMeter ) );
+		transformed[ i ] = b2TransformPoint( transform, vertices[ i ] );
 	}
 
-	// We're iterating multiple times over the input and output arrays.
-	// From a cache point of view, this is only ok with small arrays.
-	// With large arrays, it's more efficient to set all the fields of
-	// each entries in a single pass.
-
-	// Draw the body of the polygon.
 	if( fill_body )
 	{
-		// Set the color.
-		Rtt::Geometry::Vertex::SetColor( vertexCount,
-											output_vertices,
-											0.5*color.r,
-											0.5*color.g,
-											0.5*color.b,
-											0.5 );
-
-		fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
-		fRenderer->Insert( &fData );
+		_AppendFillFan( transformed, vertexCount, color );
 	}
 
-	// Set the color.
-	Rtt::Geometry::Vertex::SetColor( vertexCount,
-										output_vertices,
-										color.r,
-										color.g,
-										color.b,
-										1.f );
-
-	// Draw the outline of the polygon.
-	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	fRenderer->Insert( &fData );
+	_AppendLineLoop( transformed, vertexCount, color );
 }
 
 void b2GLESDebugDraw::DrawPolygon(const b2Vec2* vertices, int vertexCount, Box2dDebugColor color)
@@ -638,55 +839,35 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 {
 	b2Vec2 circleOrigin( center + ( optionalOffset ? *optionalOffset : b2Vec2_zero ) );
 
-	const int vertexCount = 16;
+	const int kSegments = 16;
+	const b2Vec2 *unit = UnitCircle();
 
-	_SetVerticesUsed( vertexCount );
-
-	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
-
-	float theta = 0.0f;
-
-	for( int i = 0;
-			i < vertexCount;
-			++i,
-			theta += ( ( 2.0f * b2_pi ) / (float)vertexCount ) )
+	// Arc points in world space.
+	b2Vec2 arc[ kSegments ];
+	for( int i = 0; i < kSegments; ++i )
 	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ i ];
-
-		b2Vec2 pos = { cosf( theta ), sinf( theta ) };
-		pos *= radius;
-		pos += circleOrigin;
-		pos *= fPixelsPerMeter;
-
-		output_vert.Zero();
-		output_vert.SetPos( pos.x, pos.y );
+		arc[ i ] = { circleOrigin.x + unit[ i ].x * radius,
+					 circleOrigin.y + unit[ i ].y * radius };
 	}
 
-	// Draw the body of the circle.
+	// Draw the body of the circle. The fan needs the circle center as its
+	// common vertex; the closing arc vertex wraps back to the first one.
 	if( fill_body )
 	{
-		// Set the color.
-		Rtt::Geometry::Vertex::SetColor( vertexCount,
-											output_vertices,
-											0.5*color.r,
-											0.5*color.g,
-											0.5*color.b,
-											0.5 );
+		const int vertexCount = 2 + kSegments;
 
-		fData.fGeometry->SetPrimitiveType( Geometry::kTriangleFan );
-		fRenderer->Insert( &fData );
+		b2Vec2 fan[ vertexCount ];
+		fan[ 0 ] = circleOrigin;
+		for( int i = 0; i <= kSegments; ++i )
+		{
+			fan[ 1 + i ] = arc[ i % kSegments ];
+		}
+
+		_AppendFillFan( fan, vertexCount, color );
 	}
 
-	Rtt::Geometry::Vertex::SetColor( vertexCount,
-										output_vertices,
-										color.r,
-										color.g,
-										color.b,
-										1.f );
-
 	// Draw the outline of the circle.
-	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	fRenderer->Insert( &fData );
+	_AppendLineLoop( arc, kSegments, color );
 
 	if( optionalAxis )
 	{
@@ -699,7 +880,7 @@ void b2GLESDebugDraw::DrawCircle( bool fill_body,
 
 void b2GLESDebugDraw::DrawCircle(const b2Vec2& center, float radius, Box2dDebugColor color)
 {
-	// DrawCircle( true, center, radius, NULL, color, NULL );
+	DrawCircle( false, center, radius, NULL, color, NULL );
 }
 
 void b2GLESDebugDraw::DrawSolidCircle( b2Transform transform,
@@ -711,52 +892,81 @@ void b2GLESDebugDraw::DrawSolidCircle( b2Transform transform,
 	DrawCircle( true, center, radius, &axis, color, NULL );
 }
 
+void b2GLESDebugDraw::DrawSolidCapsule(b2Vec2 p1, b2Vec2 p2, float radius, Box2dDebugColor color)
+{
+	b2Vec2 axis = b2Normalize( p2 - p1 );
+	float angle = b2Atan2( axis.y, axis.x );
+	b2Rot rot = b2MakeRot( angle );
+
+	const int kArcSegments = 8;
+	const int vertexCount = 2 + 2 * kArcSegments; // 4 corners + (kArcSegments - 1) arc points per cap.
+
+	// Build the outline as one continuous closed path around the capsule, so the
+	// fill and the outline have no internal seam lines. The path starts on the
+	// angle - 90° side of p1, sweeps around the outside of the p1 cap to the
+	// angle + 90° side, follows that side to p2, sweeps around the outside of
+	// the p2 cap back to the angle - 90° side, and closes on the start.
+	// Unit-circle table indices: -90° = 12, +90° = 4 (16 segments, PI/8 steps).
+	const b2Vec2 *unit = UnitCircle();
+
+	b2Vec2 outline[ vertexCount ];
+	int index = 0;
+
+	outline[ index++ ] = p1 + radius * b2RotateVector( rot, unit[ 12 ] );
+
+	for( int i = 1; i < kArcSegments; ++i )
+	{
+		outline[ index++ ] = p1 + radius * b2RotateVector( rot, unit[ ( 12 - i + 16 ) % 16 ] );
+	}
+
+	outline[ index++ ] = p1 + radius * b2RotateVector( rot, unit[ 4 ] );
+	outline[ index++ ] = p2 + radius * b2RotateVector( rot, unit[ 4 ] );
+
+	for( int i = 1; i < kArcSegments; ++i )
+	{
+		outline[ index++ ] = p2 + radius * b2RotateVector( rot, unit[ ( 4 - i + 16 ) % 16 ] );
+	}
+
+	outline[ index++ ] = p2 + radius * b2RotateVector( rot, unit[ 12 ] );
+
+	// Draw the body: one triangle fan whose common vertex is the capsule
+	// center. The closing vertex wraps back to the start of the outline.
+	{
+		const int fillVertexCount = 1 + vertexCount + 1;
+
+		b2Vec2 fan[ fillVertexCount ];
+
+		b2Vec2 center = p1 + p2;
+		center *= 0.5f;
+		fan[ 0 ] = center;
+
+		for( int i = 0; i < vertexCount; ++i )
+		{
+			fan[ 1 + i ] = outline[ i ];
+		}
+		fan[ 1 + vertexCount ] = outline[ 0 ];
+
+		_AppendFillFan( fan, fillVertexCount, color );
+	}
+
+	// Draw the outline as one continuous line.
+	_AppendLineLoop( outline, vertexCount, color );
+}
+
 void b2GLESDebugDraw::DrawSegment(const b2Vec2& p1, const b2Vec2& p2, Box2dDebugColor color)
 {
-	const int vertexCount = 2;
-
-	_SetVerticesUsed( vertexCount );
-
-	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
-
-	// Start point.
-	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
-
-		output_vert.Zero();
-
-		output_vert.SetPos( ( p1.x * fPixelsPerMeter ),
-							( p1.y * fPixelsPerMeter ) );
-	}
-
-	// End point.
-	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
-
-		output_vert.Zero();
-
-		output_vert.SetPos( ( p2.x * fPixelsPerMeter ),
-							( p2.y * fPixelsPerMeter ) );
-	}
-
-	// Set the color.
-	Rtt::Geometry::Vertex::SetColor( vertexCount,
-										output_vertices,
-										color.r,
-										color.g,
-										color.b,
-										1.0f );
-
-	// Draw.
-	fData.fGeometry->SetPrimitiveType( Geometry::kLines );
-	fRenderer->Insert( &fData );
+	_AppendLineSegment( p1, p2, color );
 }
 
 void b2GLESDebugDraw::DrawTransform(const b2Transform& xf)
 {
-	b2Vec2 p1 = xf.p, p2;
+	b2Vec2 scale = GetParentScale();
+
+	// Apply the shared display transform to the cross position and size.
+	b2Vec2 p1 = ApplyParentTransform( this, xf.p );
+	b2Vec2 p2;
 	// const float k_axisScale = 0.4f;
-	const float k_axisScale = 24.0f * fMetersPerPixel;
+	const float k_axisScale = 24.0f * fMetersPerPixel * ( scale.x + scale.y ) * 30.0f / fPixelsPerMeter;
 
 	// p2 = p1 + k_axisScale * xf.q.GetXAxis();
 	p2 = p1 + k_axisScale * b2Rot_GetXAxis( xf.q );
@@ -780,63 +990,15 @@ void b2GLESDebugDraw::DrawString(int x, int y, const char *string, ...)
 
 void b2GLESDebugDraw::DrawAABB(b2AABB* aabb, Box2dDebugColor c)
 {
-	const int vertexCount = 4;
-
-	_SetVerticesUsed( vertexCount );
-
-	Rtt::Geometry::Vertex *output_vertices = fData.fGeometry->GetVertexData();
-
-	// Upper left.
+	b2Vec2 vertices[ 4 ] =
 	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 0 ];
+		{ aabb->lowerBound.x, aabb->lowerBound.y },
+		{ aabb->upperBound.x, aabb->lowerBound.y },
+		{ aabb->upperBound.x, aabb->upperBound.y },
+		{ aabb->lowerBound.x, aabb->upperBound.y },
+	};
 
-		output_vert.Zero();
-
-		output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
-							( aabb->lowerBound.y * fPixelsPerMeter ) );
-	}
-
-	// Upper right.
-	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 1 ];
-
-		output_vert.Zero();
-
-		output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
-							( aabb->lowerBound.y * fPixelsPerMeter ) );
-	}
-
-	// Lower right.
-	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 2 ];
-
-		output_vert.Zero();
-
-		output_vert.SetPos( ( aabb->upperBound.x * fPixelsPerMeter ),
-							( aabb->upperBound.y * fPixelsPerMeter ) );
-	}
-
-	// Lower left.
-	{
-		Rtt::Geometry::Vertex &output_vert = output_vertices[ 3 ];
-
-		output_vert.Zero();
-
-		output_vert.SetPos( ( aabb->lowerBound.x * fPixelsPerMeter ),
-							( aabb->upperBound.y * fPixelsPerMeter ) );
-	}
-
-	// Set the color.
-	Rtt::Geometry::Vertex::SetColor( vertexCount,
-										output_vertices,
-										c.r,
-										c.g,
-										c.b,
-										1.0f );
-
-	// Draw.
-	fData.fGeometry->SetPrimitiveType( Geometry::kLineLoop );
-	fRenderer->Insert( &fData );
+	_AppendLineLoop( vertices, 4, c );
 }
 
 // ----------------------------------------------------------------------------

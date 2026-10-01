@@ -38,31 +38,38 @@
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\collision.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\id.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_functions.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\config.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\math_types.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\types.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\include\box2d\constants.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\aabb.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\allocate.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\array.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\arena_allocator.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\platform.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\bitset.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\block_array.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\body.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\broad_phase.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\container.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\constraint_graph.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\contact_solver.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\core.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\ctz.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\simd.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\id_pool.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\island.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\joint.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\sensor.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\shape.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\solver_set.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\stack_allocator.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\dynamic_tree.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\qsort.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\recording.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\replay.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\snapshot.h" />
     <ClInclude Include="..\..\..\external\box2d_v3\src\table.h" />
-    <ClInclude Include="..\..\..\external\box2d_v3\src\world.h" />
-    <ClInclude Include="..\..\..\external\enkiTS\src\LockLessMultiReadPipe.h" />
-    <ClInclude Include="..\..\..\external\enkiTS\src\TaskScheduler.h" />
-    <ClInclude Include="..\..\..\external\enkiTS\src\TaskScheduler_c.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\scheduler.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\parallel_for.h" />
+    <ClInclude Include="..\..\..\external\box2d_v3\src\physics_world.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\block_allocator.cpp" />
@@ -79,11 +86,15 @@
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\tracked_block.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\extern\liquidfun\voronoi_diagram.cpp" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\aabb.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\allocate.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\array.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\arena_allocator.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\bitset.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\block_array.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\body.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\mover_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\pogo_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\recording.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\replay.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\snapshot.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\broad_phase.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\constraint_graph.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\contact.c" />
@@ -100,21 +111,20 @@
     <ClCompile Include="..\..\..\external\box2d_v3\src\manifold.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\math_functions.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\motor_joint.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\mouse_joint.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\prismatic_joint.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\revolute_joint.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\sensor.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\shape.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\solver.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\solver_set.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\stack_allocator.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\table.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\timer.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\types.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\weld_joint.c" />
     <ClCompile Include="..\..\..\external\box2d_v3\src\wheel_joint.c" />
-    <ClCompile Include="..\..\..\external\box2d_v3\src\world.c" />
-    <ClCompile Include="..\..\..\external\enkiTS\src\TaskScheduler.cpp" />
-    <ClCompile Include="..\..\..\external\enkiTS\src\TaskScheduler_c.cpp" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\scheduler.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\parallel_for.c" />
+    <ClCompile Include="..\..\..\external\box2d_v3\src\physics_world.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectName>Box2D.Library.Win32</ProjectName>
@@ -125,19 +135,19 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='PreRelease|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>false</WholeProgramOptimization>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>StaticLibrary</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -182,13 +192,12 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(PreprocessorDefinitions);B2_PLATFORM_WINDOWS;WIN32;_WINDOWS;NDEBUG</PreprocessorDefinitions>
+      <PreprocessorDefinitions>%(PreprocessorDefinitions);WIN32;_WINDOWS;NDEBUG</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>%(AdditionalOptions) /experimental:c11atomics</AdditionalOptions>
       <LanguageStandard>Default</LanguageStandard>
       <InlineFunctionExpansion>AnySuitable</InlineFunctionExpansion>
       <OmitFramePointers />

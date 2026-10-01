@@ -13,8 +13,9 @@
 // ----------------------------------------------------------------------------
 
 #include "box2d/box2d.h"
-#include "TaskScheduler.h"
 #include "liquid_world.h"
+
+#include <vector>
 
 // class b2Body;
 // class b2DebugDraw;
@@ -29,26 +30,13 @@ class PhysicsContactListener;
 class Runtime;
 class Renderer;
 
-class PhysicsTask : public enki::ITaskSet
-{
-  public:
-	PhysicsTask() = default;
-
-	void ExecuteRange( enki::TaskSetPartition range, uint32_t threadIndex ) override
-	{
-		m_task( range.start, range.end, threadIndex, m_taskContext );
-	}
-
-	b2TaskCallback* m_task = nullptr;
-	void* m_taskContext = nullptr;
-};
-
-static constexpr int32_t maxTasks = 64;
+static constexpr int32_t estimateMaxMouseBodies = 32;
 
 // ----------------------------------------------------------------------------
 
 class PhysicsWorld
 {
+	friend class FixedStepScheduler;
 	public:
 		enum
 		{
@@ -59,6 +47,7 @@ class PhysicsWorld
 			kPostCollisionListenerExists		= 0x08,
 			kParticleCollisionListenerExists	= 0x10,
 			kHitCollisionListenerExists	= 0x20,
+			kRuntimePreCollisionListenerExists = 0x40,
 		};
 
 		typedef U32 Properties;
@@ -80,16 +69,31 @@ class PhysicsWorld
 		void StopWorld();
 		void onSuspended();
 		void onResumed();
+
+		b2BodyId FetchUsableMouseBodyId();
+
 		b2LiquidWorld* GetWorld() const { return fWorld; }
 		b2WorldId GetWorldId() const { return fWorld->GetWorldId(); }
 		// b2Body* GetGroundBody() const { return fGroundBody; }
-		b2BodyId GetGroundBodyId() const { return fGroundBodyId; }
+
+		bool IsWorldValid() const { return fWorld != NULL && b2World_IsValid(fWorld->GetWorldId()); }
 
 	public:
 		Rtt_Allocator *Allocator() const { return & fAllocator; }
 		bool IsProperty( Properties mask ) const { return (fProperties & mask) != 0; }
 		void ToggleProperty( Properties mask ) { fProperties ^= mask; }
 		void SetProperty( Properties mask, bool value );
+		void SetRuntimePreCollisionListenerExists( bool value );
+		void RegisterPhysicsBody( b2BodyId bodyId );
+		void DestroyPhysicsBody( b2BodyId bodyId );
+		void InvalidateCompoundInternalEdges( b2BodyId bodyId );
+		void RefreshCompoundInternalEdges( b2BodyId bodyId );
+		void ReleaseCompoundInternalEdgePreSolveOwnership( b2ShapeId shapeId );
+
+		void SetCompoundInternalEdgeSuppressionEnabled( bool enabled );
+		bool GetCompoundInternalEdgeSuppressionEnabled() const { return fCompoundInternalEdgeSuppressionEnabled; }
+		bool ShouldSuppressCompoundInternalEdge( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point,
+										 b2Vec2 normal ) const;
 
 		// Default is 30 (content) pixels per meter so the range [3, 300] pixels
 		// maps to [0.1, 10] meters (the optimal length scale range for Box2D)
@@ -110,8 +114,36 @@ class PhysicsWorld
 		int GetNumSteps() const { return fNumSteps; }
 		void SetNumSteps( S32 newValue ) { fNumSteps = newValue; }
 
+		int GetSubSteps() const { return fSubStepCount; }
+		void SetSubSteps( S32 newValue ) { fSubStepCount = newValue; }
+
+		int GetWorkerCount() const { return fWorkerCount; }
+		void SetWorkerCount( int newValue );
+
+		int GetNumHardwareThreads() const;
+
 	private:
 		void StepEvents();
+		void FlushDeferredBodyDestructions();
+		void UnregisterPhysicsBody( b2BodyId bodyId );
+		void RemoveCompoundInternalEdges( b2BodyId bodyId, bool disablePreSolveEvents );
+		void BuildCompoundInternalEdges( b2BodyId bodyId );
+		void EnableCompoundInternalEdgePreSolve( b2BodyId bodyId, b2ShapeId shapeId );
+
+		struct CompoundInternalEdgePreSolveShape
+		{
+			b2BodyId bodyId;
+			b2ShapeId shapeId;
+		};
+
+		struct CompoundInternalEdge
+		{
+			b2BodyId bodyId;
+			b2ShapeId shapeId;
+			b2Vec2 point1;
+			b2Vec2 point2;
+			b2Vec2 normal;
+		};
 
 	public:
 		void SetReportCollisionsInContentCoordinates( bool enabled );
@@ -140,7 +172,6 @@ class PhysicsWorld
 		b2LiquidWorld *fWorld;
 		Real fPixelsPerMeter;
 		// b2Body *fGroundBody;
-		b2BodyId fGroundBodyId;
 		S32 fSubStepCount;
 		S32 fVelocityIterations;
 		S32 fPositionIterations;
@@ -151,6 +182,11 @@ class PhysicsWorld
 		float fTimeRemainder;
 
 		S32 fNumSteps;
+		bool fCompoundInternalEdgeSuppressionEnabled;
+		std::vector<b2BodyId> fPhysicsBodies;
+		std::vector<b2BodyId> fDeferredBodyDestructions;
+		std::vector<CompoundInternalEdgePreSolveShape> fCompoundInternalEdgePreSolveShapes;
+		std::vector<CompoundInternalEdge> fCompoundInternalEdges;
 
 		//! false: Contact points are reported in local-space.
 		//! true: Contact points are reported in content-space.
@@ -173,11 +209,10 @@ class PhysicsWorld
 		//! true: The point of contact reported is the average of all contact points.
 		bool fAverageCollisionPositions;
 
+		std::vector<b2BodyId> fMouseBodies;
+
 	public:
 		int fWorkerCount;
-		enki::TaskScheduler fScheduler;
-		PhysicsTask fTasks[maxTasks];
-		int32_t fTaskCount;
 };
 
 // ----------------------------------------------------------------------------

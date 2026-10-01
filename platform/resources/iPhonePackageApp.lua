@@ -319,7 +319,6 @@ local function getLiveBuildCopyIconScript(src, dest, options)
 end
 
 --------------------------------------------------------------------------------
-
 local function getCodesignScript( entitlements, path, identity, developerBase )
 
 	codesign_allocate = xcodetoolhelper['codesign_allocate']
@@ -349,6 +348,15 @@ export PATH="$DEVELOPER_BASE/Platforms/iPhoneOS.platform/Developer/usr/bin:$DEVE
 	-- print("getCodesignScript: ".. devbase_shell .. export_path .. script .. cmd)
 	return devbase_shell .. export_path .. script .. cmd
 end
+
+local function fileExists( filename )
+	local f = io.open( filename, "r" )
+	if ( f ) then
+		io.close( f )
+	end
+	return ( nil ~= f )
+end
+
 
 
 local function getCodesignFrameworkScript( path, identity, developerBase )
@@ -439,6 +447,26 @@ end
 
 --------------------------------------------------------------------------------
 
+-- check if app has any appx in app folder
+local function checkAppHasAPPX( appPath )
+	local pluginsPath = appPath:gsub('["\']', "") .. "/PlugIns"
+
+	-- Check if PlugIns folder exists
+	if lfs.attributes(pluginsPath, "mode") == "directory" then
+
+		-- Find .appex files inside PlugIns
+		for file in lfs.dir(pluginsPath) do
+			if file:match("%.appex$") then
+				return true
+			end
+		end
+	else
+		return false
+	end
+end
+
+--------------------------------------------------------------------------------
+
 -- Assumes pwd is same as this script's directory
 
 local templateXcent = [[
@@ -477,6 +505,7 @@ local function generateXcent( options )
 	if not options.signingIdentity then
 		return
 	end
+	
 
 	local filename = options.tmpDir .. "/entitlements.xcent"
 	local outFile = assert( io.open( filename, "wb" ) )
@@ -484,20 +513,13 @@ local function generateXcent( options )
 	local data = templateXcent
 
 	-- Set "get-task-allow" to the same value as in the provisioning profile
-	local get_task_allow_setting = captureCommandOutput("security cms -D -i '".. options.mobileProvision .."' | plutil -p - | fgrep 'get-task-allow'")
+	local get_task_allow_setting = captureCommandOutput("security cms -D -i '".. options.mobileProvision .."' | plutil -extract Entitlements.get-task-allow raw -o - -")
 	if debugBuildProcess and debugBuildProcess ~= 0 then
 		print("get_task_allow_setting: ".. tostring(get_task_allow_setting))
 	end
-
 	if get_task_allow_setting ~= "" then
-		-- set the value appropriately
-		if nil ~= string.find( get_task_allow_setting, "1", 1, true ) then
-			templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", "true" )
-			assert( numMatches == 1 )
-		else
-			templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", "false" )
-			assert( numMatches == 1 )
-		end
+		templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", get_task_allow_setting )
+		assert( numMatches == 1 )
 		data, numMatches = string.gsub( data, "{{GET_TASK_ALLOW}}", templateGetTaskAllow )
 		assert( numMatches == 1 )
 	else
@@ -513,7 +535,7 @@ local function generateXcent( options )
 		print("beta_reports_active_setting: ".. tostring(beta_reports_active_setting))
 	end
 
-	if beta_reports_active_setting ~= "" then
+	if beta_reports_active_setting ~= "" and options.settings.iphone.betaReportsEnabled == true then
 		-- set the value appropriately
 		if nil ~= string.find( beta_reports_active_setting, "1", 1, true ) then
 			templateBetaReportsActive, numMatches = string.gsub( templateBetaReportsActive, "{{BETA_REPORTS}}", "true" )
@@ -531,7 +553,7 @@ local function generateXcent( options )
 	end
 
 	local numMatches = 0
-	data, numMatches = string.gsub( data, "{{APPLICATION_IDENTIFIER}}", options.appid )
+	data, numMatches = string.gsub( data, "{{APPLICATION_IDENTIFIER}}", options.appid )	
 	assert( numMatches == 2 )
 
 	local otherOptions = "" -- default is to assume no other options exist
@@ -572,6 +594,17 @@ local function generateXcent( options )
 	if debugBuildProcess and debugBuildProcess ~= 0 then
 		runScript("cat "..filename)
 	end
+	-- reset variables
+	templateGetTaskAllow = [[
+	<key>get-task-allow</key>
+	<{{GET_TASK}}/>]]
+	templateBetaReportsActive = [[
+	<key>beta-reports-active</key>
+	<{{BETA_REPORTS}}/>]]
+	templateOtherOptions = [[
+	<key>aps-environment</key>
+	<string>{{PUSH_ENVIRONMENT}}</string>]]
+
 end
 
 
@@ -703,6 +736,113 @@ BSF="$(dirname "$BNDL_REL_SRC")"
   end
   return nil
 end
+
+---------------------------------------------------------------------------------
+-- getCodesignAPPXScriptAndPackage 
+local function getCodesignAPPXScriptAndPackage(path, identity, entitlements, developerBase, bundleId, isBuildForDistribution, tempDir, srcAssets, appId)
+    local codesign_allocate = xcodetoolhelper['codesign_allocate']
+    local codesign = xcodetoolhelper['codesign']
+
+    local tempEntitlements = quoteString(entitlements)
+    local appxPath = path:gsub('["\']', "") .. "/PlugIns"
+    local removeXattrs = "/usr/bin/xattr -cr " .. quoteString(appxPath)
+
+    -- Ensure paths are shell safe
+    codesign_allocate = quoteString(codesign_allocate)
+    codesign = quoteString(codesign)
+    developerBase = quoteString(developerBase)
+
+    local devbase_shell = "DEVELOPER_BASE=" .. developerBase .. "\n"
+    local export_path = [==[
+export PATH="$DEVELOPER_BASE/Platforms/iPhoneOS.platform/Developer/usr/bin:$DEVELOPER_BASE/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+]==]
+    local script = 'export CODESIGN_ALLOCATE=' .. codesign_allocate .. '\n'
+    local cmd = removeXattrs
+
+    if lfs.attributes(appxPath, "mode") == "directory" then
+        for file in lfs.dir(appxPath) do
+            if file:match("%.appex$") then
+                local appexPath = appxPath .. "/" .. file
+                local infoPlist = quoteString(appexPath .. "/Info.plist")
+
+                local getBundleIdCmd = "/usr/bin/plutil -extract CFBundleIdentifier xml1 -o - " .. infoPlist ..
+                                       " | sed -n 's/.*<string>\\(.*\\)<\\/string>.*/\\1/p' | awk -F'.' '{print $NF}'"
+                local bundleIdOutput = io.popen(getBundleIdCmd):read("*a"):gsub("%s+", "")
+
+                -- Set new Bundle ID
+                local setBundleIdCmd = "newBundleId=\"" .. bundleId .. "." .. bundleIdOutput .. "\" && " ..
+                                       "/usr/bin/plutil -replace CFBundleIdentifier -string \"$newBundleId\" " .. infoPlist
+                runScript(setBundleIdCmd)
+
+                local appxSrcFiles = srcAssets:gsub('["\']', "") .. "/iOSAppxFiles/" .. bundleIdOutput .. "/"
+                local selectedProvision = isBuildForDistribution and
+                                          (appxSrcFiles .. "embedded.mobileprovision") or
+                                          (lfs.attributes(appxSrcFiles .. "embedded_dev.mobileprovision", "mode") == "file" and
+                                          appxSrcFiles .. "embedded_dev.mobileprovision" or
+                                          appxSrcFiles .. "embedded.mobileprovision")
+
+                -- Handle config.lua if present
+                local config = {}
+                local customSettingsFile = appxSrcFiles .. "config.lua"
+                if fileExists(customSettingsFile) then
+                    local chunk = loadfile(customSettingsFile)
+                    if chunk then
+                        local ok, result = pcall(chunk)
+                        if ok and type(result) == "table" then
+                            config = result
+                        end
+                    end
+                end
+
+                -- Apply plist changes if defined
+                if config.plist and fileExists(infoPlist:gsub('["\']', "")) then
+                    local plistResult = CoronaPListSupport.modifyPlist({
+                        settings = { iphone = { plist = config.plist } },
+                        appBundleFile = quoteString(appexPath),
+                        targetPlatform = "iOS"
+                    })
+                    if plistResult then print("Error modifying Info.plist: " .. plistResult) end
+                end
+
+                -- Generate entitlements
+                local entitlementsFilePath = tempDir .. "/" .. bundleIdOutput
+                runScript("mkdir -p " .. quoteString(entitlementsFilePath))
+				local teamId = appId:match("^(.-)%.")
+                local entitlementsAppx = config.entitlements or {}
+                local result = generateXcent({
+                    appid = teamId.."."..bundleId .. "." .. bundleIdOutput,
+                    mobileProvision = selectedProvision,
+                    tmpDir = entitlementsFilePath,
+                    signingIdentity = identity,
+                    settings = { iphone = { entitlements = entitlementsAppx } }
+                })
+
+                if result then
+                    print("Error generating entitlements: " .. result)
+                end
+
+                entitlementsFilePath = quoteString(entitlementsFilePath .. "/entitlements.xcent")
+                tempEntitlements = entitlementsFilePath
+
+                -- Copy embedded.mobileprovision
+                if lfs.attributes(selectedProvision, "mode") == "file" then
+                    local copyCmd = "cp " .. quoteString(selectedProvision) .. " " ..
+                                    quoteString(appexPath .. "/embedded.mobileprovision")
+                    runScript(copyCmd)
+                else
+                    print("Warning: missing provisioning profile for " .. bundleIdOutput)
+                end
+
+                -- Append codesign command
+                cmd = cmd .. " && " .. codesign .. " --force --sign " .. quoteString(identity) ..
+                      " --entitlements " .. tempEntitlements .. " " .. quoteString(appexPath)
+            end
+        end
+    end
+
+    return devbase_shell .. export_path .. script .. cmd
+end
+
 
 -- generates plists for ODR resources. One describing each bundle and some in app bundle to aggregate them
 local function generateOdrPlists (bundleDir, odrDir, odr, appBundleId)
@@ -1020,9 +1160,18 @@ local function packageApp( options )
 			return errMsg
 		end
 
-
 		local entitlements = quoteString( options.tmpDir .. "/entitlements.xcent" )
 		setStatus("Signing application with "..tostring(options.signingIdentityName))
+
+		-- codesign embedded appx (iOS Extension Files)
+		if(checkAppHasAPPX(options.appBundleFile)) then
+			local result, errMsg = runScript( getCodesignAPPXScriptAndPackage( options.appBundleFile:gsub('["\']', ""), options.signingIdentity, entitlements, iPhoneSDKRoot, options.bundleid, builtForAppStore, options.tmpDir, quoteString(options.srcAssets), options.appid ) )
+			if result ~= 0 then
+				errMsg = "ERROR: code signing embedded appx failed: "..tostring(errMsg)
+				return errMsg
+			end
+		end
+				
 
 		local result, errMsg = runScript( getCodesignScript( entitlements, appBundleFileUnquoted, options.signingIdentity, iPhoneSDKRoot ) )
 
@@ -1174,14 +1323,6 @@ local function getIDs( mobileProvision, result )
 	result.pushEnvironment = pushEnvironment
 
 	return err
-end
-
-local function fileExists( filename )
-	local f = io.open( filename, "r" )
-	if ( f ) then
-		io.close( f )
-	end
-	return ( nil ~= f )
 end
 
 function getBundleId( mobileProvision, bundledisplayname, dstFile )
@@ -1388,6 +1529,7 @@ function iPhonePostPackage( params )
 	local osPlatform = params.osPlatform
 	local err = nil
 
+	local iPhoneSDKRoot = sdkRoot or "/Applications/Xcode.app/Contents/Developer"
     -- Make available globally
     xcodetoolhelper = params.xcodetoolhelper
 
@@ -1564,6 +1706,7 @@ function iPhonePostPackage( params )
 			end
 		end
 
+
 		-- inject live build settings
 		if options.liveBuild then
 			-- 1. set options.settings.iph one.plist.NSAppTransportSecurity.NSAllowsArbitraryLoads
@@ -1590,11 +1733,13 @@ function iPhonePostPackage( params )
 			return result
 		end
 
-		result = packageApp( options )
 
+		result = packageApp( options )
+		
 		if result then
 			return result
 		end
+
 	end
 
 	return err

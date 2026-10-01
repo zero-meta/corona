@@ -206,9 +206,11 @@ local function lookupProfile( name )
 	return display._beginProfile( id )
 end
 
+local WEBVIEW_JS_CUSTOM_EVENT_PREFIX = "JS_"
 function EventDispatcher:dispatchEvent( event )
 	local result = false;
 	local eventName = event.name
+	local isWebviewJSCustomEvent = (event.detail ~= nil and eventName:starts(WEBVIEW_JS_CUSTOM_EVENT_PREFIX))
 	local profile
 
 	-- array of functions is self._functionListeners[eventName]
@@ -224,7 +226,12 @@ function EventDispatcher:dispatchEvent( event )
 			display._addProfileEntry( profile, func )
 			if self:hasEventListener( eventName, func ) then
 				-- Dispatch event to function listener.
-				local handled = func( event )
+				local handled
+				if isWebviewJSCustomEvent then
+					handled = func( event.detail )
+				else
+					handled = func( event )
+				end
 				result = handled or result
 			end
 		end
@@ -247,7 +254,12 @@ function EventDispatcher:dispatchEvent( event )
 				local method = obj[eventName]
 				if ( type(method) == "function" ) then
 					-- Dispatch event to table listener.
-					local handled = method( obj, event )
+					local handled
+					if isWebviewJSCustomEvent then
+						handled = method( obj, event.detail )
+					else
+						handled = method( obj, event )
+					end
 					result = handled or result
 				end
 			end
@@ -308,6 +320,20 @@ function ExtendedEventDispatcher:addEventListener( eventName, listener )
 				system.beginListener( eventName )
 			end
 			physicsListenerCount[eventName] = numListeners + 1
+
+			if eventName == "collision" then
+				if type(self.setContactEventsEnabled) == "function" then
+					self:setContactEventsEnabled(true)
+				end
+			elseif eventName == "hitCollision" then
+				if type(self.setHitEventsEnabled) == "function" then
+					self:setHitEventsEnabled(true)
+				end
+			elseif eventName == "preCollision" then
+				if type(self.setPreSolveEventsEnabled) == "function" then
+					self:setPreSolveEventsEnabled(true)
+				end
+			end
 		end
 	end
 	return wasAdded or nil
@@ -349,6 +375,9 @@ function Runtime:addEventListener( eventName, listener )
 	local super = self._super
 	local noListeners = not self:respondsToEvent( eventName )
 	local wasAdded = super.addEventListener( self, eventName, listener )
+	if wasAdded and noListeners and eventName == "preCollision" then
+		system.setRuntimePreCollisionEnabled(true)
+	end
 
 	-- If a "key" event listener is installed on a simulated iOS/tvOS/WinPhone device,
 	-- warn it wont be effective on a real device
@@ -369,6 +398,9 @@ end
 
 function Runtime:didRemoveListener( eventName )
 	if ( not self:respondsToEvent( eventName ) ) then
+		if eventName == "preCollision" then
+			system.setRuntimePreCollisionEnabled(false)
+		end
 		if ( needsHardwareSupport[ eventName ] ) then
 			system.endListener( eventName )
 		end

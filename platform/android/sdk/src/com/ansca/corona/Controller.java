@@ -298,11 +298,14 @@ public class Controller {
 				// it's ok to call ApplicationListener's events
 				// from onDrawFrame because it's executing in GL thread
 				requestEventRender();
+
+				if (myRuntimeState != RuntimeState.Stopped && Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) { // Android 14+ does not allow for gl render
+					updateRuntimeState(myRuntime, true);
+				}
 			}
 		});
 		myMediaManager.pauseAll();
 		internalSetIdleTimer(true);
-
 		while (myRuntimeState == RuntimeState.Stopping) {
 			try {
 				// Android ANR time is 5 seconds, so wait up to 4 seconds before assuming
@@ -1639,7 +1642,7 @@ public class Controller {
 	 *                            It is okay to set this to null or empty string. For camera shots, a file name will be automatically
 	 *                            generated and saved to the cache directory.
 	 */
-	public void showImagePickerWindow(final int imageSourceType, final String destinationFilePath) {
+	public void showImagePickerWindow(final int imageSourceType, final String destinationFilePath, int maxSelection) {
 		// Display the requested window for image selection via the UI thread.
 		myHandler.post( new Runnable() {
 			public void run() {
@@ -1653,7 +1656,7 @@ public class Controller {
 					switch (imageSourceType) {
 						case IMAGE_SOURCE_PHOTO_LIBRARY:
 						case IMAGE_SOURCE_SAVED_PHOTOS_ALBUM:
-							myCoronaShowApiListener.showSelectImageWindowUsing(destinationFilePath);
+							myCoronaShowApiListener.showSelectImageWindowUsing(destinationFilePath, maxSelection);
 							break;
 							
 						case IMAGE_SOURCE_CAMERA:

@@ -167,6 +167,8 @@ Runtime::Runtime(const MPlatform& platform, MCallback* viewCallback)
 	fScheduler(Rtt_NEW(&fAllocator, Scheduler(*this))),
 	fArchive(NULL),
 	fPhysicsWorld(Rtt_NEW(&fAllocator, PhysicsWorld(fAllocator))),
+	fBackend("glBackend"),
+	fBackendState(nullptr),
 #ifdef Rtt_USE_ALMIXER
 	fOpenALPlayer(NULL),
 #endif
@@ -190,7 +192,7 @@ Runtime::Runtime(const MPlatform& platform, MCallback* viewCallback)
 {
 	Rtt_TRACE_SIM( ( "\n%s\n", Rtt_STRING_COPYRIGHT ) );
 	Rtt_TRACE_SIM( ( "\tVersion: %s\n", Rtt_STRING_VERSION ) );
-	Rtt_TRACE_SIM( ( "\tBuild: %s\n", Rtt_STRING_BUILD ) );
+	Rtt_TRACE_SIM( ( "\tBuild: %s\n", Rtt_STRING_BUILD_DISPLAY ) );
 
 	fResourcesHead->Retain();
 
@@ -1263,7 +1265,7 @@ Runtime::LoadApplication( const LoadParameters& parameters )
 		// but it should be safe to do.
 		RuntimeGuard guard( * this );
 
-		fDisplay->Initialize( L, configIndex, orientation );
+		fDisplay->Initialize( L, configIndex, orientation, fBackend, fBackendState );
 
 		if ( fDelegate )
 		{

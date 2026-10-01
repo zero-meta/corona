@@ -321,6 +321,20 @@ settings =
 		singleInstance = true,
 	},
 
+	nxs = {
+		publishable = true,
+	},
+
+	web =
+	{
+		defaultMode = "",
+		defaultViewWidth = 1,
+		defaultViewHeight = 1,
+		titleText =
+		{
+			default = "",
+		},
+	},
 	window =
 	{
 		defaultMode = "",

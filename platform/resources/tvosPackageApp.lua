@@ -880,20 +880,13 @@ local function generateXcent( options )
 	local data = templateXcent
 
 	-- Set "get-task-allow" to the same value as in the provisioning profile
-	local get_task_allow_setting = captureCommandOutput("security cms -D -i '".. options.mobileProvision .."' | plutil -p - | fgrep 'get-task-allow'")
+	local get_task_allow_setting = captureCommandOutput("security cms -D -i '".. options.mobileProvision .."' | plutil -extract Entitlements.get-task-allow raw -o - -")
 	if debugBuildProcess and debugBuildProcess ~= 0 then
 		print("get_task_allow_setting: ".. tostring(get_task_allow_setting))
 	end
-	
 	if get_task_allow_setting ~= "" then
-		-- set the value appropriately
-		if nil ~= string.find( get_task_allow_setting, "1", 1, true ) then
-			templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", "true" )
-			assert( numMatches == 1 )
-		else
-			templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", "false" )
-			assert( numMatches == 1 )
-		end
+		templateGetTaskAllow, numMatches = string.gsub( templateGetTaskAllow, "{{GET_TASK}}", get_task_allow_setting )
+		assert( numMatches == 1 )
 		data, numMatches = string.gsub( data, "{{GET_TASK_ALLOW}}", templateGetTaskAllow )
 		assert( numMatches == 1 )
 	else
@@ -909,7 +902,7 @@ local function generateXcent( options )
 		print("beta_reports_active_setting: ".. tostring(beta_reports_active_setting))
 	end
 
-	if beta_reports_active_setting ~= "" then
+	if beta_reports_active_setting ~= "" and options.settings.tvos.betaReportsEnabled == true then
 		-- set the value appropriately
 		if nil ~= string.find( beta_reports_active_setting, "1", 1, true ) then
 			templateBetaReportsActive, numMatches = string.gsub( templateBetaReportsActive, "{{BETA_REPORTS}}", "true" )
@@ -971,34 +964,6 @@ local function generateXcent( options )
 end
 
 
---
--- generateFiles
---
--- Create the .xcent and Info.plist files
---
--- returns an error message or nil on success
---
-local function generateFiles( options )
-	local result = nil
-
-	result = generateXcprivacy( options )
-	if result then
-		return result
-	end
-
-	result = generateXcent( options )
-	if result then
-		return result
-	end
-
-	result = CoronaPListSupport.modifyPlist( options )
-	if result then
-		return result
-	end
-
-	return result
-end
-
 -- xcprivacy
 local templateXcprivacy = [[
 <?xml version="1.0" encoding="UTF-8"?>
@@ -1029,6 +994,35 @@ local function generateXcprivacy( options )
 	if debugBuildProcess and debugBuildProcess ~= 0 then
 		runScript("cat "..filename)
 	end
+end
+
+
+--
+-- generateFiles
+--
+-- Create the .xcent and Info.plist files
+--
+-- returns an error message or nil on success
+--
+local function generateFiles( options )
+	local result = nil
+
+	result = generateXcprivacy( options )
+	if result then
+		return result
+	end
+
+	result = generateXcent( options )
+	if result then
+		return result
+	end
+
+	result = CoronaPListSupport.modifyPlist( options )
+	if result then
+		return result
+	end
+
+	return result
 end
 
 -- True for Ad Hoc or Store builds

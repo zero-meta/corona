@@ -161,12 +161,12 @@ function M:updateFlags( minVersion )
 	self.options.flags = {
 		'-ObjC',
 		'-all_load',
-		'-ld_classic',
 		'-fobjc-link-runtime',
 		'-miphoneos-version-min=' .. minVersion,
 		'-std=c++11',
 		'-stdlib=libc++',
 		'-Xlinker -rpath -Xlinker /usr/lib/swift -Xlinker -rpath -Xlinker @executable_path/Frameworks',
+		'-Xlinker -undefined -Xlinker dynamic_lookup',
 	}
 end
 
@@ -296,6 +296,7 @@ options.frameworksOptional = {
 	'Photos',
 	'Foundation', -- NOTE: This is optional b/c libFuseAds.a references an iOS7 API
 	'Twitter',
+	'PhotosUI',
 }
 
 options.staticLibs = {

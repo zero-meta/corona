@@ -17,6 +17,7 @@
 #include "Rtt_Lua.h"
 #include "Rtt_LuaContext.h"
 #include "Rtt_LuaLibPhysics.h"
+#include "Rtt_PhysicsTypes.h"
 #include "Rtt_PhysicsWorld.h"
 #include "Rtt_Runtime.h"
 
@@ -42,24 +43,15 @@ DisplayObjectExtensions::~DisplayObjectExtensions()
 #ifdef Rtt_PHYSICS
 	if ( b2Body_IsValid(fBodyId) )
 	{
-		GroupObject *parent = fOwner.GetParent();
-		if ( Rtt_VERIFY( parent ) )
-		{
-			// fBody->SetUserData( NULL );
-			b2Body_SetUserData( fBodyId, NULL );
+		// Always clear UserData to prevent StepWorld from dereferencing
+		// a freed DisplayObject. GetParent() returns NULL for objects
+		// with IsRenderedOffScreen (snapshot.group, canvas cache), which
+		// previously caused SetUserData(NULL) to be skipped.
+		b2Body_SetUserData( fBodyId, NULL );
 
-			// Do NOT DestroyBody here.  Instead, at end of StepWorld(), we lazily
-			// detect if the body's userdata is NULL. If it is, we know to destroy
-			// the body.
-			/*
-			Runtime *runtime = static_cast< Runtime* >( Rtt_AllocatorGetUserdata( parent->Allocator() ) );
-			b2World *world = runtime->GetWorld();
-			if ( Rtt_VERIFY( world ) )
-			{
-				world->DestroyBody( fBody );
-			}
-			*/
-		}
+		// Do NOT DestroyBody here.  Instead, at end of StepWorld(), we lazily
+		// detect if the body's userdata is NULL. If it is, we know to destroy
+		// the body.
 	}
 #endif // Rtt_PHYSICS
 }
@@ -129,7 +121,7 @@ DisplayObjectExtensions::getMassWorldCenter( lua_State *L )
 
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Vec2 massWorldCenterInPixels = ( b2Body_GetWorldCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
+		b2Vec2 massWorldCenterInPixels = ( b2Body_GetWorldCenter(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massWorldCenterInPixels.x );
 		lua_pushnumber( L, massWorldCenterInPixels.y );
@@ -151,7 +143,7 @@ DisplayObjectExtensions::getMassLocalCenter( lua_State *L )
 
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Vec2 massLocalCenterInPixels = ( b2Body_GetLocalCenterOfMass(bodyId) * physics.GetPixelsPerMeter() );
+		b2Vec2 massLocalCenterInPixels = ( b2Body_GetLocalCenter(bodyId) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, massLocalCenterInPixels.x );
 		lua_pushnumber( L, massLocalCenterInPixels.y );
@@ -265,7 +257,7 @@ DisplayObjectExtensions::resetMassData( lua_State *L )
 	{
 		Self *extensions = o->GetExtensions();
 		b2BodyId bodyId = extensions->GetBody();
-		b2Body_ApplyMassFromShapes(bodyId);
+		b2Body_UpdateMassFromShapes(bodyId);
 	}
 
 	return 0;
@@ -311,11 +303,10 @@ DisplayObjectExtensions::getInertia(lua_State* L)
 
 	if (o)
 	{
-		const PhysicsWorld& physics = LuaContext::GetRuntime(L)->GetPhysicsWorld();
-		Real scale = physics.GetPixelsPerMeter();
+		// const PhysicsWorld& physics = LuaContext::GetRuntime(L)->GetPhysicsWorld();
+		// Real scale = physics.GetPixelsPerMeter();
 
-		Self* extensions = o->GetExtensions();
-		b2BodyId bodyId = extensions->GetBody();
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
 
 		// float32 inertia = fBody->GetInertia() * scale;
 		float inertia = b2Body_GetRotationalInertia(bodyId);
@@ -350,7 +341,7 @@ DisplayObjectExtensions::getLinearVelocityFromWorldPoint(lua_State* L)
 
 		// b2Vec2 velocity = fBody->GetLinearVelocityFromWorldPoint(worldPoint);
 		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
-		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), worldPoint - b2Body_GetWorldCenterOfMass(bodyId));
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), worldPoint - b2Body_GetWorldCenter(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
@@ -383,7 +374,7 @@ DisplayObjectExtensions::getLinearVelocityFromLocalPoint(lua_State* L)
 
 		// b2Vec2 velocity = fBody->GetLinearVelocityFromLocalPoint(localPoint);
 		b2Vec2 velocity = b2Body_GetLinearVelocity(bodyId);
-		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), b2Body_GetWorldPoint(bodyId, localPoint) - b2Body_GetWorldCenterOfMass(bodyId));
+		velocity += b2CrossSV(b2Body_GetAngularVelocity(bodyId), b2Body_GetWorldPoint(bodyId, localPoint) - b2Body_GetWorldCenter(bodyId));
 
 		lua_pushnumber(L, velocity.x);
 		lua_pushnumber(L, velocity.y);
@@ -396,7 +387,58 @@ DisplayObjectExtensions::getLinearVelocityFromLocalPoint(lua_State* L)
 
 typedef void shapeSetStateFcn( b2ShapeId shapeId, bool state );
 
-static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState )
+static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState, bool releaseCompoundPreSolveOwnership = false )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+		if ( ! b2Body_IsValid( bodyId ) )
+		{
+			return 0;
+		}
+
+		bool state = lua_toboolean( L, 2 );
+		int count = b2Body_GetShapeCount( bodyId );
+		int shapeIndexStart = 0;
+		int shapeIndexEnd = count;
+		if ( lua_isnumber( L, 3 ) )
+		{
+			shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+		}
+		if ( lua_isnumber( L, 4 ) )
+		{
+			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+		}
+		std::vector<b2ShapeId> shapeArray;
+		shapeArray.resize( count );
+		b2Body_GetShapes( bodyId, shapeArray.data(), count );
+		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
+			if ( releaseCompoundPreSolveOwnership )
+			{
+				PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+				physics.ReleaseCompoundInternalEdgePreSolveOwnership( shapeArray[i] );
+			}
+			setState( shapeArray[ i ], state );
+		}
+
+		return 0;
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::setHitEventsEnabled( lua_State* L )
+{
+	return setBodyStateWithShapeIndex( L, b2Shape_EnableHitEvents );
+}
+
+int
+DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
 {
 	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
 
@@ -418,30 +460,18 @@ static int setBodyStateWithShapeIndex( lua_State* L, shapeSetStateFcn* setState 
 		{
 			shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
 		}
-		b2ShapeId* shapeArray = new b2ShapeId[ count ];
-		b2Body_GetShapes( bodyId, shapeArray, count );
+		std::vector<b2ShapeId> shapeArray;
+		shapeArray.resize( count );
+		b2Body_GetShapes( bodyId, shapeArray.data(), count );
 		for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
-			setState( shapeArray[ i ], state );
+			b2Shape_EnableContactEvents( shapeArray[ i ], state );
+			if (state) { b2Shape_EnableSensorEvents( shapeArray[ i ], state ); }
 		}
-
-		delete[] shapeArray;
 
 		return 0;
 	}
 
 	return 0;
-}
-
-int
-DisplayObjectExtensions::setHitEventsEnabled( lua_State* L )
-{
-	return setBodyStateWithShapeIndex( L, b2Shape_EnableHitEvents );
-}
-
-int
-DisplayObjectExtensions::setContactEventsEnabled( lua_State* L )
-{
-	return setBodyStateWithShapeIndex( L, b2Shape_EnableContactEvents );
 }
 
 int
@@ -453,7 +483,122 @@ DisplayObjectExtensions::setSensorEventsEnabled( lua_State* L )
 int
 DisplayObjectExtensions::setPreSolveEventsEnabled( lua_State* L )
 {
-	return setBodyStateWithShapeIndex( L, b2Shape_EnablePreSolveEvents );
+	return setBodyStateWithShapeIndex( L, b2Shape_EnablePreSolveEvents, true );
+}
+
+int
+DisplayObjectExtensions::setFilter( lua_State* L )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		if ( lua_istable( L, 2 ) )
+		{
+			b2Filter filter = b2DefaultFilter();
+			lua_getfield( L, 2, "categoryBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.categoryBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
+
+			lua_getfield( L, 2, "maskBits" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.maskBits = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
+
+			lua_getfield( L, 2, "groupIndex" );
+			if ( lua_isnumber( L, -1 ) )
+			{
+				filter.groupIndex = lua_tonumber( L, -1 );
+			}
+			lua_pop( L, 1 );
+
+			int count = b2Body_GetShapeCount( bodyId );
+			int shapeIndexStart = 0;
+			int shapeIndexEnd = count;
+			if ( lua_isnumber( L, 3 ) )
+			{
+				shapeIndexStart = b2MaxInt( lua_tointeger( L, 3 ) - 1, 0 );
+			}
+			if ( lua_isnumber( L, 4 ) )
+			{
+				shapeIndexEnd = b2MinInt( lua_tointeger( L, 4 ), count);
+			}
+			std::vector<b2ShapeId> shapeArray;
+			shapeArray.resize( count );
+			b2Body_GetShapes( bodyId, shapeArray.data(), count );
+			for ( int i = shapeIndexStart; i < shapeIndexEnd; ++i ) {
+				b2Shape_SetFilter( shapeArray[ i ], filter );
+			}
+		}
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::wakeTouching( lua_State* L )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if (o)
+	{
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+		b2Body_WakeTouching( bodyId );
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::setSleepThreshold( lua_State *L )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if ( o )
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+		Real scale = physics.GetPixelsPerMeter();
+
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		Real v = Rtt_RealDiv( lua_tonumber( L, 2 ), scale );
+
+		b2Body_SetSleepThreshold( bodyId, v );
+	}
+
+	return 0;
+}
+
+int
+DisplayObjectExtensions::getSleepThreshold( lua_State *L )
+{
+	DisplayObject* o = (DisplayObject*)LuaProxy::GetProxyableObject( L, 1 );
+
+	Rtt_WARN_SIM_PROXY_TYPE( L, 1, DisplayObject );
+
+	if ( o )
+	{
+		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+
+		b2BodyId bodyId = o->GetExtensions()->GetBody();
+
+		lua_pushnumber( L, b2Body_GetSleepThreshold(bodyId) * physics.GetPixelsPerMeter() );
+	}
+
+	return 1;
 }
 
 #endif // Rtt_PHYSICS
@@ -506,9 +651,18 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			"setContactEventsEnabled",          // 26
 			"setSensorEventsEnabled",           // 27
 			"setPreSolveEventsEnabled",         // 28
+			"setFilter",                        // 29
+			"allowFastRotation",                // 30
+			"wakeTouching",                     // 31
+			"setSleepThreshold",                // 32
+			"getSleepThreshold",                // 33
+			"shapeCount",                       // 34
+			"jointCount",                       // 35
+			"isContactRecycling",               // 36
+			"isSeamContactFilterEnabled",       // 37
 		};
 		static const int numKeys = sizeof( keys ) / sizeof( const char * );
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 29, 26, 14, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, numKeys, 38, 31, 14, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -536,7 +690,7 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 4:
 			{
-				lua_pushboolean( L, b2Body_IsFixedRotation(fBodyId) );
+				lua_pushboolean( L, b2Body_GetMotionLocks(fBodyId).angularZ );
 			}
 			break;
 		case 5:
@@ -633,42 +787,87 @@ DisplayObjectExtensions::ValueForKey( lua_State *L, const MLuaProxyable& object,
 			break;
 		case 21:
 			{
-				lua_pushcfunction(L, Self::getWorldVector );
+				lua_pushcfunction( L, Self::getWorldVector );
 			}
 			break;
 		case 22:
 			{
-				lua_pushcfunction(L, Self::getInertia);
+				lua_pushcfunction( L, Self::getInertia );
 			}
 			break;
 		case 23:
 			{
-				lua_pushcfunction(L, Self::getLinearVelocityFromWorldPoint);
+				lua_pushcfunction( L, Self::getLinearVelocityFromWorldPoint );
 			}
 			break;
 		case 24:
 			{
-				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint);
+				lua_pushcfunction(L, Self::getLinearVelocityFromLocalPoint );
 			}
 			break;
 		case 25:
 			{
-				lua_pushcfunction(L, Self::setHitEventsEnabled);
+				lua_pushcfunction( L, Self::setHitEventsEnabled );
 			}
 			break;
 		case 26:
 			{
-				lua_pushcfunction(L, Self::setContactEventsEnabled);
+				lua_pushcfunction( L, Self::setContactEventsEnabled );
 			}
 			break;
 		case 27:
 			{
-				lua_pushcfunction(L, Self::setSensorEventsEnabled);
+				lua_pushcfunction( L, Self::setSensorEventsEnabled );
 			}
 			break;
 		case 28:
 			{
-				lua_pushcfunction(L, Self::setPreSolveEventsEnabled);
+				lua_pushcfunction( L, Self::setPreSolveEventsEnabled );
+			}
+			break;
+		case 29:
+			{
+				lua_pushcfunction( L, Self::setFilter );
+			}
+			break;
+		case 30:
+			{
+				lua_pushboolean( L, b2Body_AllowFastRotation(fBodyId) );
+			}
+			break;
+		case 31:
+			{
+				lua_pushcfunction( L, Self::wakeTouching );
+			}
+			break;
+		case 32:
+			{
+				lua_pushcfunction( L, Self::setSleepThreshold );
+			}
+			break;
+		case 33:
+			{
+				lua_pushcfunction( L, Self::getSleepThreshold );
+			}
+			break;
+		case 34:
+			{
+				lua_pushnumber( L, b2Body_GetShapeCount(fBodyId) );
+			}
+			break;
+		case 35:
+			{
+				lua_pushnumber( L, b2Body_GetJointCount(fBodyId) );
+			}
+			break;
+		case 36:
+			{
+				lua_pushboolean( L, b2Body_IsContactRecyclingEnabled(fBodyId) );
+			}
+			break;
+		case 37:
+			{
+				lua_pushboolean( L, b2Body_IsSeamContactFilterEnabled(fBodyId) );
 			}
 			break;
 		default:
@@ -717,9 +916,12 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			"angularDamping",			// 7
 			"bodyType",					// 8
 			"isSensor",					// 9
-			"gravityScale"				// 10
+			"gravityScale",				// 10
+			"allowFastRotation",        // 11
+			"isContactRecycling",       // 12
+			"isSeamContactFilterEnabled", // 13
 		};
-		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 11, 21, 2, __FILE__, __LINE__ );
+		static StringHash sHash( *LuaContext::GetAllocator( L ), keys, sizeof( keys ) / sizeof( const char * ), 14, 32, 3, __FILE__, __LINE__ );
 		StringHash *hash = &sHash;
 
 		int index = hash->Lookup( key );
@@ -755,7 +957,8 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 			break;
 		case 4:
 			{
-				b2Body_SetFixedRotation( fBodyId, lua_toboolean( L, valueIndex ) );
+				bool isFixedRotation = lua_toboolean( L, valueIndex );
+				b2Body_SetMotionLocks( fBodyId, { false, false, isFixedRotation } );
 			}
 			break;
 		case 5:
@@ -804,17 +1007,185 @@ DisplayObjectExtensions::SetValueForKey( lua_State *L, MLuaProxyable &, const ch
 				// Set all fixtures in the body (we call these "body elements") to the desired sensor state
 				bool sensorState = lua_toboolean( L, valueIndex );
 				int count = b2Body_GetShapeCount( fBodyId );
-				b2ShapeId* shapeArray = new b2ShapeId[ count ];
-				b2Body_GetShapes( fBodyId, shapeArray, count );
-				for ( int i = 0; i < count; ++i ) {
-					b2Shape_SetSensor( shapeArray[ i ], sensorState );
+				std::vector<b2ShapeId> shapeArray;
+				shapeArray.resize( count );
+				b2Body_GetShapes( fBodyId, shapeArray.data(), count );
+				PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+				bool compoundEdgesInvalidated = false;
+				int destroyCount = 0;
+				std::vector<b2ChainId> chains;
+				for ( int i = 0; i < count; ++i )
+				{
+					b2ShapeId shapeId = shapeArray[i];
+					if ( b2Shape_IsSensor( shapeId ) != sensorState )
+					{
+						if ( compoundEdgesInvalidated == false )
+						{
+							physics.InvalidateCompoundInternalEdges( fBodyId );
+							compoundEdgesInvalidated = true;
+						}
+						b2ShapeType type = b2Shape_GetType( shapeId );
+						if (type != b2ShapeType::b2_chainSegmentShape)
+						{
+							b2ShapeDef shapeDef = b2DefaultShapeDef();
+							shapeDef.userData = b2Shape_GetUserData( shapeId );
+							shapeDef.material.friction = b2Shape_GetFriction( shapeId );
+							shapeDef.material.restitution = b2Shape_GetRestitution( shapeId );
+							shapeDef.density = b2Shape_GetDensity( shapeId );
+							shapeDef.filter = b2Shape_GetFilter( shapeId );
+							shapeDef.isSensor = sensorState;
+							shapeDef.enableContactEvents = b2Shape_AreContactEventsEnabled( shapeId );
+							shapeDef.enableHitEvents = b2Shape_AreHitEventsEnabled( shapeId );
+							shapeDef.enablePreSolveEvents = b2Shape_ArePreSolveEventsEnabled( shapeId );
+							if (sensorState)
+							{
+								shapeDef.enableSensorEvents = true;
+							}
+							else
+							{
+								shapeDef.enableSensorEvents =  b2Shape_AreSensorEventsEnabled( shapeId );;
+							}
+
+							switch ( type )
+							{
+								case b2_circleShape:
+								{
+									b2Circle circle = b2Shape_GetCircle( shapeId );
+									b2CreateCircleShape( fBodyId, &shapeDef, &circle );
+									break;
+								}
+								case b2_capsuleShape:
+								{
+									b2Capsule capsule = b2Shape_GetCapsule( shapeId );
+									b2CreateCapsuleShape( fBodyId, &shapeDef, &capsule );
+									break;
+								}
+								case b2_polygonShape:
+								{
+									b2Polygon polygon = b2Shape_GetPolygon( shapeId );
+									b2CreatePolygonShape( fBodyId, &shapeDef, &polygon );
+									break;
+								}
+								case b2_segmentShape:
+								{
+									b2Segment segment = b2Shape_GetSegment( shapeId );
+									b2CreateSegmentShape( fBodyId, &shapeDef, &segment );
+									break;
+								}
+								default:
+									break;
+							}
+							b2Shape_SetUserData( shapeId, NULL );
+							b2DestroyShape( shapeId, false );
+							destroyCount++;
+						}
+						else
+						{
+							b2ChainId chainId = b2Shape_GetParentChain( shapeId );
+							bool found = false;
+							for ( int i = 0; i < chains.size(); i++ )
+							{
+								if ( B2_ID_EQUALS( chains[i], chainId ) )
+								{
+									found = true;
+									break;
+								}
+							}
+							if ( ! found )
+							{
+								chains.push_back( chainId );
+								destroyCount++;
+							}
+						}
+					}
 				}
-				delete[] shapeArray;
+				int numChains = chains.size();
+				if ( numChains > 0 ) {
+					for ( int i = 0; i < numChains; i++ )
+					{
+						b2ChainId chainId = chains[i];
+						int numSegments = b2Chain_GetSegmentCount( chainId );
+						if ( numSegments > 0 )
+						{
+							std::vector<b2ShapeId> segmentArray;
+							segmentArray.resize( numSegments );
+							b2Chain_GetSegments( chainId, segmentArray.data(), numSegments );
+							b2Vec2Vector points;
+							b2ChainSegment a = b2Shape_GetChainSegment( segmentArray[0] );
+							b2ChainSegment b = b2Shape_GetChainSegment( segmentArray[numSegments - 1] );
+							bool isLoop = b2Length(a.segment.point1 - b.segment.point2) < FLT_EPSILON && b2Length(a.segment.point2 - b.ghost2) < FLT_EPSILON;
+							if ( isLoop )
+							{
+								points.resize( numSegments );
+								for ( int j = 0; j < numSegments; j++ )
+								{
+									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).segment.point1;
+								}
+							}
+							else
+							{
+								// Segment points; the ghost points are passed separately
+								points.resize( numSegments );
+								for ( int j = 0; j < numSegments; j++ )
+								{
+									points[j] = b2Shape_GetChainSegment( segmentArray[j] ).segment.point1;
+								}
+								points.push_back( b.segment.point2 );
+							}
+
+							b2ChainDef chainDef = b2DefaultChainDef();
+							// Materials are per segment
+							b2SurfaceMaterial material = b2Chain_GetSurfaceMaterial( chainId, 0 );
+							chainDef.materials = &material;
+							chainDef.materialCount = 1;
+							chainDef.userData = b2Shape_GetUserData( segmentArray[0] );
+							chainDef.filter = b2Shape_GetFilter( segmentArray[0] );
+							chainDef.points = points.data();
+							chainDef.pointCount = (int)points.size();
+							chainDef.ghost1 = a.ghost1;
+							chainDef.ghost2 = b.ghost2;
+							chainDef.isSensor = sensorState;
+							chainDef.isLoop = isLoop;
+							if (sensorState)
+							{
+								chainDef.enableSensorEvents = true;
+							}
+							else
+							{
+								chainDef.enableSensorEvents =  b2Shape_AreSensorEventsEnabled( segmentArray[0] );;
+							}
+
+							b2DestroyChain( chainId );
+
+							b2CreateChain( fBodyId, &chainDef );
+						}
+					}
+				}
+				if (destroyCount > 0)
+				{
+					b2Body_UpdateMassFromShapes( fBodyId );
+					physics.RefreshCompoundInternalEdges( fBodyId );
+				}
 			}
 			break;
 		case 10:
 			{
 				b2Body_SetGravityScale( fBodyId, lua_tonumber( L, valueIndex ) );
+			}
+			break;
+		case 11:
+			{
+				b2Body_SetAllowFastRotation( fBodyId, lua_toboolean( L, valueIndex ) );
+			}
+			break;
+		case 12:
+			{
+				b2Body_EnableContactRecycling( fBodyId, lua_toboolean( L, valueIndex ) );
+			}
+			break;
+		case 13:
+			{
+				b2Body_EnableSeamContactFilter( fBodyId, lua_toboolean( L, valueIndex ) );
 			}
 			break;
 		default:

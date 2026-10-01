@@ -63,6 +63,10 @@ class DisplayObjectExtensions : public LuaProxyVTable
 		static int setContactEventsEnabled( lua_State* L );
 		static int setSensorEventsEnabled( lua_State* L );
 		static int setPreSolveEventsEnabled( lua_State* L );
+		static int setFilter( lua_State* L );
+		static int wakeTouching( lua_State* L );
+		static int setSleepThreshold( lua_State* L );
+		static int getSleepThreshold( lua_State* L );
 
 #endif // Rtt_PHYSICS
 
@@ -74,6 +78,7 @@ class DisplayObjectExtensions : public LuaProxyVTable
 #ifdef Rtt_PHYSICS
 	public:
 		void SetBody( b2BodyId bodyId, b2WorldId worldId );
+		void ClearBody() { fBodyId = b2_nullBodyId; }
 		b2BodyId GetBody() const { return fBodyId; }
 #endif // Rtt_PHYSICS
 

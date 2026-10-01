@@ -75,17 +75,18 @@ local function getPluginDirectories(platform, build, pluginsToDownload, buildSet
 
 	for _, pd in pairs(pluginsToDownload) do
 		local plugin, developer = unpack( pd )
-				local pluginArchivePath = pluginsDest .. plugin
-				local unpackLocation = pluginsDest .. developer .. '_' .. plugin
-				lfs.mkdir(unpackLocation)
-				local ret = unpackPlugin(pluginArchivePath..'/data.tgz', unpackLocation)
-				if ret ~= 0 then
-					print("WARNING: unable to unpack plugin " .. plugin .. ' (' .. developer .. ').')
-				else
-					table.insert(pluginDirectories, unpackLocation)
-				end
-				--clean up archives
-				os.remove(pluginArchivePath..'/data.tgz')
+		local pluginArchivePath = pluginsDest .. plugin
+		local unpackLocation = pluginsDest .. developer .. '_' .. plugin
+		lfs.mkdir(unpackLocation)
+		local ret = unpackPlugin(pluginArchivePath..'/data.tgz', unpackLocation)
+		if ret ~= 0 then
+			print("WARNING: unable to unpack plugin " .. plugin .. ' (' .. developer .. ').')
+		else
+			table.insert(pluginDirectories, unpackLocation)
+		end
+		--clean up archives and older folder
+		os.remove(pluginArchivePath..'/data.tgz')
+		lfs.rmdir(pluginArchivePath)
 	end
 
 	return pluginDirectories
@@ -95,7 +96,7 @@ end
 
 
 
-local function iOSDownloadPlugins( sdk, platform, build, pluginsToDownload, forceLoad, buildSettingsPlugins )
+local function AppleDownloadPlugins( sdk, platform, build, pluginsToDownload, forceLoad, buildSettingsPlugins )
 	-- download plugins and unpack them
 	local pluginDirectories = getPluginDirectories(platform, build, pluginsToDownload, buildSettingsPlugins )
 	if not pluginDirectories then
@@ -109,6 +110,43 @@ local function iOSDownloadPlugins( sdk, platform, build, pluginsToDownload, forc
 	-- local detect Lua plugins and Native plugins
 
 	for _, pluginDir in pairs(pluginDirectories) do
+
+		-- We need to copy .framework files to the resources directory for tvOS
+		if platform == 'appletvos' or platform == 'appletvsimulator' then
+			local resourcesDir = pluginDir .. '/resources'
+			local frameworkDir = resourcesDir .. '/Frameworks'
+
+			-- Ensure directories exist before copying
+			local function ensureDirectoryExists(path)
+				if lfs.attributes(path, "mode") ~= "directory" then
+					lfs.mkdir(path)
+				end
+			end
+
+			-- Create the necessary directories
+			ensureDirectoryExists(resourcesDir)
+			ensureDirectoryExists(frameworkDir)
+
+			-- Copy all .framework files
+			if lfs.attributes(pluginDir, "mode") == "directory" then
+				for file in lfs.dir(pluginDir) do
+					if file:match("%.framework$") then
+						local src = pluginDir .. '/' .. file
+						local dst = frameworkDir .. '/' .. file
+
+						-- Check if the destination framework already exists
+						if lfs.attributes(dst, "mode") == "directory" then
+							-- Remove the existing framework to prevent nesting
+							os.execute('rm -rf ' .. quoteString(dst))
+						end
+
+						-- Copy the new framework
+						os.execute('cp -r ' .. quoteString(src) .. ' ' .. quoteString(dst))
+					end
+				end
+			end
+		end
+
 		local metadataChunk = loadfile( pluginDir .. '/metadata.lua' )
 		if metadataChunk then
 			local metadata = metadataChunk()
@@ -145,18 +183,22 @@ local function iOSDownloadPlugins( sdk, platform, build, pluginsToDownload, forc
 	for _, plugin in pairs(nativePlugins) do
 
 		-- Add plugin's static lib
-		for _, lib in pairs(plugin.staticLibs) do
-			if forceLoad then
-				staticLibs[' -force_load ' .. quoteString(plugin.path .. '/lib' .. lib .. '.a')] = true
-			else
-				staticLibs[' -l' .. lib] = true
-				searchPaths[plugin.path] = true
+		if(plugin.staticLibs)then
+			for _, lib in pairs(plugin.staticLibs) do
+				if forceLoad then
+					staticLibs[' -force_load ' .. quoteString(plugin.path .. '/lib' .. lib .. '.a')] = true
+				else
+					staticLibs[' -l' .. lib] = true
+					searchPaths[plugin.path] = true
+				end
 			end
 		end
 
-		for _, lib in pairs(plugin.frameworks) do
-			frameworks[lib] = true
-			frameworkSearchPaths[plugin.path] = true
+		if(plugin.frameworks)then
+			for _, lib in pairs(plugin.frameworks) do
+				frameworks[lib] = true
+				frameworkSearchPaths[plugin.path] = true
+			end
 		end
 
 		if plugin.frameworksOptional then
@@ -354,18 +396,21 @@ function DownloadPluginsMain(args, user, buildYear, buildRevision)
 	end
 
 	local build = buildYear .. '.' .. buildRevision
-	if platform == 'ios' then
+	if platform == 'ios' or platform == 'tvos' then
 
-		-- config for native plugins
-		local simConfig =  iOSDownloadPlugins('iphoneos', 'iphone', build, pluginsToDownload, forceLoad, settings.plugins )
-		if not simConfig then
-			return 1
-		end
-		local devConfig = iOSDownloadPlugins('iphonesimulator', 'iphone-sim', build, pluginsToDownload, forceLoad, settings.plugins )
-		if not devConfig then
-			return 1
-		end
-
+		local platformConfigs = {
+			tvos = { dev = { 'appletvos', 'appletvos' }, sim = { 'appletvsimulator', 'appletvsimulator' } },
+			default = { dev = { 'iphoneos', 'iphone' }, sim = { 'iphonesimulator', 'iphone-sim' } }
+		}
+		
+		local config = platformConfigs[platform] or platformConfigs.default
+		
+		local simConfig = AppleDownloadPlugins(config.sim[1], config.sim[2], build, pluginsToDownload, forceLoad, settings.plugins)
+		if not simConfig then return 1 end
+		
+		local devConfig = AppleDownloadPlugins(config.dev[1], config.dev[2], build, pluginsToDownload, forceLoad, settings.plugins)
+		if not devConfig then return 1 end
+		
 
 		local xcconfig = args[4]
 		if not xcconfig then
@@ -386,11 +431,23 @@ function DownloadPluginsMain(args, user, buildYear, buildRevision)
 
 ]])
 
-		if forceLoad then
-			config:write('OTHER_LDFLAGS = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -force_load "$(CORONA_ROOT)/Corona/ios/lib/libplayer.a" \n')
+		if( platform == 'tvos') then
+			if forceLoad then
+				config:write('OTHER_LDFLAGS = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -force_load \n')
+			else
+				config:write('OTHER_LDFLAGS = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -all_load \n')
+			end
 		else
-			config:write('OTHER_LDFLAGS = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -all_load -lplayer\n')
+			-- Use SDK-conditional paths for xcframework (supports M1 simulator and device)
+			if forceLoad then
+				config:write('OTHER_LDFLAGS[sdk=iphoneos*] = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -force_load "$(CORONA_ROOT)/Corona/ios/lib/libplayer.xcframework/ios-arm64/libplayer.a" -Xlinker -undefined -Xlinker dynamic_lookup \n')
+				config:write('OTHER_LDFLAGS[sdk=iphonesimulator*] = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -force_load "$(CORONA_ROOT)/Corona/ios/lib/libplayer.xcframework/ios-arm64_x86_64-simulator/libplayer.a" -Xlinker -undefined -Xlinker dynamic_lookup \n')
+			else
+				config:write('OTHER_LDFLAGS[sdk=iphoneos*] = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -all_load -Xlinker -undefined -Xlinker dynamic_lookup\n')
+				config:write('OTHER_LDFLAGS[sdk=iphonesimulator*] = $(inherited) $(CORONA_CUSTOM_LDFLAGS) -all_load -Xlinker -undefined -Xlinker dynamic_lookup\n')
+			end
 		end
+		
 
 		if #devConfig > 0 then
 			config:write('// device entries\n')
@@ -401,6 +458,61 @@ function DownloadPluginsMain(args, user, buildYear, buildRevision)
 			config:write(simConfig)
 		end
 		config:close()
+	elseif platform == 'win32' or platform == 'osx' or platform == 'macos' then
+
+		local destDir = args[4]
+		if not destDir then
+			print("ERROR: no output directory specified for '" .. platform .. "' plugin files.")
+			return 1
+		end
+
+		-- Set up native plugin cache directory (same layout as iOS/tvOS)
+		local pluginsDest
+		if windows then
+			pluginsDest = os.getenv('APPDATA') .. '\\Corona Labs'
+			lfs.mkdir(pluginsDest)
+			pluginsDest = pluginsDest .. '\\Corona Simulator'
+			lfs.mkdir(pluginsDest)
+			pluginsDest = pluginsDest .. '\\NativePlugins\\'
+			lfs.mkdir(pluginsDest)
+			pluginsDest = pluginsDest .. platform .. '\\'
+			lfs.mkdir(pluginsDest)
+		else
+			pluginsDest = os.getenv('HOME') .. '/Library/Application Support/Corona'
+			lfs.mkdir(pluginsDest)
+			pluginsDest = pluginsDest .. '/Native Plugins/'
+			lfs.mkdir(pluginsDest)
+			pluginsDest = pluginsDest .. platform .. '/'
+			lfs.mkdir(pluginsDest)
+		end
+
+		lfs.mkdir(destDir)
+
+		-- Download plugin archives using CoronaBuilderPluginCollector.
+		-- extractLocation causes all archives to be extracted flat into destDir,
+		-- with any lua_51/ subdirectory merged into root automatically.
+		local pluginCollector = require "CoronaBuilderPluginCollector"
+		-- Pass only the revision number to the collector (e.g. 9999, not "2100.9999").
+		-- CoronaBuilderPluginCollector's Solar2D directory checker does:
+		--   entryBuildNumber <= tonumber(params.build)
+		-- where entryBuildNumber is the revision extracted from version strings like "2020.3627".
+		-- Passing the full "year.revision" float (~2101) would be less than revisions like
+		-- 3627, making all version lookups fail. The iOS path in getPluginDirectories() uses
+		-- the hardcoded string "9999" for the same reason.
+		local collectorParams = {
+			pluginPlatform = platform,
+			plugins = settings.plugins,
+			destinationDirectory = pluginsDest,
+			extractLocation = destDir,
+			build = tostring(buildRevision),
+			download = builder.download,
+			fetch = builder.fetch
+		}
+		local err = pluginCollector.collect(collectorParams)
+		if err then
+			print("ERROR collecting plugins for '" .. platform .. "': " .. tostring(err))
+			return 1
+		end
 
 	else
 		print("ERROR: unsupported platform '".. platform .."'.")

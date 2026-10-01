@@ -16,6 +16,7 @@
 #include "Display/Rtt_DisplayObject.h"
 #include "Rtt_Runtime.h"
 #include "Rtt_Event.h"
+#include "Rtt_LuaAux.h"
 #include "Rtt_LuaContext.h"
 #include "Rtt_PhysicsContact.h"
 #include "Rtt_PhysicsWorld.h"
@@ -35,7 +36,7 @@ PhysicsContactListener::PhysicsContactListener( Runtime& runtime )
 }
 
 void
-PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
+PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2ContactId contactId)
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
 
@@ -69,29 +70,29 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 	// Get the out_position.
 	b2Vec2 position( b2Vec2_zero );
 
-	/*
-	Real normalImpulse = 0.0f;
-	Real tangentImpulse = 0.0f;
+	// Real normalImpulse = 0.0f;
+	// Real tangentImpulse = 0.0f;
 
 	int capacity = b2Shape_GetContactCapacity( shapeIdA );
-	b2ContactData contactData[capacity];
-	b2Manifold manifold = { 0 };
-	int count = b2Shape_GetContactData( shapeIdA, contactData, capacity );
-	for ( int i = 0; i < count; ++i )
-	{
-		if ( B2_ID_EQUALS( contactData[i].shapeIdB, shapeIdB ) ) {
-			manifold = contactData[i].manifold;
-			break;
-		}
-	}
+	// b2ContactData contactData[capacity];
+	// b2Manifold manifold = { 0 };
+	// int count = b2Shape_GetContactData( shapeIdA, contactData, capacity );
+	// for ( int i = 0; i < count; ++i )
+	// {
+	// 	if ( B2_ID_EQUALS( contactData[i].shapeIdB, shapeIdB ) ) {
+	// 		manifold = contactData[i].manifold;
+	// 		break;
+	// 	}
+	// }
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
 	// b2Manifold *manifold = contact->GetManifold();
-	if( manifold.pointCount )
+	if ( b2Contact_IsValid( contactId ) )
 	{
+		b2ContactData data = b2Contact_GetData( contactId );
 		Real scale = physics.GetPixelsPerMeter();
 
 		// "1": If we don't average all positions, then we only return the first one.
-		int32 point_count = ( physics.GetAverageCollisionPositions() ? manifold.pointCount : 1 );
+		int32 point_count = ( physics.GetAverageCollisionPositions() ? data.manifold.pointCount : 1 );
 
 		if( physics.GetReportCollisionsInContentCoordinates() )
 		{
@@ -99,14 +100,17 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 			// b2WorldManifold worldManifold;
 			// contact->GetWorldManifold( &worldManifold );
 
+			// anchorA is relative to bodyA's center of mass in world space.
+			b2Vec2 centerA = b2Body_GetWorldCenter( b2Shape_GetBody( data.shapeIdA ) );
+
 			// Sum.
 			for ( int32 i = 0;
 					i < point_count;
 					++i )
 			{
-				position += manifold.points[ i ].point;
-				normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
-				tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
+				position += centerA + data.manifold.points[ i ].anchorA;
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 		else
@@ -119,9 +123,9 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 					++i )
 			{
 				// position += manifold->points[ i ].localPoint;
-				position += manifold.points[ i ].anchorA;
-				normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
-				tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
+				position += data.manifold.points[ i ].anchorA;
+				// normalImpulse = b2MaxFloat( normalImpulse, manifold.points[ i ].normalImpulse );
+				// tangentImpulse = b2MaxFloat( tangentImpulse, manifold.points[ i ].tangentImpulse );
 			}
 		}
 
@@ -131,7 +135,6 @@ PhysicsContactListener::BeginContact(b2ShapeId shapeIdA, b2ShapeId shapeIdB)
 		// Scale.
 		position *= scale;
 	}
-	*/
 	////
 	////
 	////////////////////////////////////////////////////////////////////////
@@ -273,7 +276,11 @@ void PhysicsContactListener::BeginContactHit( b2ContactHitEvent *hitEvent )
 	if ( object1 && ! object1->IsOrphan()
 		 && object2 && ! object2->IsOrphan() )
 	{
-		HitCollisionEvent e( * object1, * object2, hitEvent->point.x, hitEvent->point.y, (int) fixtureIndex1, (int) fixtureIndex2,
+		// Meters to pixels, like the collision and preCollision positions.
+		b2Vec2 position = hitEvent->point;
+		position *= physics.GetPixelsPerMeter();
+
+		HitCollisionEvent e( * object1, * object2, position.x, position.y, (int) fixtureIndex1, (int) fixtureIndex2,
 			hitEvent->approachSpeed, hitEvent->normal.x, hitEvent->normal.y );
 		e.SetContact( NULL );
 
@@ -282,9 +289,13 @@ void PhysicsContactListener::BeginContactHit( b2ContactHitEvent *hitEvent )
 }
 
 bool
-PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const b2Manifold* manifold )
+PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, b2Vec2 point, b2Vec2 normal, float separation )
 {
 	const PhysicsWorld& physics = fRuntime.GetPhysicsWorld();
+	if ( physics.ShouldSuppressCompoundInternalEdge( shapeIdA, shapeIdB, point, normal ) )
+	{
+		return false;
+	}
 
 	if ( ! physics.IsProperty( PhysicsWorld::kPreCollisionListenerExists ) )
 	{
@@ -300,6 +311,12 @@ PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const 
 
 	DisplayObject *object1 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyA) );
 	DisplayObject *object2 = static_cast< DisplayObject* >( b2Body_GetUserData(bodyB) );
+	b2Vec2 position = point;
+	if ( ! physics.GetReportCollisionsInContentCoordinates() )
+	{
+		position = b2Body_GetLocalPoint( bodyA, point );
+	}
+	position *= physics.GetPixelsPerMeter();
 
 	////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////
@@ -309,50 +326,50 @@ PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const 
 	////
 	////
 	// Get the out_position.
-	b2Vec2 position( b2Vec2_zero );
+	// b2Vec2 position( b2Vec2_zero );
 
 	// It's possible for manifold->pointCount to be 0 (in the case of sensors).
 	// b2Manifold *manifold = contact->GetManifold();
-	if( manifold->pointCount )
-	{
-		Real scale = physics.GetPixelsPerMeter();
+	// if( manifold->pointCount )
+	// {
+	// 	Real scale = physics.GetPixelsPerMeter();
 
-		// "1": If we don't average all positions, then we only return the first one.
-		int32 point_count = ( physics.GetAverageCollisionPositions() ? manifold->pointCount : 1 );
+	// 	// "1": If we don't average all positions, then we only return the first one.
+	// 	int32 point_count = ( physics.GetAverageCollisionPositions() ? manifold->pointCount : 1 );
 
-		if( physics.GetReportCollisionsInContentCoordinates() )
-		{
-			// Get the contact points in content-space.
-			// b2WorldManifold worldManifold;
-			// contact->GetWorldManifold( &worldManifold );
+	// 	if( physics.GetReportCollisionsInContentCoordinates() )
+	// 	{
+	// 		// Get the contact points in content-space.
+	// 		// b2WorldManifold worldManifold;
+	// 		// contact->GetWorldManifold( &worldManifold );
 
-			// Sum.
-			for ( int32 i = 0;
-					i < point_count;
-					++i )
-			{
-				position += manifold->points[ i ].point;
-			}
-		}
-		else
-		{
-			// Get the contact points in local-space.
+	// 		// Sum.
+	// 		for ( int32 i = 0;
+	// 				i < point_count;
+	// 				++i )
+	// 		{
+	// 			position += manifold->points[ i ].point;
+	// 		}
+	// 	}
+	// 	else
+	// 	{
+	// 		// Get the contact points in local-space.
 
-			// Sum.
-			for ( int32 i = 0;
-					i < point_count;
-					++i )
-			{
-				position += b2Body_GetLocalPoint( bodyA, manifold->points[ i ].point );
-			}
-		}
+	// 		// Sum.
+	// 		for ( int32 i = 0;
+	// 				i < point_count;
+	// 				++i )
+	// 		{
+	// 			position += b2Body_GetLocalPoint( bodyA, manifold->points[ i ].point );
+	// 		}
+	// 	}
 
-		// Average.
-		position *= ( 1.0f / (Real)point_count );
+	// 	// Average.
+	// 	position *= ( 1.0f / (Real)point_count );
 
-		// Scale.
-		position *= scale;
-	}
+	// 	// Scale.
+	// 	position *= scale;
+	// }
 	////
 	////
 	////////////////////////////////////////////////////////////////////////
@@ -362,25 +379,31 @@ PhysicsContactListener::PreSolve( b2ShapeId shapeIdA, b2ShapeId shapeIdB, const 
 		 && object2 && ! object2->IsOrphan() )
 	{
 
-		float separation = 0.0f;
-		for ( int i = 0; i < manifold->pointCount; ++i )
-		{
-			float s = manifold->points[i].separation;
-			separation = separation < s ? separation : s;
-		}
-		// contact->separation = separation;
-
 		bool isEnabled = true;
 		{
 			Box2dPreSolveTempContact contact;
 			contact.separation = separation;
-			contact.normalX = manifold->normal.x;
-			contact.normalY = manifold->normal.y;
+			contact.normalX = normal.x;
+			contact.normalY = normal.y;
+
+			UserdataWrapper *contactWrapper = PhysicsContact::CreateWrapper( fRuntime.VMContext().LuaState(), &contact );
+			lua_State* L = fRuntime.VMContext().L();
+			if ( contactWrapper )
+			{
+				// Keep the userdata strongly reachable while the event propagates to
+				// object1, object2, and Runtime. The wrapper registry itself is weak.
+				contactWrapper->Push();
+			}
 
 			PreCollisionEvent e( * object1, * object2, position.x, position.y, fixtureIndex1, fixtureIndex2, fRuntime, &contact );
+			e.SetContact( contactWrapper );
+			fRuntime.DispatchEvent( e );
+			isEnabled = contact.isEnabled;
+
+			if ( contactWrapper )
 			{
-				std::lock_guard<std::mutex> lock(fDispatchEventMutex);
-				isEnabled = e.DispatchWithResult( fRuntime.VMContext().L(), fRuntime );
+				lua_pop( L, 1 );
+				contactWrapper->Invalidate();
 			}
 		}
 		return isEnabled;

@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.4.1)
+cmake_minimum_required(VERSION 3.13)
 
 set(COMMON_COMPILER_FLAGS "-Wno-deprecated -O3 -fstrict-aliasing -fvisibility=hidden -ffunction-sections -fdata-sections")
 
@@ -13,9 +13,10 @@ add_definitions(
 	-DLUA_USE_POSIX
 )
 
-if(ANDROID_ABI MATCHES "arm64")
-	add_definitions(-DBOX2D_ENABLE_SIMD)
-endif()
+# box2d_v3 uses NEON only on arm64 and scalar math on 32-bit ARM (see external/box2d_v3/src/core.h),
+# so armeabi-v7a needs no -mfpu=neon. If a box2d update selects NEON on arm32 again, every file that
+# includes <arm_neon.h> (contact_solver.c, simd.h users) needs -mfpu=neon here: NDK 18 defaults
+# armeabi-v7a to -mfpu=vfpv3-d16.
 
 include_directories (
 	jni
@@ -327,7 +328,7 @@ add_library( corona SHARED
 		${Lua2CppOutputDir}/ssl.cpp
 		${Lua2CppOutputDir}/tp.cpp
 		${Lua2CppOutputDir}/url.cpp
-		
+
 		${CORONA_ROOT}/external/LuaHashMap/LuaHashMap.c
 		${CORONA_ROOT}/librtt/Core/Rtt_Allocator.cpp
 		${CORONA_ROOT}/librtt/Core/Rtt_Array.cpp
@@ -358,6 +359,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/librtt/Corona/CoronaVersion.c
 		${CORONA_ROOT}/librtt/Corona/CoronaGraphics.cpp
 		${CORONA_ROOT}/librtt/Corona/CoronaMemory.cpp
+		${CORONA_ROOT}/librtt/Corona/CoronaObjects.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_BitmapMask.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_BitmapPaint.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_BitmapPaintAdapter.cpp
@@ -386,6 +388,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/librtt/Display/Rtt_LineObject.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_LuaLibDisplay.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_LuaLibGraphics.cpp
+		${CORONA_ROOT}/librtt/Display/Rtt_ObjectHandle.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_OpenPath.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_Paint.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_PaintAdapter.cpp
@@ -435,6 +438,8 @@ add_library( corona SHARED
 		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceBitmapAdapter.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceCanvas.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceCanvasAdapter.cpp
+		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceCapture.cpp
+		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceCaptureAdapter.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceExternal.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_TextureResourceExternalAdapter.cpp
 		${CORONA_ROOT}/librtt/Display/Rtt_VertexCache.cpp
@@ -626,6 +631,7 @@ add_library( corona SHARED
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GL.cpp
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GLCommandBuffer.cpp
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GLFrameBufferObject.cpp
+		${CORONA_ROOT}/librtt/Renderer/Rtt_FormatExtensionList.cpp
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GLGeometry.cpp
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GLProgram.cpp
 		${CORONA_ROOT}/librtt/Renderer/Rtt_GLRenderer.cpp
@@ -732,11 +738,10 @@ add_library( corona SHARED
 		# ${CORONA_ROOT}/external/Box2D/Box2D/Particle/b2VoronoiDiagram.cpp
 
 		${CORONA_ROOT}/external/box2d_v3/src/aabb.c
-		${CORONA_ROOT}/external/box2d_v3/src/allocate.c
-		${CORONA_ROOT}/external/box2d_v3/src/array.c
+		${CORONA_ROOT}/external/box2d_v3/src/arena_allocator.c
 		${CORONA_ROOT}/external/box2d_v3/src/bitset.c
-		${CORONA_ROOT}/external/box2d_v3/src/block_array.c
 		${CORONA_ROOT}/external/box2d_v3/src/body.c
+		${CORONA_ROOT}/external/box2d_v3/src/mover.c
 		${CORONA_ROOT}/external/box2d_v3/src/broad_phase.c
 		${CORONA_ROOT}/external/box2d_v3/src/constraint_graph.c
 		${CORONA_ROOT}/external/box2d_v3/src/contact.c
@@ -753,19 +758,25 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/box2d_v3/src/manifold.c
 		${CORONA_ROOT}/external/box2d_v3/src/math_functions.c
 		${CORONA_ROOT}/external/box2d_v3/src/motor_joint.c
-		${CORONA_ROOT}/external/box2d_v3/src/mouse_joint.c
 		${CORONA_ROOT}/external/box2d_v3/src/prismatic_joint.c
 		${CORONA_ROOT}/external/box2d_v3/src/revolute_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/sensor.c
 		${CORONA_ROOT}/external/box2d_v3/src/shape.c
 		${CORONA_ROOT}/external/box2d_v3/src/solver.c
 		${CORONA_ROOT}/external/box2d_v3/src/solver_set.c
-		${CORONA_ROOT}/external/box2d_v3/src/stack_allocator.c
 		${CORONA_ROOT}/external/box2d_v3/src/table.c
 		${CORONA_ROOT}/external/box2d_v3/src/timer.c
 		${CORONA_ROOT}/external/box2d_v3/src/types.c
 		${CORONA_ROOT}/external/box2d_v3/src/weld_joint.c
 		${CORONA_ROOT}/external/box2d_v3/src/wheel_joint.c
-		${CORONA_ROOT}/external/box2d_v3/src/world.c
+		${CORONA_ROOT}/external/box2d_v3/src/physics_world.c
+		${CORONA_ROOT}/external/box2d_v3/src/parallel_for.c
+		${CORONA_ROOT}/external/box2d_v3/src/scheduler.c
+		${CORONA_ROOT}/external/box2d_v3/src/mover_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/pogo_joint.c
+		${CORONA_ROOT}/external/box2d_v3/src/recording.c
+		${CORONA_ROOT}/external/box2d_v3/src/replay.c
+		${CORONA_ROOT}/external/box2d_v3/src/snapshot.c
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/block_allocator.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/free_list.cpp
 		${CORONA_ROOT}/external/box2d_v3/extern/liquidfun/liquid_shape.cpp
@@ -784,8 +795,10 @@ add_library( corona SHARED
 		${CORONA_ROOT}/external/smoothpolygon/SmoothPolygon.cpp
 )
 
-set(ENKITS_BUILD_C_INTERFACE OFF CACHE BOOL "Build C interface")
-set(ENKITS_BUILD_EXAMPLES OFF CACHE BOOL "Build example applications")
-add_subdirectory("${CORONA_ROOT}/external/enkiTS" "${CMAKE_CURRENT_BINARY_DIR}/libenkiTS_build/")
-
-target_link_libraries ( corona lua jnlua5.1 mpg123 OpenAL almixer cpufeatures GLESv2 EGL jnigraphics dl log z OpenSLES enkiTS )
+if(ANDROID AND (ANDROID_ABI STREQUAL "arm64-v8a" OR ANDROID_ABI STREQUAL "x86_64"))
+	# NDK version < 28
+	target_link_options(corona PRIVATE "-Wl,-z,max-page-size=16384")
+	# NDK version <= 22
+	target_link_options(corona PRIVATE "-Wl,-z,common-page-size=16384")
+endif()
+target_link_libraries ( corona lua jnlua5.1 mpg123 OpenAL almixer cpufeatures GLESv2 EGL jnigraphics dl log z OpenSLES )

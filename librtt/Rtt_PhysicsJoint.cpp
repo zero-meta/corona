@@ -24,12 +24,28 @@
 
 #include "box2d/box2d.h"
 
+#include <cfloat>
+#include <cmath>
+
 // ----------------------------------------------------------------------------
 
 namespace Rtt
 {
 
 // ----------------------------------------------------------------------------
+
+namespace
+{
+void
+CheckJointPropertyUnlocked( lua_State *L )
+{
+	const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+	if ( physics.GetWorld()->IsLocked() )
+	{
+		luaL_error( L, "joint spring and reference angle properties cannot be accessed while the physics world is locked" );
+	}
+}
+}
 
 const char PhysicsJoint::kMetatableName[] = "physics.joint"; // unique identifier for this userdata type
 
@@ -61,7 +77,7 @@ PhysicsJoint::getAnchorA( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyA(baseJoint), b2Joint_GetLocalAnchorA(baseJoint));
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyA(baseJoint), b2Joint_GetLocalFrameA(baseJoint).p);
 		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
 		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
 
@@ -83,7 +99,7 @@ PhysicsJoint::getAnchorB( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalAnchorB(baseJoint));
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalFrameB(baseJoint).p);
 		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
 		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
 
@@ -226,7 +242,7 @@ PhysicsJoint::GetLocalAnchorA( b2JointId jointId )
 	{
 		// GetLocalAnchorCallback Callback = GetLocalAnchorACallback( jointType );
 		// return Callback( & joint );
-		return b2Joint_GetLocalAnchorA(jointId);
+		return b2Joint_GetLocalFrameA(jointId).p;
 	}
 
 	return b2Vec2_zero;
@@ -240,7 +256,7 @@ PhysicsJoint::GetLocalAnchorB( b2JointId jointId )
 	{
 		// GetLocalAnchorCallback Callback = GetLocalAnchorBCallback( jointType );
 		// return Callback( & joint );
-		return b2Joint_GetLocalAnchorB(jointId);
+		return b2Joint_GetLocalFrameB(jointId).p;
 	}
 
 	return b2Vec2_zero;
@@ -366,7 +382,7 @@ PhysicsJoint::getLocalAxis( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalAnchorB(baseJoint));
+		b2Vec2 anchor = b2Body_GetWorldPoint(b2Joint_GetBodyB(baseJoint), b2Joint_GetLocalFrameB(baseJoint).p);
 		Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( anchor.x ), scale );
 		Rtt_Real py = Rtt_RealMul( Rtt_FloatToReal( anchor.y ), scale );
 		// Rtt_Real px = Rtt_RealMul( Rtt_FloatToReal( baseJoint->GetAnchorB().x ), scale );
@@ -390,7 +406,7 @@ PhysicsJoint::getReactionForce( lua_State *L )
 	if ( b2Joint_IsValid(baseJoint) )
 	{
 		Runtime& runtime = * LuaContext::GetRuntime( L );
-		float inverseDeltaTime = (float)runtime.GetFPS();
+		// float inverseDeltaTime = (float)runtime.GetFPS();
 		b2Vec2 force = b2Joint_GetConstraintForce(baseJoint);
 		Rtt_Real px = Rtt_FloatToReal( force.x );
 		Rtt_Real py = Rtt_FloatToReal( force.y );
@@ -498,7 +514,7 @@ PhysicsJoint::getLimits( lua_State *L )
 }
 
 int
-PhysicsJoint::setLinearOffset( lua_State *L )
+PhysicsJoint::setMotorJointLinearVelocity( lua_State *L )
 {
 	b2JointId baseJoint = GetJoint( L, 1 );
 
@@ -511,17 +527,15 @@ PhysicsJoint::setLinearOffset( lua_State *L )
 		Rtt_Real ox = Rtt_RealDiv( luaL_toreal( L, 2 ), scale );
 		Rtt_Real oy = Rtt_RealDiv( luaL_toreal( L, 3 ), scale );
 
-		// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
 		b2Vec2 offset = { ox, oy };
-		// joint->SetLinearOffset(offset);
-		b2MotorJoint_SetLinearOffset(baseJoint, offset);
+		b2MotorJoint_SetLinearVelocity(baseJoint, offset);
 	}
 
 	return 0;
 }
 
 int
-PhysicsJoint::getLinearOffset( lua_State *L )
+PhysicsJoint::getMotorJointLinearVelocity( lua_State *L )
 {
 	b2JointId baseJoint = GetJoint( L, 1 );
 
@@ -531,9 +545,7 @@ PhysicsJoint::getLinearOffset( lua_State *L )
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 		Real scale = physics.GetPixelsPerMeter();
 
-		// b2MotorJoint *joint = (b2MotorJoint*)baseJoint; // assumption: this cast is OK for both cases (otherwise check type)
-
-		b2Vec2 offset = b2MotorJoint_GetLinearOffset( baseJoint );
+		b2Vec2 offset = b2MotorJoint_GetLinearVelocity( baseJoint );
 		Rtt_Real ox = Rtt_RealMul( Rtt_FloatToReal( offset.x ), scale );
 		Rtt_Real oy = Rtt_RealMul( Rtt_FloatToReal( offset.y ), scale );
 
@@ -606,7 +618,7 @@ PhysicsJoint::getTarget( lua_State *L )
 
 		// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
 
-		b2Vec2 v( b2MouseJoint_GetTarget(baseJoint) * physics.GetPixelsPerMeter() );
+		b2Vec2 v( b2Body_GetWorldPoint( b2Joint_GetBodyA( baseJoint ) , b2Joint_GetLocalFrameA(baseJoint).p ) * physics.GetPixelsPerMeter() );
 
 		lua_pushnumber( L, v.x );
 		lua_pushnumber( L, v.y );
@@ -621,7 +633,7 @@ PhysicsJoint::setTarget( lua_State *L )
 	b2JointId baseJoint = GetJoint( L, 1 );
 
 	// This is for mouse ("touch") joints only
-	if ( b2Joint_IsValid(baseJoint) )
+	if ( b2Joint_IsValid( baseJoint ) )
 	{
 		const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 
@@ -632,7 +644,11 @@ PhysicsJoint::setTarget( lua_State *L )
 
 		// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
 		// joint->SetTarget( v );
-		b2MouseJoint_SetTarget( baseJoint, v );
+		// b2Transform localFrameB = b2Joint_GetLocalFrameB( baseJoint );
+		// localFrameB.p = b2Body_GetLocalPoint( b2Joint_GetBodyB( baseJoint ), v );
+		// b2Joint_SetLocalFrameA( baseJoint, localFrameB );
+		// b2Body_SetTargetTransform( b2Joint_GetBodyA( baseJoint ), { v, b2Rot_identity }, physics.GetTimeStep() );
+		b2Body_SetTransform( b2Joint_GetBodyA( baseJoint ), v, b2Rot_identity );
 	}
 
 	return 0;
@@ -659,6 +675,7 @@ PhysicsJoint::removeSelf( lua_State *L )
 		// destroyed after the world step (similar to body destruction cycle)
 		// baseJoint->SetUserData( UserdataWrapper::GetFinalizedValue() );
 		b2Joint_SetUserData( baseJoint, JointUserdataWrapper::GetFinalizedValue() );
+		// Box2D always wakes the attached bodies (previously wakeAttached = true).
 		b2DestroyJoint(baseJoint);
 	}
 
@@ -743,6 +760,20 @@ PhysicsJoint::ValueForKey( lua_State *L )
 		{
 			lua_pushboolean( L, b2Joint_GetCollideConnected(baseJoint) );
 		}
+		else if ( 0 == strcmp( "constraintFrequency", key ) )
+		{
+			float hertz;
+			float dampingRatio;
+			b2Joint_GetConstraintTuning( baseJoint, &hertz, &dampingRatio );
+			lua_pushnumber( L, hertz );
+		}
+		else if ( 0 == strcmp( "constraintDampingRatio", key ) )
+		{
+			float hertz;
+			float dampingRatio;
+			b2Joint_GetConstraintTuning( baseJoint, &hertz, &dampingRatio );
+			lua_pushnumber( L, dampingRatio );
+		}
 		else if ( 0 == strcmp( "getLocalAnchorA", key ) && ShouldGetLocalAnchor( jointType ) )
 		{
 			// lua_pushlightuserdata( L, (void*)GetLocalAnchorACallback( jointType ) );
@@ -797,7 +828,27 @@ PhysicsJoint::ValueForKey( lua_State *L )
 
 				// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
 
-				if ( 0 == strcmp( "isMotorEnabled", key ) )
+				if ( 0 == strcmp( "isSpringEnabled", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushboolean( L, b2RevoluteJoint_IsSpringEnabled( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springFrequency", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, b2RevoluteJoint_GetSpringHertz( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springDampingRatio", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, b2RevoluteJoint_GetSpringDampingRatio( baseJoint ) );
+				}
+				else if ( 0 == strcmp( "springTargetAngle", key ) )
+				{
+					CheckJointPropertyUnlocked( L );
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetTargetAngle( baseJoint ) ) ) );
+				}
+				else if ( 0 == strcmp( "isMotorEnabled", key ) )
 				{
 					lua_pushboolean( L, b2RevoluteJoint_IsMotorEnabled(baseJoint) );
 				}
@@ -819,9 +870,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RevoluteJoint_GetReferenceAngle(baseJoint) ) );
-					lua_pushnumber( L, valueDegrees );
+					CheckJointPropertyUnlocked( L );
+					// jointAngle = bodyAngleB - bodyAngleA - referenceAngle.
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "jointAngle", key ) )  // read-only
 				{
@@ -858,30 +911,58 @@ PhysicsJoint::ValueForKey( lua_State *L )
 
 				// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
 
-				if ( 0 == strcmp( "correctionFactor", key ) )
+				if ( 0 == strcmp( "maxSpringTorque", key ) )
 				{
-					lua_pushnumber( L, b2MotorJoint_GetCorrectionFactor(baseJoint) );
+					lua_pushnumber( L, b2MotorJoint_GetMaxSpringTorque(baseJoint) );
 				}
-				else if ( 0 == strcmp( "maxTorque", key ) )
+				else if ( 0 == strcmp( "maxVelocityTorque", key ) )
 				{
-					lua_pushnumber( L, b2MotorJoint_GetMaxTorque(baseJoint) );
+					lua_pushnumber( L, b2MotorJoint_GetMaxVelocityTorque(baseJoint) );
 				}
-				else if ( 0 == strcmp( "maxForce", key ) )
+				else if ( 0 == strcmp( "maxSpringForce", key ) || 0 == strcmp( "maxForce", key ) )
 				{
-					lua_pushnumber( L, b2MotorJoint_GetMaxForce(baseJoint) );
+					lua_pushnumber( L, b2MotorJoint_GetMaxSpringForce(baseJoint) );
 				}
-				else if ( 0 == strcmp( "angularOffset", key ) )
+				else if ( 0 == strcmp( "maxVelocityForce", key ) )
 				{
-					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2MotorJoint_GetAngularOffset(baseJoint) ) );
+					lua_pushnumber( L, b2MotorJoint_GetMaxVelocityForce(baseJoint) );
+				}
+				else if ( 0 == strcmp( "linearHertz", key ) || 0 == strcmp( "frequency", key ) )
+				{
+					lua_pushnumber( L, b2MotorJoint_GetLinearHertz(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angularHertz", key ) )
+				{
+					lua_pushnumber( L, b2MotorJoint_GetAngularHertz(baseJoint) );
+				}
+				else if ( 0 == strcmp( "linearDampingRatio", key ) || 0 == strcmp( "dampingRatio", key ) )
+				{
+					lua_pushnumber( L, b2MotorJoint_GetLinearDampingRatio(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angularDampingRatio", key ) )
+				{
+					lua_pushnumber( L, b2MotorJoint_GetAngularDampingRatio(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angularVelocity", key ) )
+				{
+					Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2MotorJoint_GetAngularVelocity(baseJoint) ) );
 					lua_pushnumber( L, valueDegrees );
 				}
-				else if ( strcmp( "setLinearOffset", key ) == 0 )
+				else if ( strcmp( "setLinearVelocity", key ) == 0 )
 				{
-					lua_pushcfunction( L, Self::setLinearOffset );
+					lua_pushcfunction( L, Self::setMotorJointLinearVelocity );
 				}
-				else if ( strcmp( "getLinearOffset", key ) == 0 )
+				else if ( strcmp( "getLinearVelocity", key ) == 0 )
 				{
-					lua_pushcfunction( L, Self::getLinearOffset );
+					lua_pushcfunction( L, Self::getMotorJointLinearVelocity );
+				}
+				else if ( strcmp( "setTarget", key ) == 0 )
+				{
+					lua_pushcfunction( L, Self::setTarget );
+				}
+				else if ( strcmp( "getTarget", key ) == 0 )
+				{
+					lua_pushcfunction( L, Self::getTarget );
 				}
 				else
 				{
@@ -925,22 +1006,23 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2PrismaticJoint_ ) );
-					// lua_pushnumber( L, valueDegrees );
+					CheckJointPropertyUnlocked( L );
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "jointTranslation", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetJointTranslation(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetTranslation(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
 					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
 					Real scale = physics.GetPixelsPerMeter();
-					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetMotorSpeed(baseJoint) ), scale );
+					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2PrismaticJoint_GetSpeed(baseJoint) ), scale );
 					lua_pushnumber( L, valuePixels );
 				}
 				else if ( 0 == strcmp( "isLimitEnabled", key ) )
@@ -1024,11 +1106,11 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				}
 				else if ( 0 == strcmp( "jointSpeed", key ) )  // read-only
 				{
-					const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
-					Real scale = physics.GetPixelsPerMeter();
+					// const PhysicsWorld& physics = LuaContext::GetRuntime( L )->GetPhysicsWorld();
+					// Real scale = physics.GetPixelsPerMeter();
 					// Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( joint->GetJointSpeed() ), scale );
-					Rtt_Real valuePixels = Rtt_RealMul( Rtt_FloatToReal( b2WheelJoint_GetMotorSpeed(baseJoint) ), scale );
-					lua_pushnumber( L, valuePixels );
+					// lua_pushnumber( L, valuePixels );
+					lua_pushnumber( L, 0.0f );
 				}
 				else if ( strcmp( "springFrequency", key ) == 0 )
 				{
@@ -1085,41 +1167,41 @@ PhysicsJoint::ValueForKey( lua_State *L )
 			// 		result = 0;
 			// 	}
 			// }
-			else if ( jointType == b2_mouseJoint )
-			{
-				//////////////////////////////////////////////////////////////////////////////
-				// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
-				// A touch joint is used for dragging objects without overriding the simulation;
-				// it creates an elastic link between the current touch point -- or any point submitted
-				// by the end developer using SetTarget() -- and the specified body
+			// else if ( jointType == b2_mouseJoint )
+			// {
+			// 	//////////////////////////////////////////////////////////////////////////////
+			// 	// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
+			// 	// A touch joint is used for dragging objects without overriding the simulation;
+			// 	// it creates an elastic link between the current touch point -- or any point submitted
+			// 	// by the end developer using SetTarget() -- and the specified body
 
-				// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+			// 	// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
 
-				if ( 0 == strcmp( "maxForce", key ) )
-				{
-					lua_pushnumber( L, b2MouseJoint_GetMaxForce(baseJoint) );
-				}
-				else if ( 0 == strcmp( "frequency", key ) )
-				{
-					lua_pushnumber( L, b2MouseJoint_GetSpringHertz(baseJoint) );
-				}
-				else if ( 0 == strcmp( "dampingRatio", key ) )
-				{
-					lua_pushnumber( L, b2MouseJoint_GetSpringDampingRatio(baseJoint) );
-				}
-				else if ( strcmp( "setTarget", key ) == 0 )
-				{
-					lua_pushcfunction( L, Self::setTarget );
-				}
-				else if ( strcmp( "getTarget", key ) == 0 )
-				{
-					lua_pushcfunction( L, Self::getTarget );
-				}
-				else
-				{
-					result = 0;
-				}
-			}
+			// 	if ( 0 == strcmp( "maxForce", key ) )
+			// 	{
+			// 		lua_pushnumber( L, b2MouseJoint_GetMaxForce(baseJoint) );
+			// 	}
+			// 	else if ( 0 == strcmp( "frequency", key ) )
+			// 	{
+			// 		lua_pushnumber( L, b2MouseJoint_GetSpringHertz(baseJoint) );
+			// 	}
+			// 	else if ( 0 == strcmp( "dampingRatio", key ) )
+			// 	{
+			// 		lua_pushnumber( L, b2MouseJoint_GetSpringDampingRatio(baseJoint) );
+			// 	}
+			// 	else if ( strcmp( "setTarget", key ) == 0 )
+			// 	{
+			// 		lua_pushcfunction( L, Self::setTarget );
+			// 	}
+			// 	else if ( strcmp( "getTarget", key ) == 0 )
+			// 	{
+			// 		lua_pushcfunction( L, Self::getTarget );
+			// 	}
+			// 	else
+			// 	{
+			// 		result = 0;
+			// 	}
+			// }
 			// else if ( jointType == e_gearJoint )
 			// {
 			// 	//////////////////////////////////////////////////////////////////////////////
@@ -1149,21 +1231,32 @@ PhysicsJoint::ValueForKey( lua_State *L )
 				//////////////////////////////////////////////////////////////////////////////
 				// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
 
-				if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
+				if ( 0 == strcmp( "referenceAngle", key ) )
 				{
-					// Rtt_Real valueDegrees = Rtt_RealRadiansToDegrees( Rtt_FloatToReal( joint->GetReferenceAngle() ) );
-					// lua_pushnumber( L, valueDegrees );
-					lua_pushnumber( L, 0.0f );
+					CheckJointPropertyUnlocked( L );
+					b2Rot frameA = b2Joint_GetLocalFrameA( baseJoint ).q;
+					b2Rot frameB = b2Joint_GetLocalFrameB( baseJoint ).q;
+					lua_pushnumber( L, Rtt_RealRadiansToDegrees( Rtt_FloatToReal( b2RelativeAngle( frameB, frameA ) ) ) );
 				}
 				else if ( 0 == strcmp( "frequency", key ) )
 				{
 					lua_pushnumber( L, b2WeldJoint_GetLinearHertz(baseJoint) );
-					// lua_pushnumber( L, b2WeldJoint_GetAngularHertz(baseJoint) );
 				}
 				else if ( 0 == strcmp( "dampingRatio", key ) )
 				{
 					lua_pushnumber( L, b2WeldJoint_GetLinearDampingRatio(baseJoint) );
-					// lua_pushnumber( L, b2WeldJoint_GetAngularDampingRatio(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angularFrequency", key ) )
+				{
+					lua_pushnumber( L, b2WeldJoint_GetAngularHertz(baseJoint) );
+				}
+				else if ( 0 == strcmp( "angulardampingRatio", key ) )
+				{
+					lua_pushnumber( L, b2WeldJoint_GetAngularDampingRatio(baseJoint) );
+				}
+				else if ( 0 == strcmp( "blockSolve", key ) )
+				{
+					lua_pushboolean( L, b2WeldJoint_IsBlockSolveEnabled( baseJoint ) );
 				}
 				else
 				{
@@ -1220,6 +1313,31 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 		{
 			// No-op for read-only property
 		}
+		else if ( 0 == strcmp( "constraintFrequency", key ) || 0 == strcmp( "constraintDampingRatio", key ) )
+		{
+			if ( lua_isnumber( L, 3 ) )
+			{
+				float hertz;
+				float dampingRatio;
+				b2Joint_GetConstraintTuning( baseJoint, &hertz, &dampingRatio );
+
+				float value = lua_tonumber( L, 3 );
+				if ( b2IsValidFloat( value ) && value >= 0.0f )
+				{
+					if ( 0 == strcmp( "constraintFrequency", key ) )
+					{
+						hertz = value;
+					}
+					else
+					{
+						dampingRatio = value;
+					}
+
+					b2Joint_SetConstraintTuning( baseJoint, hertz, dampingRatio );
+					b2Joint_WakeBodies( baseJoint );
+				}
+			}
+		}
 
 
 		if (jointType == b2_distanceJoint)
@@ -1270,35 +1388,68 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			//////////////////////////////////////////////////////////////////////////////
 			// This is exposed as a "pivot" joint in Corona (aka "revolute" in Box2D terms)
 
-			// b2MotorJoint *joint = (b2MotorJoint*)baseJoint;
-
-			if ( 0 == strcmp( "correctionFactor", key ) )
+			if ( 0 == strcmp( "maxSpringTorque", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					b2MotorJoint_SetCorrectionFactor( baseJoint, lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetMaxSpringTorque( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
-			else if ( 0 == strcmp( "maxTorque", key ) )
+			if ( 0 == strcmp( "maxVelocityTorque", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					b2MotorJoint_SetMaxTorque( baseJoint, lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetMaxVelocityTorque( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
-			else if ( 0 == strcmp( "maxForce", key ) )
+			else if ( 0 == strcmp( "maxSpringForce", key ) || 0 == strcmp( "maxForce", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
-					b2MotorJoint_SetMaxForce( baseJoint, lua_tonumber( L, 3 ) );
+					b2MotorJoint_SetMaxSpringForce( baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
-			else if ( 0 == strcmp( "angularOffset", key ) )
+			else if ( 0 == strcmp( "maxVelocityForce", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2MotorJoint_SetMaxVelocityForce( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "linearHertz", key ) || 0 == strcmp( "frequency", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2MotorJoint_SetLinearHertz( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularHertz", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2MotorJoint_SetAngularHertz( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "linearDampingRatio", key ) || 0 == strcmp( "dampingRatio", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2MotorJoint_SetLinearDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularDampingRatio", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2MotorJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularVelocity", key ) )
 			{
 				if ( lua_isnumber( L, 3 ) )
 				{
 					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
-					b2MotorJoint_SetAngularOffset( baseJoint, Rtt_RealToFloat( valueRadians ) );
+					b2MotorJoint_SetAngularVelocity( baseJoint, Rtt_RealToFloat( valueRadians ) );
 				}
 			}
 		}
@@ -1310,7 +1461,58 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 
 			// b2RevoluteJoint *joint = (b2RevoluteJoint*)baseJoint;
 
-			if ( 0 == strcmp( "isMotorEnabled", key ) )
+			if ( 0 == strcmp( "isSpringEnabled", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				luaL_checktype( L, 3, LUA_TBOOLEAN );
+				b2RevoluteJoint_EnableSpring( baseJoint, lua_toboolean( L, 3 ) );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springFrequency", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) || value < 0.0 || value > FLT_MAX )
+				{
+					return luaL_error( L, "%s must be a finite non-negative float", key );
+				}
+				b2RevoluteJoint_SetSpringHertz( baseJoint, (float)value );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springDampingRatio", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) || value < 0.0 || value > FLT_MAX )
+				{
+					return luaL_error( L, "%s must be a finite non-negative float", key );
+				}
+				b2RevoluteJoint_SetSpringDampingRatio( baseJoint, (float)value );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "springTargetAngle", key ) )
+			{
+				CheckJointPropertyUnlocked( L );
+				double value = luaL_checknumber( L, 3 );
+				if ( ! std::isfinite( value ) )
+				{
+					return luaL_error( L, "%s must be finite", key );
+				}
+				// Match the periodic spring error without changing the reference or limits.
+				value = std::fmod( value, 360.0 );
+				if ( value > 180.0 )
+				{
+					value -= 360.0;
+				}
+				if ( value < -180.0 )
+				{
+					value += 360.0;
+				}
+				Rtt_Real valueRadians = Rtt_RealDegreesToRadians( Rtt_FloatToReal( value ) );
+				b2RevoluteJoint_SetTargetAngle( baseJoint, Rtt_RealToFloat( valueRadians ) );
+				b2Joint_WakeBodies( baseJoint );
+			}
+			else if ( 0 == strcmp( "isMotorEnabled", key ) )
 			{
 				if ( lua_isboolean( L, 3 ) )
 				{
@@ -1537,38 +1739,38 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 
 		// }
 
-		else if ( jointType == b2_mouseJoint )
-		{
-			//////////////////////////////////////////////////////////////////////////////
-			// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
-			// A touch joint is used for dragging objects without overriding the simulation;
-			// it creates an elastic link between the current touch point -- or any point submitted
-			// by the end developer using SetTarget() -- and the specified body
+		// else if ( jointType == b2_mouseJoint )
+		// {
+		// 	//////////////////////////////////////////////////////////////////////////////
+		// 	// This is exposed as a "touch" joint in Corona (aka "mouse joint" in Box2D terms)
+		// 	// A touch joint is used for dragging objects without overriding the simulation;
+		// 	// it creates an elastic link between the current touch point -- or any point submitted
+		// 	// by the end developer using SetTarget() -- and the specified body
 
-			// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
+		// 	// b2MouseJoint *joint = (b2MouseJoint*)baseJoint;
 
-			if ( 0 == strcmp( "maxForce", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					b2MouseJoint_SetMaxForce( baseJoint, lua_tonumber( L, 3 ) );
-				}
-			}
-			else if ( 0 == strcmp( "frequency", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					b2MouseJoint_SetSpringHertz( baseJoint, lua_tonumber( L, 3 ) );
-				}
-			}
-			else if ( 0 == strcmp( "dampingRatio", key ) )
-			{
-				if ( lua_isnumber( L, 3 ) )
-				{
-					b2MouseJoint_SetSpringDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
-				}
-			}
-		}
+		// 	if ( 0 == strcmp( "maxForce", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			b2MouseJoint_SetMaxForce( baseJoint, lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// 	else if ( 0 == strcmp( "frequency", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			b2MouseJoint_SetSpringHertz( baseJoint, lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// 	else if ( 0 == strcmp( "dampingRatio", key ) )
+		// 	{
+		// 		if ( lua_isnumber( L, 3 ) )
+		// 		{
+		// 			b2MouseJoint_SetSpringDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+		// 		}
+		// 	}
+		// }
 
 		// else if ( jointType == e_gearJoint )
 		// {
@@ -1597,9 +1799,17 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 			//////////////////////////////////////////////////////////////////////////////
 			// b2WeldJoint *joint = (b2WeldJoint*)baseJoint;
 
-			if ( 0 == strcmp( "referenceAngle", key ) )  // read-only
+			if ( 0 == strcmp( "referenceAngle", key ) )
 			{
 				// No-op for read-only property
+				if ( lua_isnumber( L, 3 ) )
+				{
+					Rtt_Real valueRadians = Rtt_RealDegreesToRadians( luaL_toreal( L, 3 ) );
+					// b2Joint_SetReferenceAngle( baseJoint, Rtt_RealToFloat( valueRadians ) );
+					b2Transform localFrameA = b2Joint_GetLocalFrameA( baseJoint );
+					localFrameA.q = b2MakeRot( Rtt_RealToFloat( valueRadians ) );
+					b2Joint_SetLocalFrameA( baseJoint, localFrameA );
+				}
 			}
 			else if ( 0 == strcmp( "frequency", key ) )
 			{
@@ -1607,7 +1817,6 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				{
 					// joint->SetFrequency( lua_tonumber( L, 3 ) );
 					b2WeldJoint_SetLinearHertz( baseJoint, lua_tonumber( L, 3 ) );
-					// b2WeldJoint_SetAngularHertz(baseJoint, lua_tonumber( L, 3 ) );
 				}
 			}
 			else if ( 0 == strcmp( "dampingRatio", key ) )
@@ -1616,7 +1825,28 @@ PhysicsJoint::SetValueForKey( lua_State *L )
 				{
 					// joint->SetDampingRatio( lua_tonumber( L, 3 ) );
 					b2WeldJoint_SetLinearDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
-					// b2WeldJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularFrequency", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2WeldJoint_SetAngularHertz(baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "angularDampingRatio", key ) )
+			{
+				if ( lua_isnumber( L, 3 ) )
+				{
+					b2WeldJoint_SetAngularDampingRatio( baseJoint, lua_tonumber( L, 3 ) );
+				}
+			}
+			else if ( 0 == strcmp( "blockSolve", key ) )
+			{
+				if ( lua_isboolean( L, 3 ) )
+				{
+					b2WeldJoint_EnableBlockSolve( baseJoint, lua_toboolean( L, 3 ) );
+					b2Joint_WakeBodies( baseJoint );
 				}
 			}
 		}

@@ -18,9 +18,11 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.Insets;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.WindowInsets;
 import android.view.animation.AlphaAnimation;
 import android.view.Window;
 import android.view.WindowManager;
@@ -75,6 +77,9 @@ public class CoronaActivity extends Activity {
 
 	/** Sends CoronaRuntimeTask objects to the Corona runtime's EventManager in a thread safe manner. */
 	private CoronaRuntimeTaskDispatcher myRuntimeTaskDispatcher = null;
+
+	/** Tracks whether a back event came from OnBackInvokedCallback (API 33+) and is awaiting Lua resolution. */
+	private boolean mBackInvokedPending = false;
 
 	/** The "screen orientation" constant in class ActivityInfo defined in AndroidManifest.xml. */
 	private int myInitialOrientationSetting = android.content.pm.ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED;
@@ -204,14 +209,22 @@ public class CoronaActivity extends Activity {
 		myInitialIntent = getIntent();
 
 		// Fetch this activity's meta-data from the manifest.
-		boolean isKeyboardAppPanningEnabled = false;
+		boolean isKeyboardAppPanningEnabled = false, wantsDepthBuffer = false, wantsStencilBuffer = false;
 		try {
+			android.content.pm.ApplicationInfo applicationInfo;
+			applicationInfo = getPackageManager().getApplicationInfo(
+					getPackageName(), android.content.pm.PackageManager.GET_META_DATA);
+			if (applicationInfo != null && applicationInfo.metaData != null) {
+				wantsDepthBuffer = applicationInfo.metaData.getBoolean( "wantsDepthBuffer" );
+				wantsStencilBuffer = applicationInfo.metaData.getBoolean( "wantsStencilBuffer" );
+			}
 			android.content.pm.ActivityInfo activityInfo;
 			activityInfo = getPackageManager().getActivityInfo(
 					getComponentName(), android.content.pm.PackageManager.GET_META_DATA);
 			if ((activityInfo != null) && (activityInfo.metaData != null)) {
 				isKeyboardAppPanningEnabled =
 						activityInfo.metaData.getBoolean("coronaWindowMovesWhenKeyboardAppears");
+
 			}
 		}
 		catch (Exception ex) {
@@ -250,7 +263,7 @@ public class CoronaActivity extends Activity {
 		CoronaEnvironment.setCoronaActivity(this);
 
 		// Create our CoronaRuntime, which also initializes the native side of the CoronaRuntime.
-		fCoronaRuntime = new CoronaRuntime(this, false);
+		fCoronaRuntime = new CoronaRuntime(this, false, wantsDepthBuffer, wantsStencilBuffer);
 
 		// Set initialSystemUiVisibility before splashScreen comes up
 		try {
@@ -351,6 +364,11 @@ public class CoronaActivity extends Activity {
 		// another permission in that group after access to the group has been granted.
 		if (android.os.Build.VERSION.SDK_INT >= 23) {
 			syncPermissionStateForAllPermissions();
+		}
+
+		// Register back key handler for Android 13+ predictive back gesture system.
+		if (android.os.Build.VERSION.SDK_INT >= 33) {
+			ApiLevel33.registerBackCallback(this);
 		}
 
 	}
@@ -1246,10 +1264,17 @@ public class CoronaActivity extends Activity {
 	/**
 	 * Returns true if device HAS software navigation bar or false if it hasn't
 	 */
-	public boolean HasSoftwareKeys()
-	{
+	public boolean HasSoftwareKeys() {
 		boolean hasSoftwareKeys = true;
-		if (android.os.Build.VERSION.SDK_INT>=android.os.Build.VERSION_CODES.JELLY_BEAN_MR1){
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+			WindowInsets insets = getWindowManager()
+					.getCurrentWindowMetrics()
+					.getWindowInsets();
+
+			// Check if navigation bar insets exist
+			Insets navBarInsets = insets.getInsets(WindowInsets.Type.navigationBars());
+			hasSoftwareKeys = navBarInsets.bottom > 0 || navBarInsets.right > 0;
+		}else if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1){
 			android.view.Display display = getWindowManager().getDefaultDisplay();
 
 			android.util.DisplayMetrics realDisplayMetrics = new android.util.DisplayMetrics();
@@ -2273,14 +2298,17 @@ public class CoronaActivity extends Activity {
 	 * @param destinationFilePath The path\file name to copy the selected photo to. Can be set null.
 	 */
 	// TODO: Have this convert the image to the proper format per this bug: http://bugs.coronalabs.com/default.asp?45777
-	void showSelectImageWindowUsing(String destinationFilePath) {
+	void showSelectImageWindowUsing(String destinationFilePath, int maxSelection) {
 		// Set up the activity result handler.
 		SelectImageActivityResultHandler handler = new SelectImageActivityResultHandler(fCoronaRuntime);
 		handler.setDestinationFilePath(destinationFilePath);
+		handler.setMaxSelection(maxSelection);
 		int requestCode = registerActivityResultHandler(handler);
 
 		// Display the photo selection window.
 		android.content.Intent intent = new android.content.Intent(android.content.Intent.ACTION_GET_CONTENT);
+		intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, maxSelection > 1);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
 		intent.setType("image/*");
 		intent = android.content.Intent.createChooser(intent, "");
 		startActivityForResult(intent, requestCode);
@@ -2349,12 +2377,15 @@ public class CoronaActivity extends Activity {
 		/** The path and file name to save the selected image to. */
 		private String fDestinationFilePath;
 
+		private int fMaxSelection;
+
 		private CoronaRuntime fCoronaRuntime;
 
 		/** Creates a new activity result handler. */
 		public SelectMediaActivityResultHandler(CoronaRuntime runtime, String extension, String fileName) {
 			fCoronaRuntime = runtime;
 			fDestinationFilePath = null;
+			fMaxSelection = 1;
 			fDefaultExtention = extension;
 			fGenericFileName = fileName + " %d";
 		}
@@ -2367,6 +2398,10 @@ public class CoronaActivity extends Activity {
 		 */
 		public void setDestinationFilePath(String filePath) {
 			fDestinationFilePath = filePath;
+		}
+
+		public void setMaxSelection(int value) {
+			fMaxSelection = value;
 		}
 
 		/**
@@ -2384,28 +2419,47 @@ public class CoronaActivity extends Activity {
 			activity.unregisterActivityResultHandler(this);
 
 			// Fetch the selected photo's URI.
-			android.net.Uri uri = null;
+			// android.net.Uri uri = null;
+			java.util.ArrayList<android.net.Uri> selectUris = null;
 			if (data != null) {
-				uri = data.getData();
+				// uri = data.getData();
+				selectUris = new java.util.ArrayList<android.net.Uri>();
+				if (data.getClipData() != null) {
+					for(int i = 0; i < data.getClipData().getItemCount(); i++) {
+						selectUris.add(data.getClipData().getItemAt(i).getUri());
+					}
+				} else {
+					selectUris.add(data.getData());
+				}
 			}
-			final android.net.Uri finalUri = uri;
+			// final android.net.Uri finalUri = uri;
+			final java.util.ArrayList<android.net.Uri> finalSelectUris = selectUris;
 			// Fetch the destination file path, if provided.
 			java.io.File destinationFile = null;
+			String filePathWithoutExtension = null;
+			String ext = null;
 			if ((fDestinationFilePath != null) && (fDestinationFilePath.length() > 0)) {
 				destinationFile = new java.io.File(fDestinationFilePath);
+				int lastIndexOfDot = fDestinationFilePath.lastIndexOf(".");
+				filePathWithoutExtension = fDestinationFilePath.substring(0, lastIndexOfDot);
+				ext = fDestinationFilePath.substring(lastIndexOfDot);
 			}
 			final java.io.File finalDestinationFile = destinationFile;
+			final String finalDestFilePathWithoutExt = filePathWithoutExtension;
+			final String finalExt = ext;
+			final int finalMaxSelection = fMaxSelection;
 			fDestinationFilePath = null;
 
 			// Do not continue if a photo was not selected.
-			if ((resultCode != RESULT_OK) || (finalUri == null)) {
+			if ((resultCode != RESULT_OK) || (selectUris == null)) {
 				// Sending an empty/null string indicates that the user canceled out.
 				if (fCoronaRuntime != null) {
 					// A duration and size of -1 will result in nil being pushed to lua
-					fCoronaRuntime.getTaskDispatcher().send(this.generateEvent(null, -1, -1));
+					fCoronaRuntime.getTaskDispatcher().send(this.generateEvent(null, -1, -1, 0));
 				}
 				return;
 			}
+
 
 			// Acquire the selected photo asynchronously.
 			Thread asyncOperation = new Thread(new Runnable() {
@@ -2421,78 +2475,92 @@ public class CoronaActivity extends Activity {
 					com.ansca.corona.storage.FileServices fileServices;
 					fileServices = new com.ansca.corona.storage.FileServices(context);
 
-					// Fetch the selected image's local file path.
-					java.io.File sourceMediaFile = null;
-					String sourceMediaExtension = null;
+					String firstSelectedMediaFilePath = null;
 					long fileSize = -1;
-					boolean isContentUri = false;
-					try {
-						String scheme = finalUri.getScheme();
-						if (android.content.ContentResolver.SCHEME_FILE.equals(scheme)) {
-							sourceMediaFile = new java.io.File(finalUri.getPath());
-							if (sourceMediaFile.exists()) {
-								fileSize = sourceMediaFile.length();
+					int multipleFilesCount = finalSelectUris.size();
+					multipleFilesCount = multipleFilesCount < finalMaxSelection ? multipleFilesCount : finalMaxSelection;
+					for (int i = 0; i < multipleFilesCount; i++) {
+					    android.net.Uri finalUri = finalSelectUris.get(i);
+						// Fetch the selected image's local file path.
+						java.io.File sourceMediaFile = null;
+						String sourceMediaExtension = null;
+						boolean isContentUri = false;
+						try {
+							String scheme = finalUri.getScheme();
+							if (android.content.ContentResolver.SCHEME_FILE.equals(scheme)) {
+								sourceMediaFile = new java.io.File(finalUri.getPath());
+								if (sourceMediaFile.exists()) {
+									fileSize = sourceMediaFile.length();
+								}
+							}
+							else if (android.content.ContentResolver.SCHEME_CONTENT.equals(scheme)) {
+								isContentUri = true;
+								String[] filePathColumn = getColumns();
+								android.database.Cursor cursor = context.getContentResolver().query(
+										finalUri, filePathColumn, null, null, null);
+								cursor.moveToFirst();
+								int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
+								String filePath = cursor.getString(columnIndex);
+
+								int columnIndex1 = cursor.getColumnIndex(filePathColumn[1]);
+								fileSize = cursor.getLong(columnIndex1);
+								cursor.close();
+								sourceMediaFile = new java.io.File(filePath);
 							}
 						}
-						else if (android.content.ContentResolver.SCHEME_CONTENT.equals(scheme)) {
-							isContentUri = true;
-							String[] filePathColumn = getColumns();
-							android.database.Cursor cursor = context.getContentResolver().query(
-									finalUri, filePathColumn, null, null, null);
-							cursor.moveToFirst();
-							int columnIndex = cursor.getColumnIndex(filePathColumn[0]);
-							String filePath = cursor.getString(columnIndex);
+						catch (Exception ex) { }
 
-							int columnIndex1 = cursor.getColumnIndex(filePathColumn[1]);
-							fileSize = cursor.getLong(columnIndex1);
-							cursor.close();
-							sourceMediaFile = new java.io.File(filePath);
-						}
-					}
-					catch (Exception ex) { }
-
-					if (sourceMediaFile != null) {
-						sourceMediaExtension = fileServices.getExtensionFrom(sourceMediaFile);
-						if (sourceMediaFile.exists() == false) {
-							sourceMediaFile = null;
-						}
-					}
-
-					// Copy the source image file, if necessary.
-					String selectedMediaFilePath = "";
-					if ((sourceMediaFile != null) && sourceMediaFile.exists()) {
-						// Copy the local file if a destination path was provided.
-						if (finalDestinationFile != null) {
-							boolean wasCopied = fileServices.copyFile(sourceMediaFile, finalDestinationFile);
-							if (wasCopied) {
-								selectedMediaFilePath = finalDestinationFile.getAbsolutePath();
+						if (sourceMediaFile != null) {
+							sourceMediaExtension = fileServices.getExtensionFrom(sourceMediaFile);
+							if (sourceMediaFile.exists() == false) {
+								sourceMediaFile = null;
 							}
 						}
-						else {
-							selectedMediaFilePath = sourceMediaFile.getAbsolutePath();
-						}
-					}
-					else if (isContentUri) {
-						String extension = fDefaultExtention;
-						if (sourceMediaExtension != null) {
-							extension = sourceMediaExtension;
+
+						java.io.File currentDestinationFile = finalDestinationFile;
+						if (i > 0 && finalDestinationFile != null) {
+							String currentPath = String.format("%s_%d%s", finalDestFilePathWithoutExt, i + 1, finalExt);
+							currentDestinationFile = new java.io.File(currentPath);
 						}
 
-						selectedMediaFilePath = handleContentUri(finalUri, finalDestinationFile, context, extension);
-					}
+						// Copy the source image file, if necessary.
+						String selectedMediaFilePath = "";
+						if ((sourceMediaFile != null) && sourceMediaFile.exists()) {
+							// Copy the local file if a destination path was provided.
+							if (currentDestinationFile != null) {
+								boolean wasCopied = fileServices.copyFile(sourceMediaFile, currentDestinationFile);
+								if (wasCopied) {
+									selectedMediaFilePath = currentDestinationFile.getAbsolutePath();
+								}
+							}
+							else {
+								selectedMediaFilePath = sourceMediaFile.getAbsolutePath();
+							}
+						}
+						else if (isContentUri) {
+							String extension = fDefaultExtention;
+							if (sourceMediaExtension != null) {
+								extension = sourceMediaExtension;
+							}
 
+							selectedMediaFilePath = handleContentUri(finalUri, currentDestinationFile, context, extension);
+						}
+						if (firstSelectedMediaFilePath == null) {
+							firstSelectedMediaFilePath = selectedMediaFilePath;
+						}
+					}
 					// Send the result to the Lua listener.
 					// Sending an empty/null string indicates that the user canceled out.
 					if (fCoronaRuntime != null) {
-						int duration = getDurationOfVideo(selectedMediaFilePath);
-						fCoronaRuntime.getTaskDispatcher().send(generateEvent(selectedMediaFilePath, duration, fileSize));
+						int duration = getDurationOfVideo(firstSelectedMediaFilePath);
+						fCoronaRuntime.getTaskDispatcher().send(generateEvent(firstSelectedMediaFilePath, duration, fileSize, multipleFilesCount));
 					}
 				}
 			});
 			asyncOperation.start();
 		}
 
-		abstract protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size);
+		abstract protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size, int multipleFilesCount);
 
 		/**
 		 * Get the columns to get if the returned Uri is a content scheme
@@ -2518,8 +2586,8 @@ public class CoronaActivity extends Activity {
 		}
 
 		@Override
-		protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size) {
-			return new com.ansca.corona.events.ImagePickerTask(fileName);
+		protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size, int multipleFilesCount) {
+			return new com.ansca.corona.events.ImagePickerTask(fileName, multipleFilesCount);
 		}
 
 		@Override
@@ -2569,7 +2637,7 @@ public class CoronaActivity extends Activity {
 		}
 
 		@Override
-		protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size) {
+		protected com.ansca.corona.events.MediaPickerTask generateEvent(String fileName, int duration, long size, int multipleFilesCount) {
 			return new com.ansca.corona.events.VideoPickerTask(fileName, duration, size);
 		}
 
@@ -2673,7 +2741,7 @@ public class CoronaActivity extends Activity {
 				return;
 			}
 
-			activity.showSelectImageWindowUsing(getDestinationFilePath());
+			activity.showSelectImageWindowUsing(getDestinationFilePath(), 1);
 		}
 
 		@Override
@@ -3358,6 +3426,44 @@ public class CoronaActivity extends Activity {
 	 *              modifiers such as Shift/Ctrl, and the device it came from.
 	 * @return Returns true if the key event was handled. Returns false if not.
 	 */
+
+	/**
+	 * Called by the OnBackInvokedCallback on Android 13+ when the user triggers the back gesture.
+	 * Replicates the onKeyDown(KEYCODE_BACK) flow: child views first, then Lua, then default.
+	 */
+	void onBackInvokedHandler() {
+		// Clear any stale pending state from a previous back event.
+		mBackInvokedPending = false;
+
+		// Let child views (e.g. web views) handle navigation first.
+		if (fCoronaRuntime != null) {
+			ViewManager viewManager = fCoronaRuntime.getViewManager();
+			if (viewManager != null && viewManager.goBack()) {
+				return;
+			}
+		}
+
+		// Send synthetic KEY_DOWN and KEY_UP to Lua via the input handler, mirroring what the
+		// system would deliver for a physical back key press.  Both are queued to the same
+		// runtime task queue, so Lua receives them in order.
+		long now = android.os.SystemClock.uptimeMillis();
+		android.view.KeyEvent backDown = new android.view.KeyEvent(
+				now, now, android.view.KeyEvent.ACTION_DOWN, android.view.KeyEvent.KEYCODE_BACK, 0);
+		android.view.KeyEvent backUp = new android.view.KeyEvent(
+				now, now, android.view.KeyEvent.ACTION_UP, android.view.KeyEvent.KEYCODE_BACK, 0);
+		boolean sentToLua = myInputHandler.handle(backDown);
+		myInputHandler.handle(backUp);
+		if (sentToLua) {
+			// Lua processes async; when it does not handle the UP event, RaiseKeyEventTask
+			// dispatches a CoronaKeyEvent back via dispatchKeyEvent().  onKeyUp() will
+			// detect mBackInvokedPending and call onBackPressed() at that point.
+			mBackInvokedPending = true;
+		} else {
+			// Runtime not yet started; perform the default back action immediately.
+			onBackPressed();
+		}
+	}
+
 	@Override
 	public boolean onKeyDown(int keyCode, android.view.KeyEvent event) {
 		// Send the key event to Corona's input handler and Lua listeners first, if not already received.
@@ -3401,8 +3507,18 @@ public class CoronaActivity extends Activity {
 			if (viewManager != null) {
 				boolean hasChildViewOverridenBackKey = viewManager.goBack();
 				if (hasChildViewOverridenBackKey) {
+					mBackInvokedPending = false;
 					return true;
 				}
+			}
+
+			// On Android 13+, back events arrive via OnBackInvokedCallback rather than as system
+			// key events.  Consume the CoronaKeyEvent DOWN here; onBackPressed() will be called
+			// from onKeyUp() when the paired CoronaKeyEvent UP is received unhandled by Lua.
+			if (android.os.Build.VERSION.SDK_INT >= 33
+					&& mBackInvokedPending
+					&& event instanceof com.ansca.corona.input.CoronaKeyEvent) {
+				return true;
 			}
 		}
 
@@ -3431,6 +3547,18 @@ public class CoronaActivity extends Activity {
 		}
 
 		// Corona's Lua listeners have not overriden the key event.
+
+		// On Android 13+, when the CoronaKeyEvent UP for a back gesture returns unhandled from Lua,
+		// perform the default back action (mirrors the old KEY_UP tracking + onBackPressed() path).
+		if (android.os.Build.VERSION.SDK_INT >= 33
+				&& mBackInvokedPending
+				&& keyCode == android.view.KeyEvent.KEYCODE_BACK
+				&& event instanceof com.ansca.corona.input.CoronaKeyEvent) {
+			mBackInvokedPending = false;
+			onBackPressed();
+			return true;
+		}
+
 		// Perform the default handling for the received event.
 		return super.onKeyUp(keyCode, event);
 	}
@@ -3823,6 +3951,26 @@ public class CoronaActivity extends Activity {
 					}));
 				}
 			}
+		}
+	}
+
+	/**
+	 * Provides access to Android 13 (API 33) back-navigation features.
+	 * Only accessed when running on API 33 or higher.
+	 */
+	private static class ApiLevel33 {
+		private ApiLevel33() {}
+
+		static void registerBackCallback(final CoronaActivity activity) {
+			activity.getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
+				android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT,
+				new android.window.OnBackInvokedCallback() {
+					@Override
+					public void onBackInvoked() {
+						activity.onBackInvokedHandler();
+					}
+				}
+			);
 		}
 	}
 }
