@@ -415,7 +415,7 @@ DisplayPath::ExtensionAdapter::getAttributeDetails( lua_State *L )
             }
             
             lua_setfield( L, -2, "type" );
-            lua_pushinteger( L, attribute.components );
+            lua_pushinteger( L, attribute.GetComponentCount() );
             lua_setfield( L, -2, "components" );
             lua_pushinteger( L, attribute.offset );
             lua_setfield( L, -2, "offset" );
@@ -485,7 +485,7 @@ DisplayPath::ExtensionAdapter::setAttributeValue( lua_State *L )
             const FormatExtensionList::Attribute& attribute = extensionList->GetAttributes()[nameIndex];
             U8 data[4 * 8] = {}; // 4 components, up to double-type
             
-            for (U32 i = 0; i < attribute.components; ++i)
+            for (U32 i = 0, iMax = attribute.GetComponentCount(); i < iMax; i++)
             {
                 if (i > 0 && lua_isnoneornil( L, nextArg ))
                 {
@@ -652,12 +652,12 @@ DisplayPath::ExtensionAdapter::setAttributeValues( lua_State *L )
     }
 
     lua_getfield( L, optionsIndex, "componentCount" );
-    int componentCount = lua_isnoneornil( L, -1 ) ? attribute.components : luaL_checkint( L, -1 );
+    int componentCount = lua_isnoneornil( L, -1 ) ? attribute.GetComponentCount() : luaL_checkint( L, -1 );
     lua_pop( L, 1 );
 
-    if (componentCount <= 0 || componentCount > attribute.components)
+    if (componentCount <= 0 || componentCount > attribute.GetComponentCount())
     {
-        CoronaLuaWarning( L, "componentCount for attribute %s must be between 1 and %u.", name, attribute.components );
+        CoronaLuaWarning( L, "componentCount for attribute %s must be between 1 and %u.", name, attribute.GetComponentCount() );
         return 0;
     }
 
