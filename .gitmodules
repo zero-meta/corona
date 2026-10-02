@@ -48,7 +48,7 @@
 	branch = master
 [submodule "simulator-extensions/welcomescreen"]
 	path = simulator-extensions/welcomescreen
-	url = https://github.com/coronalabs/submodule-welcomescreen.git
+	url = https://github.com/zero-meta/submodule-welcomescreen.git
 	branch = master
 [submodule "subrepos/enterprise"]
 	path = subrepos/enterprise

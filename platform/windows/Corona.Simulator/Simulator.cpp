@@ -34,6 +34,7 @@
 #include "Rtt_Version.h"    // Rtt_STRING_BUILD and Rtt_STRING_BUILD_DATE
 #include "Rtt_SimulatorAnalytics.h"
 #include "Rtt_JavaHost.h"   // GetJavaHome()
+#include <ios>
 
 
 #ifdef _DEBUG
