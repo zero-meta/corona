@@ -10,6 +10,7 @@
 #include "Core/Rtt_Build.h"
 
 #include "Rtt_IPhoneWebViewObject.h"
+#include "Rtt_IPhoneOrientation.h"
 
 #import <UIKit/UIKit.h>
 #include <math.h>
@@ -204,7 +205,7 @@ NSString * const kOnLoadedJSCode = JS(
 		// which should have access to the view controller, and thus the interfaceOrientation.
 		AppDelegate *delegate = (AppDelegate *)[UIApplication sharedApplication].delegate;
 		UIViewController *viewController = delegate.viewController;
-		initialOrientation = viewController.interfaceOrientation;
+		initialOrientation = Rtt::IPhoneOrientation::CurrentInterfaceOrientation( viewController.view );
 
 		[self addSubview:fWebView];
 		[self addSubview:fActivityView];
